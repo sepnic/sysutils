@@ -37,9 +37,18 @@ extern "C" {
 typedef struct looper *looper_t;
 struct message;
 
+enum message_status {
+    MESSAGE_NEW = 0,
+    MESSAGE_PENDING,
+    MESSAGE_RUNNING,
+    MESSAGE_COMPLETED,
+    MESSAGE_TIMEOUT,
+    MESSAGE_DESTROY,
+};
+
 typedef void (*message_handle_cb)(struct message *msg); // handle callback
 typedef void (*message_free_cb)(struct message *msg);   // free callback to free msg->data
-typedef void (*message_timeout_cb)(struct message *msg);// timeout callback
+typedef void (*message_notify_cb)(struct message *msg, enum message_status status); // notify callback
 typedef bool (*message_match_cb)(struct message *msg);  // match callback
 
 /** Please use message_obtain()/message_obtain2() to allocate a message
@@ -65,18 +74,16 @@ struct message {
     int arg1;
     int arg2;
     void *data;
+    unsigned long timeout_ms; // 0: means never timeout
 
     message_handle_cb handle_cb;
     message_free_cb free_cb;
-
-    unsigned long timeout_ms; // 0: means never timeout
-    message_timeout_cb timeout_cb;
+    message_notify_cb notify_cb;
 };
 
 struct message *message_obtain(int what, int arg1, int arg2, void *data);
-struct message *message_obtain2(int what, int arg1, int arg2, void *data,
-                                message_handle_cb handle_cb, message_free_cb free_cb,
-                                unsigned long timeout_ms, message_timeout_cb timeout_cb);
+struct message *message_obtain2(int what, int arg1, int arg2, void *data, unsigned long timeout_ms,
+                                message_handle_cb handle_cb, message_free_cb free_cb, message_notify_cb notify_cb);
 
 looper_t looper_create(struct os_threadattr *attr, message_handle_cb handle_cb, message_free_cb free_cb);
 void looper_destroy(looper_t looper);

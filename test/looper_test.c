@@ -45,9 +45,10 @@ static void msg_free(struct message *msg)
     exit(-1);
 }*/
 
-static void msg_timeout(struct message *msg)
+static void msg_notify(struct message *msg, enum message_status status)
 {
-    OS_LOGE(LOG_TAG, "Message what=[%d] timeout", msg->what);
+    if (status == MESSAGE_TIMEOUT)
+        OS_LOGE(LOG_TAG, "Message what=[%d] timeout", msg->what);
 }
 
 int main()
@@ -70,9 +71,9 @@ int main()
         private->val = 1000;
         private->str = OS_STRDUP("looper_post_message_delay 3S");
         // timeout 3 seconds
-        msg = message_obtain2(1000, 0, 0, private, NULL, NULL, 3000, msg_timeout);
+        msg = message_obtain2(1000, 0, 0, private, 3000, NULL, NULL, msg_notify);
         //msg->timeout_ms = 3001;
-        //msg->timeout_fn = msg_timeout;
+        //msg->timeout_fn = msg_notify;
         looper_post_message_delay(looper, msg, 3000); // delay 3 seconds
     }
 
@@ -108,9 +109,9 @@ int main()
         struct private_data *private = OS_MALLOC(sizeof(struct  private_data));
         private->val = -1;
         private->str = OS_STRDUP("looper_enable_watchdog, looper_post_message");
-        msg = message_obtain2(-1, 0, 0, private, msg_sleep_handle, NULL, 0, NULL);
+        msg = message_obtain2(-1, 0, 0, private, 0, msg_sleep_handle, NULL, NULL);
         looper_post_message(looper, msg);
-        looper_enable_watchdog(looper, 1000, NULL, msg); // watchdog 1000ms timeout
+        //looper_enable_watchdog(looper, 1000, NULL, msg); // watchdog 1000ms timeout
     }
 
     looper_dump(looper);

@@ -27,7 +27,11 @@
 #include <sys/time.h>
 #include "include/os_timer.h"
 
-#if defined(OS_LINUX) || defined(OS_ANDROID)
+#if defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_FREERTOS)
+
+#if defined(OS_FREERTOS)
+#include "FreeRTOS_POSIX/time.h"
+#endif
 
 #include <signal.h>
 
@@ -167,41 +171,4 @@ void OS_TIMER_DESTROY(os_timer_t timer)
     swtimer_destroy((swtimer_t)timer);
 }
 
-#elif defined(OS_FREERTOS)
-
-#include "FreeRTOS.h"
-#include "task.h"
-#include "timers.h"
-
-os_timer_t OS_TIMER_CREATE(struct os_timerattr *attr, void (*cb)())
-{
-    TimerHandle_t handle = xTimerCreate(attr->name, attr->period_ms/portTICK_PERIOD_MS, attr->reload, NULL, cb);
-    return (os_timer_t)handle;
-}
-
-int OS_TIMER_START(os_timer_t timer)
-{
-    TimerHandle_t handle = (TimerHandle_t)timer;
-    BaseType_t ret = xTimerStart(handle, 0);
-    return ret == pdPASS ? 0 : -1;
-}
-
-int OS_TIMER_STOP(os_timer_t timer)
-{
-    TimerHandle_t handle = (TimerHandle_t)timer;
-    BaseType_t ret = xTimerStop(handle, 0);
-    return ret == pdPASS ? 0 : -1;
-}
-
-bool OS_TIMER_IS_ACTIVE(os_timer_t timer)
-{
-    BaseType_t ret = xTimerIsTimerActive((TimerHandle_t)timer);
-    return ret == pdTRUE ? true : false;
-}
-
-void OS_TIMER_DESTROY(os_timer_t timer)
-{
-    xTimerDelete((TimerHandle_t)timer, 0);
-}
-
-#endif // #if defined(OS_FREERTOS)
+#endif

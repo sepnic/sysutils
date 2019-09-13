@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,6 +37,7 @@ typedef void *os_mutex_t;
 typedef void *os_cond_t;
 
 enum os_threadprio {
+    OS_THREAD_PRIO_INVALID,
     OS_THREAD_PRIO_HARD_REALTIME,
     OS_THREAD_PRIO_SOFT_REALTIME,
     OS_THREAD_PRIO_HIGH,
@@ -50,6 +52,7 @@ struct os_threadattr {
     const char *name;
     enum os_threadprio priority;
     unsigned int stacksize;
+    bool joinable;
 };
 
 void OS_ENTER_CRITICAL();
@@ -59,8 +62,10 @@ void OS_THREAD_SLEEP_USEC(unsigned long usec);
 void OS_THREAD_SLEEP_MSEC(unsigned long msec);
 
 os_thread_t OS_THREAD_CREATE(struct os_threadattr *attr, void *(*cb)(void *arg), void *arg);
-void OS_THREAD_DESTROY(os_thread_t tid);
-void OS_THREAD_WAIT_EXIT(os_thread_t tid);
+void OS_THREAD_CANCEL(os_thread_t tid);
+int OS_THREAD_JOIN(os_thread_t tid, void **retval);
+os_thread_t OS_THREAD_SELF();
+int OS_THREAD_SET_NAME(os_thread_t tid, const char *name);
 
 os_mutex_t OS_THREAD_MUTEX_CREATE();
 int OS_THREAD_MUTEX_LOCK(os_mutex_t mutex);

@@ -6,7 +6,7 @@
 
 int main()
 {
-    struct os_clocktime now;
+    struct os_realtime now;
     unsigned long seconds;
 
     seconds = OS_TIMESTAMP_TO_UTC(&now);

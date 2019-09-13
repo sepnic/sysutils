@@ -24,7 +24,6 @@
 #ifndef __CUTILS_H__
 #define __CUTILS_H__
 
-#include "include/stl_list.h"
 #include "include/common_list.h"
 #include "include/smart_ptr.h"
 #include "include/looper.h"

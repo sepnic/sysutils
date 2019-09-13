@@ -38,7 +38,8 @@
 
 struct swwatchdog {
     struct listnode list;
-    os_thread_t tid;
+    os_thread_t thread_id;
+    const char *thread_name;
     os_mutex_t mutex;
     os_cond_t cond;
 
@@ -90,7 +91,9 @@ static void *swwatchdog_thread_entry(void *arg)
     struct listnode *item, *tmp;
     bool timeout;
 
-    OS_LOGD(LOG_TAG, "Entry watchdog thread: thread_id=[%p]", wd->tid);
+    OS_LOGD(LOG_TAG, "Entry watchdog thread: thread_id=[%p]", wd->thread_id);
+
+    OS_THREAD_SET_NAME(wd->thread_id, wd->thread_name);
 
     while (true) {
         OS_THREAD_SLEEP_MSEC(wd->tick);
@@ -127,7 +130,6 @@ static void *swwatchdog_thread_entry(void *arg)
         OS_THREAD_MUTEX_UNLOCK(wd->mutex);
     }
 
-    OS_THREAD_DESTROY(wd->tid);
     return NULL;
 }
 
@@ -137,7 +139,12 @@ static struct swwatchdog *swwatchdog_init()
         OS_ENTER_CRITICAL();
 
         if (g_watchdog == NULL) {
-            struct os_threadattr attr;
+            struct os_threadattr attr  = {
+                .name = "watchdog",
+                .priority = OS_THREAD_PRIO_SOFT_REALTIME,
+                .stacksize = 1024,
+                .joinable = true,
+            };
 
             g_watchdog = calloc(1, sizeof(struct swwatchdog));
             if (g_watchdog == NULL) {
@@ -160,12 +167,10 @@ static struct swwatchdog *swwatchdog_init()
 
             g_watchdog->tick = DEFAULT_TICK_MS;
             g_watchdog->active_num = 0;
+            g_watchdog->thread_name = attr.name;
 
-            attr.name = "watchdog";
-            attr.priority = OS_THREAD_PRIO_SOFT_REALTIME;
-            attr.stacksize = 1024;
-            g_watchdog->tid = OS_THREAD_CREATE(&attr, swwatchdog_thread_entry, g_watchdog);
-            if (g_watchdog->tid == NULL) {
+            g_watchdog->thread_id = OS_THREAD_CREATE(&attr, swwatchdog_thread_entry, g_watchdog);
+            if (g_watchdog->thread_id == NULL) {
                 OS_LOGE(LOG_TAG, "Failed to run watchdog thread");
                 goto error;
             }

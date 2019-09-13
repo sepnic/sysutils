@@ -27,46 +27,48 @@
 #include <sys/time.h>
 #include "include/os_time.h"
 
-#if defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_MACOSX) || defined(OS_IOS)
+#if defined(OS_FREERTOS)
+#include "FreeRTOS_POSIX/time.h"
+#endif
 
-unsigned long OS_TIMESTAMP_TO_UTC(struct os_clocktime *tm)
+unsigned long OS_TIMESTAMP_TO_UTC(struct os_realtime *rt)
 {
     struct tm now;
-    struct timeval tv;
+    struct timespec ts;
 
-    gettimeofday(&tv, NULL);
-    gmtime_r(&tv.tv_sec, &now);
+    clock_gettime(CLOCK_REALTIME, &ts);
+    gmtime_r(&ts.tv_sec, &now);
 
-    if (tm != NULL) {
-        tm->year = now.tm_year + 1900;
-        tm->mon  = now.tm_mon + 1;
-        tm->day  = now.tm_mday;
-        tm->hour = now.tm_hour;
-        tm->min  = now.tm_min;
-        tm->sec  = now.tm_sec;
-        tm->msec = (tv.tv_usec / 1000) % 1000;
+    if (rt != NULL) {
+        rt->year = now.tm_year + 1900;
+        rt->mon  = now.tm_mon + 1;
+        rt->day  = now.tm_mday;
+        rt->hour = now.tm_hour;
+        rt->min  = now.tm_min;
+        rt->sec  = now.tm_sec;
+        rt->msec = (ts.tv_nsec / 1000000) % 1000;
     }
-    return tv.tv_sec;
+    return ts.tv_sec;
 }
 
-unsigned long OS_TIMESTAMP_TO_LOCAL(struct os_clocktime *tm)
+unsigned long OS_TIMESTAMP_TO_LOCAL(struct os_realtime *rt)
 {
     struct tm now;
-    struct timeval tv;
+    struct timespec ts;
 
-    gettimeofday(&tv, NULL);
-    localtime_r(&tv.tv_sec, &now);
+    clock_gettime(CLOCK_REALTIME, &ts);
+    localtime_r(&ts.tv_sec, &now);
 
-    if (tm != NULL) {
-        tm->year = now.tm_year + 1900;
-        tm->mon  = now.tm_mon + 1;
-        tm->day  = now.tm_mday;
-        tm->hour = now.tm_hour;
-        tm->min  = now.tm_min;
-        tm->sec  = now.tm_sec;
-        tm->msec = (tv.tv_usec / 1000) % 1000;
+    if (rt != NULL) {
+        rt->year = now.tm_year + 1900;
+        rt->mon  = now.tm_mon + 1;
+        rt->day  = now.tm_mday;
+        rt->hour = now.tm_hour;
+        rt->min  = now.tm_min;
+        rt->sec  = now.tm_sec;
+        rt->msec = (ts.tv_nsec / 1000000) % 1000;
     }
-    return tv.tv_sec;
+    return ts.tv_sec;
 }
 
 unsigned long long OS_MONOTONIC_USEC()
@@ -90,66 +92,3 @@ unsigned long long OS_REALTIME_USEC()
     cputime = ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
     return cputime;
 }
-
-#elif defined(OS_FREERTOS)
-
-#include "FreeRTOS.h"
-#include "task.h"
-
-unsigned long OS_TIMESTAMP_TO_UTC(struct os_clocktime *tm)
-{
-    struct tm now;
-    struct timeval tv;
-
-    gettimeofday(&tv, NULL);
-    gmtime_r(&tv.tv_sec, &now);
-
-    if (tm != NULL) {
-        tm->year = now.tm_year + 1900;
-        tm->mon  = now.tm_mon + 1;
-        tm->day  = now.tm_mday;
-        tm->hour = now.tm_hour;
-        tm->min  = now.tm_min;
-        tm->sec  = now.tm_sec;
-        tm->msec = (tv.tv_usec / 1000) % 1000;
-    }
-    return tv.tv_sec;
-}
-
-unsigned long OS_TIMESTAMP_TO_LOCAL(struct os_clocktime *tm)
-{
-    struct tm now;
-    struct timeval tv;
-
-    gettimeofday(&tv, NULL);
-    localtime_r(&tv.tv_sec, &now);
-
-    if (tm != NULL) {
-        tm->year = now.tm_year + 1900;
-        tm->mon  = now.tm_mon + 1;
-        tm->day  = now.tm_mday;
-        tm->hour = now.tm_hour;
-        tm->min  = now.tm_min;
-        tm->sec  = now.tm_sec;
-        tm->msec = (tv.tv_usec / 1000) % 1000;
-    }
-    return tv.tv_sec;
-}
-
-unsigned long long OS_MONOTONIC_USEC()
-{
-    return (unsigned long long)(xTaskGetTickCount() * portTICK_PERIOD_MS * 1000);
-}
-
-unsigned long long OS_REALTIME_USEC()
-{
-    struct timeval tv;
-    unsigned long long realtime;
-
-    gettimeofday(&tv, NULL);
-    realtime = tv.tv_sec * 1000000 + tv.tv_usec;
-
-    return realtime;
-}
-
-#endif // #if defined(OS_FREERTOS)

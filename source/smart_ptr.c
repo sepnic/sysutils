@@ -104,7 +104,7 @@ struct smartptr_node {
 #if defined(OS_FREERTOS)
     unsigned long when;
 #else
-    struct os_clocktime when;
+    struct os_realtime when;
 #endif
 
     struct listnode listnode;

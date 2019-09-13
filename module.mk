@@ -1,0 +1,34 @@
+CFLAGS += -DOS_FREERTOS
+
+CUTILS_SRC = lib/cutils
+# CUTILS CFLAGS
+CFLAGS += -I$(SOURCE_DIR)/$(CUTILS_SRC)
+CFLAGS += -I$(SOURCE_DIR)/$(CUTILS_SRC)/include
+# CUTILS CFILES
+C_FILES += $(CUTILS_SRC)/source/portable/os_logger.c
+C_FILES += $(CUTILS_SRC)/source/portable/os_thread.c
+C_FILES += $(CUTILS_SRC)/source/portable/os_time.c
+C_FILES += $(CUTILS_SRC)/source/portable/os_timer.c
+C_FILES += $(CUTILS_SRC)/source/looper.c
+C_FILES += $(CUTILS_SRC)/source/memory_detect.c
+C_FILES += $(CUTILS_SRC)/source/smart_ptr.c
+C_FILES += $(CUTILS_SRC)/source/stl_list.c
+C_FILES += $(CUTILS_SRC)/source/sw_timer.c
+C_FILES += $(CUTILS_SRC)/source/sw_watchdog.c
+
+FREERTOS_POSIX_SRC = $(CUTILS_SRC)/FreeRTOS_POSIX
+# FreeRTOS_POSIX CFLAGS
+CFLAGS  += -I$(SOURCE_DIR)/$(FREERTOS_POSIX_SRC)/include 
+CFLAGS  += -I$(SOURCE_DIR)/$(FREERTOS_POSIX_SRC)/FreeRTOS-Plus-POSIX/include/portable/mtk/mt7686
+# FreeRTOS_POSIX CFILES
+C_FILES += $(FREERTOS_POSIX_SRC)/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_clock.c
+C_FILES += $(FREERTOS_POSIX_SRC)/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_mqueue.c
+C_FILES += $(FREERTOS_POSIX_SRC)/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_pthread.c
+C_FILES += $(FREERTOS_POSIX_SRC)/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_pthread_barrier.c
+C_FILES += $(FREERTOS_POSIX_SRC)/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_pthread_cond.c
+C_FILES += $(FREERTOS_POSIX_SRC)/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_pthread_mutex.c
+C_FILES += $(FREERTOS_POSIX_SRC)/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_sched.c
+C_FILES += $(FREERTOS_POSIX_SRC)/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_semaphore.c
+C_FILES += $(FREERTOS_POSIX_SRC)/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_timer.c
+C_FILES += $(FREERTOS_POSIX_SRC)/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_unistd.c
+C_FILES += $(FREERTOS_POSIX_SRC)/FreeRTOS-Plus-POSIX/source/FreeRTOS_POSIX_utils.c

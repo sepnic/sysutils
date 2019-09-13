@@ -32,7 +32,7 @@
 extern "C" {
 #endif
 
-struct os_clocktime {
+struct os_realtime {
     int year;
     int mon;
     int day;
@@ -43,9 +43,9 @@ struct os_clocktime {
 };
 
 // utc clock_time, return unix timestamp
-unsigned long OS_TIMESTAMP_TO_UTC(struct os_clocktime *tm);
+unsigned long OS_TIMESTAMP_TO_UTC(struct os_realtime *rt);
 // local clock_time, return unix timestamp
-unsigned long OS_TIMESTAMP_TO_LOCAL(struct os_clocktime *tm);
+unsigned long OS_TIMESTAMP_TO_LOCAL(struct os_realtime *rt);
 
 // monotonictime: clock that cannot be set and represents monotonic time since system bootup
 unsigned long long OS_MONOTONIC_USEC();

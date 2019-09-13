@@ -56,6 +56,8 @@ static void *swtimer_thread_entry(void *arg)
 
     OS_LOGD(LOG_TAG, "[%s]: Entry timer thread: thread_id=[%p]", timer->thread_name, timer->thread_id);
 
+    OS_THREAD_SET_NAME(timer->thread_id, timer->thread_name);
+
     while (!timer->thread_exit) {
         OS_THREAD_MUTEX_LOCK(timer->thread_mutex);
 
@@ -97,8 +99,6 @@ static void *swtimer_thread_entry(void *arg)
     }
 
     OS_LOGD(LOG_TAG, "[%s]: Leave timer thread: thread_id=[%p]", timer->thread_name, timer->thread_id);
-
-    OS_THREAD_DESTROY(timer->thread_id);
     return NULL;
 }
 
@@ -106,9 +106,10 @@ swtimer_t swtimer_create(struct swtimer_attr *attr, void (*swtimer_callback)())
 {
     struct swtimer *timer = NULL;
     struct os_threadattr thread_attr = {
-        .name = attr && attr->name ? attr->name : "unknown",
+        .name = attr && attr->name ? attr->name : "timer",
         .priority = OS_THREAD_PRIO_SOFT_REALTIME,
         .stacksize = 1024,
+        .joinable = true,
     };
 
     timer = calloc(1, sizeof(struct swtimer));
@@ -134,7 +135,7 @@ swtimer_t swtimer_create(struct swtimer_attr *attr, void (*swtimer_callback)())
         goto error;
     }
 
-    timer->thread_name = attr->name ? strdup(attr->name) : strdup("unknown");
+    timer->thread_name = strdup(thread_attr.name);
     timer->thread_cb = swtimer_callback;
     timer->thread_exit = false;
 
@@ -198,7 +199,7 @@ void swtimer_destroy(swtimer_t timer)
         OS_THREAD_MUTEX_UNLOCK(timer->thread_mutex);
     }
 
-    OS_THREAD_WAIT_EXIT(timer->thread_id);
+    OS_THREAD_JOIN(timer->thread_id, NULL);
 
     OS_THREAD_MUTEX_DESTROY(timer->thread_mutex);
     OS_THREAD_COND_DESTROY(timer->thread_cond);

@@ -30,7 +30,11 @@
 #include "include/os_time.h"
 #include "include/os_logger.h"
 
+#if defined(OS_FREERTOS)
+#define LOG_BUFFER_SIZE 256
+#else
 #define LOG_BUFFER_SIZE 1024
+#endif
 
 #define LOG_FILE_ENABLE    false
 #define LOG_FILE_PATH      "/tmp"
@@ -106,7 +110,7 @@ static void os_logger_save(const char *data, size_t len)
     OS_THREAD_MUTEX_LOCK(log_config.file_mutex);
 
     if (!init) {
-        struct os_clocktime ts;
+        struct os_realtime ts;
         OS_TIMESTAMP_TO_LOCAL(&ts);
 
         memset(filepath, 0x0, sizeof(filepath));
@@ -162,7 +166,7 @@ static void os_logger_print(enum os_logprio prio, const char *tag,
         offset += snprintf(log_entry + offset, valid_size - offset, "%lu", monotonic_ms);
 
 #else
-    struct os_clocktime ts;
+    struct os_realtime ts;
     // add data & time to header
     OS_TIMESTAMP_TO_LOCAL(&ts);
     if ((int)(valid_size - offset) > 0)

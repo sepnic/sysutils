@@ -23,23 +23,36 @@
 
 #include <unistd.h>
 #include <string.h>
-#include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
 #include "include/os_thread.h"
 
-#if defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_MACOSX) || defined(OS_IOS)
-
+#if defined(OS_FREERTOS)
+#include "FreeRTOS.h"
+#include "task.h"
+#include "task_def.h"
+#include "FreeRTOS_POSIX/pthread.h"
+#else
+#include <pthread.h>
 static pthread_mutex_t g_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 void OS_ENTER_CRITICAL()
 {
+#if defined(OS_FREERTOS)
+    taskENTER_CRITICAL();
+#else
     pthread_mutex_lock(&g_mutex);
+#endif
 }
 
 void OS_LEAVE_CRITICAL()
 {
+#if defined(OS_FREERTOS)
+    taskEXIT_CRITICAL();
+#else
     pthread_mutex_unlock(&g_mutex);
+#endif
 }
 
 void OS_THREAD_SLEEP_USEC(unsigned long usec)
@@ -52,23 +65,83 @@ void OS_THREAD_SLEEP_MSEC(unsigned long msec)
     usleep(msec * 1000);
 }
 
+#if defined(OS_FREERTOS)
+static int OS_THREAD_GET_PRIORITY(enum os_threadprio prio)
+{
+    // FIXME: Config task priority on your platform
+    switch (prio) {
+    case OS_THREAD_PRIO_HARD_REALTIME:
+        return TASK_PRIORITY_HARD_REALTIME;
+    case OS_THREAD_PRIO_SOFT_REALTIME:
+        return TASK_PRIORITY_SOFT_REALTIME;
+    case OS_THREAD_PRIO_HIGH:
+        return TASK_PRIORITY_HIGH;
+    case OS_THREAD_PRIO_ABOVE_NORMAL:
+        return TASK_PRIORITY_ABOVE_NORMAL;
+    case OS_THREAD_PRIO_NORMAL:
+        return TASK_PRIORITY_NORMAL;
+    case OS_THREAD_PRIO_BELOW_NORMAL:
+        return TASK_PRIORITY_BELOW_NORMAL;
+    case OS_THREAD_PRIO_LOW:
+        return TASK_PRIORITY_LOW;
+    case OS_THREAD_PRIO_IDLE:
+        return TASK_PRIORITY_IDLE;
+    default:
+        return TASK_PRIORITY_NORMAL;
+    }
+}
+#endif
+
 os_thread_t OS_THREAD_CREATE(struct os_threadattr *attr, void *(*cb)(void *arg), void *arg)
 {
     pthread_t tid;
-    int ret = pthread_create(&tid, NULL, cb, arg);
+    int ret;
+
+#if defined(OS_FREERTOS)
+    pthread_attr_t tattr;
+    struct sched_param tsched;
+    int detachstate;
+
+    pthread_attr_init(&tattr);
+    tsched.sched_priority = OS_THREAD_GET_PRIORITY(attr->priority);
+    pthread_attr_setschedparam(&tattr, &tsched);
+    pthread_attr_setstacksize(&tattr, attr->stacksize);
+    detachstate = attr->joinable ? PTHREAD_CREATE_JOINABLE : PTHREAD_CREATE_DETACHED;
+    pthread_attr_setdetachstate(&tattr, detachstate);
+
+    ret = pthread_create(&tid, &tattr, cb, arg);
+#else
+    ret = pthread_create(&tid, NULL, cb, arg);
+#endif
+
     if (ret != 0)
         return NULL;
     return (os_thread_t)tid;
 }
 
-void OS_THREAD_DESTROY(os_thread_t tid)
+void OS_THREAD_CANCEL(os_thread_t tid)
 {
-
+    pthread_cancel((pthread_t)tid);
 }
 
-void OS_THREAD_WAIT_EXIT(os_thread_t tid)
+int OS_THREAD_JOIN(os_thread_t tid, void **retval)
 {
-    pthread_join((pthread_t)tid, NULL);
+    return pthread_join((pthread_t)tid, retval);
+}
+
+os_thread_t OS_THREAD_SELF()
+{
+    return (os_thread_t)pthread_self();
+}
+
+int OS_THREAD_SET_NAME(os_thread_t tid, const char *name)
+{
+#if defined(OS_FREERTOS)
+    return pthread_setname_np((pthread_t)tid, name);
+#else
+    // TODO
+    return -1;
+#endif
 }
 
 os_mutex_t OS_THREAD_MUTEX_CREATE()
@@ -140,163 +213,3 @@ void OS_THREAD_COND_DESTROY(os_cond_t cond)
     pthread_cond_destroy((pthread_cond_t *)cond);
     free(cond);
 }
-
-#elif defined(OS_FREERTOS)
-
-#include "FreeRTOS.h"
-#include "semphr.h"
-#include "task.h"
-#include "task_def.h"
-
-void OS_ENTER_CRITICAL()
-{
-    taskENTER_CRITICAL();
-}
-
-void OS_LEAVE_CRITICAL()
-{
-    taskEXIT_CRITICAL();
-}
-
-void OS_THREAD_SLEEP_USEC(unsigned long usec)
-{
-    long int msec = usec/1000;
-    msec = msec > 0 ? msec : 1;
-    vTaskDelay(msec/portTICK_PERIOD_MS);
-}
-
-void OS_THREAD_SLEEP_MSEC(unsigned long msec)
-{
-    vTaskDelay(msec/portTICK_PERIOD_MS);
-}
-
-os_thread_t OS_THREAD_CREATE(struct os_threadattr *attr, void *(*cb)(void *arg), void *arg)
-{
-    TaskHandle_t tid = NULL;
-    BaseType_t ret;
-    task_priority_type_t prio = TASK_PRIORITY_NORMAL;
-
-    if (attr == NULL)
-        return NULL;
-
-    switch (attr->priority) {
-    case OS_THREAD_PRIO_HARD_REALTIME:
-        prio = TASK_PRIORITY_HARD_REALTIME;
-        break;
-    case OS_THREAD_PRIO_SOFT_REALTIME:
-        prio = TASK_PRIORITY_SOFT_REALTIME;
-        break;
-    case OS_THREAD_PRIO_HIGH:
-        prio = TASK_PRIORITY_HIGH;
-        break;
-    case OS_THREAD_PRIO_ABOVE_NORMAL:
-        prio = TASK_PRIORITY_ABOVE_NORMAL;
-        break;
-    case OS_THREAD_PRIO_NORMAL:
-        prio = TASK_PRIORITY_NORMAL;
-        break;
-    case OS_THREAD_PRIO_BELOW_NORMAL:
-        prio = TASK_PRIORITY_BELOW_NORMAL;
-        break;
-    case OS_THREAD_PRIO_LOW:
-        prio = TASK_PRIORITY_LOW;
-        break;
-    case OS_THREAD_PRIO_IDLE:
-        prio = TASK_PRIORITY_IDLE;
-        break;
-    default:
-        prio = TASK_PRIORITY_NORMAL;
-        break;
-    }
-
-    ret = xTaskCreate((pdTASK_CODE)cb, attr->name, attr->stacksize/sizeof(StackType_t), arg, prio, &tid);
-    return ret == pdPASS ? (os_thread_t)tid : NULL;
-}
-
-void OS_THREAD_DESTROY(os_thread_t tid)
-{
-    vTaskDelete((TaskHandle_t)tid);
-}
-
-void OS_THREAD_WAIT_EXIT(os_thread_t tid)
-{
-    while (eTaskGetState((TaskHandle_t)tid) != eDeleted)
-        vTaskDelay(1/portTICK_PERIOD_MS);
-}
-
-os_mutex_t OS_THREAD_MUTEX_CREATE()
-{
-    SemaphoreHandle_t mutex = xSemaphoreCreateMutex();
-    return (os_mutex_t)mutex;
-}
-
-int OS_THREAD_MUTEX_LOCK(os_mutex_t mutex)
-{
-    BaseType_t ret = xSemaphoreTake((SemaphoreHandle_t)mutex, portMAX_DELAY);
-    return ret == pdTRUE ? 0 : -1;
-}
-
-int OS_THREAD_MUTEX_TRYLOCK(os_mutex_t mutex)
-{
-    BaseType_t ret = ret = xSemaphoreTake((SemaphoreHandle_t)mutex, wait);
-    return ret == pdTRUE ? 0 : -1;
-}
-
-int OS_THREAD_MUTEX_UNLOCK(os_mutex_t mutex)
-{
-    BaseType_t ret = xSemaphoreGive((SemaphoreHandle_t)mutex);
-    return ret == pdTRUE ? 0 : -1;
-}
-
-void OS_THREAD_MUTEX_DESTROY(os_mutex_t mutex)
-{
-    vSemaphoreDelete((SemaphoreHandle_t)mutex);
-}
-
-os_cond_t OS_THREAD_COND_CREATE()
-{
-    SemaphoreHandle_t cond = xSemaphoreCreateBinary();
-    return (os_cond_t)cond;
-}
-
-int OS_THREAD_COND_WAIT(os_cond_t cond, os_mutex_t mutex)
-{
-    BaseType_t ret = pdFALSE;
-
-    OS_THREAD_MUTEX_UNLOCK(mutex);
-
-    ret = xSemaphoreTake((SemaphoreHandle_t)cond, portMAX_DELAY);
-
-    OS_THREAD_MUTEX_LOCK(mutex);
-
-    return ret == pdTRUE ? 0 : -1;
-}
-
-int OS_THREAD_COND_TIMEDWAIT(os_cond_t cond, os_mutex_t mutex, unsigned long usec)
-{
-    BaseType_t ret = pdFALSE;
-    TickType_t wait = usec/1000/portTICK_PERIOD_MS;
-
-    wait = wait > 0 ? wait : 1;
-
-    OS_THREAD_MUTEX_UNLOCK(mutex);
-
-    ret = xSemaphoreTake((SemaphoreHandle_t)cond, wait);
-
-    OS_THREAD_MUTEX_LOCK(mutex);
-
-    return ret == pdTRUE ? 0 : -1;
-}
-
-int OS_THREAD_COND_SIGNAL(os_cond_t cond)
-{
-    BaseType_t ret = xSemaphoreGive((SemaphoreHandle_t)cond);
-    return ret == pdTRUE ? 0 : -1;
-}
-
-void OS_THREAD_COND_DESTROY(os_cond_t cond)
-{
-    vSemaphoreDelete((SemaphoreHandle_t)cond);
-}
-
-#endif // #if defined(OS_FREERTOS)

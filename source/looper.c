@@ -33,6 +33,9 @@
 
 #define LOG_TAG "looper"
 
+#define DEFAULT_LOOPER_PRIORITY  OS_THREAD_PRIO_NORMAL
+#define DEFAULT_LOOPER_STACKSIZE 1024
+
 struct looper {
     struct listnode msg_list;
     size_t msg_count;
@@ -74,6 +77,9 @@ static void looper_free_msgnode(looper_t looper, struct message_node *node)
         OS_LOGW(LOG_TAG, "[%s]: Forget to free message data: what=[%d], memory leak?",
                 looper->thread_name, msg->what);
 
+    if (msg->notify_cb != NULL)
+        msg->notify_cb(msg, MESSAGE_DESTROY);
+
     OS_FREE(msg);
 }
 
@@ -104,6 +110,8 @@ static void *looper_thread_entry(void *arg)
     unsigned long long now;
 
     OS_LOGD(LOG_TAG, "[%s]: Entry looper thread: thread_id=[%p]", looper->thread_name, looper->thread_id);
+
+    OS_THREAD_SET_NAME(looper->thread_id, looper->thread_name);
 
     while (!looper->thread_exit) {
         {
@@ -140,19 +148,15 @@ static void *looper_thread_entry(void *arg)
         if (msg != NULL) {
             if (node->timeout > 0 && node->timeout < now) {
                 OS_LOGE(LOG_TAG, "[%s]: Timeout, discard message: what=[%d]", looper->thread_name, msg->what);
-                if (msg->timeout_cb != NULL) {
-                    if (looper->watchdog_enable)
-                        swwatchdog_start(looper->watchdog_node);
-
-                    msg->timeout_cb(msg);
-
-                    if (looper->watchdog_enable)
-                        swwatchdog_stop(looper->watchdog_node);
-                }
+                if (msg->notify_cb != NULL)
+                    msg->notify_cb(msg, MESSAGE_TIMEOUT);
             }
             else {
                 if (looper->watchdog_enable)
                     swwatchdog_start(looper->watchdog_node);
+
+                if (msg->notify_cb != NULL)
+                    msg->notify_cb(msg, MESSAGE_RUNNING);
 
                 if (msg->handle_cb != NULL)
                     msg->handle_cb(msg);
@@ -160,6 +164,9 @@ static void *looper_thread_entry(void *arg)
                     looper->msg_handle(msg);
                 else
                     OS_LOGW(LOG_TAG, "[%s]: No message handler: what=[%d]", looper->thread_name, msg->what);
+
+                if (msg->notify_cb != NULL)
+                    msg->notify_cb(msg, MESSAGE_COMPLETED);
 
                 if (looper->watchdog_enable)
                     swwatchdog_stop(looper->watchdog_node);
@@ -172,8 +179,6 @@ static void *looper_thread_entry(void *arg)
     looper_clear_msglist(looper);
 
     OS_LOGD(LOG_TAG, "[%s]: Leave looper thread: thread_id=[%p]", looper->thread_name, looper->thread_id);
-
-    OS_THREAD_DESTROY(looper->thread_id);
     return NULL;
 }
 
@@ -207,16 +212,18 @@ looper_t looper_create(struct os_threadattr *attr, message_handle_cb handle_cb, 
     looper->msg_count = 0;
     looper->msg_handle = handle_cb;
     looper->msg_free = free_cb;
-    looper->thread_name = (attr && attr->name) ? strdup(attr->name) : strdup("unknown");
+    looper->thread_name = (attr && attr->name) ? strdup(attr->name) : strdup("looper");
     looper->thread_exit = true;
     looper->thread_attr.name = looper->thread_name;
     if (attr != NULL) {
         looper->thread_attr.priority = attr->priority;
-        looper->thread_attr.stacksize = attr->stacksize;
+        looper->thread_attr.stacksize = attr->stacksize > 0 ? attr->stacksize : DEFAULT_LOOPER_STACKSIZE;
+        looper->thread_attr.joinable = attr->joinable;
     }
     else {
-        looper->thread_attr.priority = OS_THREAD_PRIO_NORMAL;
-        looper->thread_attr.stacksize = 1024;
+        looper->thread_attr.priority = DEFAULT_LOOPER_PRIORITY;
+        looper->thread_attr.stacksize = DEFAULT_LOOPER_STACKSIZE;
+        looper->thread_attr.joinable = true;
     }
 
     return looper;
@@ -263,7 +270,7 @@ int looper_post_message_front(looper_t looper, struct message *msg)
     struct message_node *temp;
 
     node->when = now;
-    if (msg->timeout_ms > 0 && msg->timeout_cb != NULL)
+    if (msg->timeout_ms > 0)
         node->timeout = now + msg->timeout_ms * 1000;
 
     {
@@ -271,7 +278,7 @@ int looper_post_message_front(looper_t looper, struct message *msg)
 
         if (!list_empty(&looper->msg_list)) {
             temp = node_to_item(list_head(&looper->msg_list), struct message_node, listnode);
-            node->when = now < (temp->when - 1) ? now : (temp->when - 1);
+            node->when = now < temp->when ? now : temp->when;
         }
 
         list_add_head(&looper->msg_list, &node->listnode);
@@ -281,6 +288,9 @@ int looper_post_message_front(looper_t looper, struct message *msg)
 
         OS_THREAD_MUTEX_UNLOCK(looper->msg_mutex);
     }
+
+    if (msg->notify_cb != NULL)
+        msg->notify_cb(msg, MESSAGE_PENDING);
     return 0;
 }
 
@@ -292,7 +302,7 @@ int looper_post_message_delay(looper_t looper, struct message *msg, unsigned lon
     struct listnode *item;
 
     node->when = now + msec * 1000;
-    if (msg->timeout_ms > 0 && msg->timeout_cb != NULL) {
+    if (msg->timeout_ms > 0) {
         if (msg->timeout_ms < msec) {
             OS_LOGW(LOG_TAG, "[%s]: Invalid timeout: timeout_ms < delay_ms", looper->thread_name);
             node->timeout = 0;
@@ -323,6 +333,9 @@ int looper_post_message_delay(looper_t looper, struct message *msg, unsigned lon
 
         OS_THREAD_MUTEX_UNLOCK(looper->msg_mutex);
     }
+
+    if (msg->notify_cb != NULL)
+        msg->notify_cb(msg, MESSAGE_PENDING);
     return 0;
 }
 
@@ -406,7 +419,7 @@ void looper_stop(looper_t looper)
         looper->thread_exit = true;
         OS_THREAD_COND_SIGNAL(looper->msg_cond);
 
-        OS_THREAD_WAIT_EXIT(looper->thread_id);
+        OS_THREAD_JOIN(looper->thread_id, NULL);
     }
 
     OS_THREAD_MUTEX_UNLOCK(looper->thread_mutex);
@@ -475,9 +488,8 @@ struct message *message_obtain(int what, int arg1, int arg2, void *data)
     return msg;
 }
 
-struct message *message_obtain2(int what, int arg1, int arg2, void *data,
-                                 message_handle_cb handle_cb, message_free_cb free_cb,
-                                 unsigned long timeout_ms, message_timeout_cb timeout_cb)
+struct message *message_obtain2(int what, int arg1, int arg2, void *data, unsigned long timeout_ms,
+                                message_handle_cb handle_cb, message_free_cb free_cb, message_notify_cb notify_cb)
 {
     struct message *msg = OS_CALLOC(1, sizeof(struct message_node));
     if (msg == NULL) {
@@ -489,9 +501,9 @@ struct message *message_obtain2(int what, int arg1, int arg2, void *data,
     msg->arg1 = arg1;
     msg->arg2 = arg2;
     msg->data = data;
+    msg->timeout_ms = timeout_ms;
     msg->handle_cb = handle_cb;
     msg->free_cb = free_cb;
-    msg->timeout_ms = timeout_ms;
-    msg->timeout_cb = timeout_cb;
+    msg->notify_cb = notify_cb;
     return msg;
 }
