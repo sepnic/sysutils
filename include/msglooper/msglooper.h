@@ -28,13 +28,13 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "include/os_thread.h"
+#include "os_thread.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct looper *looper_t;
+typedef struct msglooper *looper_t;
 struct message;
 
 enum message_status {

@@ -6,7 +6,7 @@ if (TARGET_DEFINITION)
 endif ()
 
 # include files
-include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # source files
 file(GLOB_RECURSE COMMON_SRC src "${CMAKE_SOURCE_DIR}/source/*.c"
@@ -25,8 +25,8 @@ set(CMAKE_LDFLAGS "${CMAKE_LDFLAGS} -Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed
 # ENABLE_MEMORY_OVERFLOW_DETECT
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DENABLE_MEMORY_OVERFLOW_DETECT")
 
-# ENABLE_SMART_PTR_DETECT
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DENABLE_SMART_PTR_DETECT")
+# ENABLE_SMARTPTR_DETECT
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DENABLE_SMARTPTR_DETECT")
 
 message("CMAKE_C_FLAGS: ${CMAKE_C_FLAGS}")
 

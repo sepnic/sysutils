@@ -1,6 +1,6 @@
 CFLAGS += -DOS_FREERTOS
 
-CUTILS_SRC = lib/cutils
+CUTILS_SRC = lib/msglooper
 # CUTILS CFLAGS
 CFLAGS += -I$(SOURCE_DIR)/$(CUTILS_SRC)
 CFLAGS += -I$(SOURCE_DIR)/$(CUTILS_SRC)/include
@@ -9,10 +9,10 @@ C_FILES += $(CUTILS_SRC)/source/portable/os_logger.c
 C_FILES += $(CUTILS_SRC)/source/portable/os_thread.c
 C_FILES += $(CUTILS_SRC)/source/portable/os_time.c
 C_FILES += $(CUTILS_SRC)/source/portable/os_timer.c
-C_FILES += $(CUTILS_SRC)/source/looper.c
+C_FILES += $(CUTILS_SRC)/source/msglooper.c
 C_FILES += $(CUTILS_SRC)/source/memory_detect.c
-C_FILES += $(CUTILS_SRC)/source/smart_ptr.c
-C_FILES += $(CUTILS_SRC)/source/stl_list.c
+C_FILES += $(CUTILS_SRC)/source/smartptr.c
+C_FILES += $(CUTILS_SRC)/source/stllist.c
 C_FILES += $(CUTILS_SRC)/source/sw_timer.c
 C_FILES += $(CUTILS_SRC)/source/sw_watchdog.c
 

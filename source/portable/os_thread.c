@@ -21,18 +21,19 @@
  * THE SOFTWARE.
  */
 
-#include <unistd.h>
 #include <string.h>
-#include <time.h>
-#include <sys/time.h>
-#include "include/os_thread.h"
+#include "msglooper/os_thread.h"
 
 #if defined(OS_FREERTOS)
 #include "FreeRTOS.h"
 #include "task.h"
 #include "task_def.h"
+#include "FreeRTOS_POSIX/unistd.h"
+#include "FreeRTOS_POSIX/time.h"
 #include "FreeRTOS_POSIX/pthread.h"
 #else
+#include <unistd.h>
+#include <time.h>
 #include <pthread.h>
 static pthread_mutex_t g_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif

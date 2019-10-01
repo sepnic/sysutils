@@ -25,10 +25,10 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include "include/common_list.h"
-#include "include/os_thread.h"
-#include "include/os_time.h"
-#include "include/os_logger.h"
+#include "msglooper/common_list.h"
+#include "msglooper/os_thread.h"
+#include "msglooper/os_time.h"
+#include "msglooper/os_logger.h"
 #include "sw_timer.h"
 
 #define LOG_TAG "timer"

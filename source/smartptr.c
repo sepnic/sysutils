@@ -24,26 +24,26 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "include/os_memory.h"
-#include "include/os_thread.h"
-#include "include/smart_ptr.h"
+#include "msglooper/os_memory.h"
+#include "msglooper/os_thread.h"
+#include "msglooper/smartptr.h"
 
 #define LOG_TAG "smartptr"
 
-struct smart_ptr_ctrblock {
+struct smartptr_ctr_block {
     int refs_cnt;
     void (*free_cb)(void *ptr);
     os_mutex_t mutex;
 };
 
 #define SMARTPTR_GET_CTRBLOCK(ptr) \
-    ((struct smart_ptr_ctrblock *)((char *)(ptr) - sizeof(struct smart_ptr_ctrblock)))
+    ((struct smartptr_ctr_block *)((char *)(ptr) - sizeof(struct smartptr_ctr_block)))
 
-void *smart_ptr_new(size_t size, void (*free_cb)(void *ptr))
+void *smartptr_new(size_t size, void (*free_cb)(void *ptr))
 {
-    void *ptr = OS_MALLOC(size + sizeof(struct smart_ptr_ctrblock));
+    void *ptr = OS_MALLOC(size + sizeof(struct smartptr_ctr_block));
     if (ptr != NULL) {
-        struct smart_ptr_ctrblock *block = (struct smart_ptr_ctrblock *)ptr;
+        struct smartptr_ctr_block *block = (struct smartptr_ctr_block *)ptr;
 
         block->refs_cnt = 1;
         block->free_cb = free_cb;
@@ -53,14 +53,14 @@ void *smart_ptr_new(size_t size, void (*free_cb)(void *ptr))
             return NULL;
         }
 
-        return (void *)((char *)ptr + sizeof(struct smart_ptr_ctrblock));
+        return (void *)((char *)ptr + sizeof(struct smartptr_ctr_block));
     }
     return NULL;
 }
 
-void smart_ptr_get(void *ptr)
+void smartptr_get(void *ptr)
 {
-    struct smart_ptr_ctrblock *block = SMARTPTR_GET_CTRBLOCK(ptr);
+    struct smartptr_ctr_block *block = SMARTPTR_GET_CTRBLOCK(ptr);
 
     OS_THREAD_MUTEX_LOCK(block->mutex);
 
@@ -69,9 +69,9 @@ void smart_ptr_get(void *ptr)
     OS_THREAD_MUTEX_UNLOCK(block->mutex);
 }
 
-void smart_ptr_put(void *ptr)
+void smartptr_put(void *ptr)
 {
-    struct smart_ptr_ctrblock *block = SMARTPTR_GET_CTRBLOCK(ptr);
+    struct smartptr_ctr_block *block = SMARTPTR_GET_CTRBLOCK(ptr);
 
     OS_THREAD_MUTEX_LOCK(block->mutex);
 
@@ -88,10 +88,10 @@ void smart_ptr_put(void *ptr)
     OS_THREAD_MUTEX_UNLOCK(block->mutex);
 }
 
-#if defined(ENABLE_SMART_PTR_DETECT)
-#include "include/common_list.h"
-#include "include/os_time.h"
-#include "include/os_logger.h"
+#if defined(ENABLE_SMARTPTR_DETECT)
+#include "msglooper/common_list.h"
+#include "msglooper/os_time.h"
+#include "msglooper/os_logger.h"
 
 struct smartptr_node {
     void *ptr;
@@ -201,10 +201,10 @@ error:
     return NULL;
 }
 
-void *smart_ptr_new_debug(size_t size, void (*free_cb)(void *ptr),
+void *smartptr_new_debug(size_t size, void (*free_cb)(void *ptr),
                            const char *file, const char *func, int line)
 {
-    void *ptr = smart_ptr_new(size, free_cb);
+    void *ptr = smartptr_new(size, free_cb);
     struct smartptr_node *node;
     struct smartptr_info *info = smartptr_detect_init();
 
@@ -218,7 +218,7 @@ void *smart_ptr_new_debug(size_t size, void (*free_cb)(void *ptr),
         if (node != NULL) {
             node->ptr = ptr;
             node->user_size = size;
-            node->real_size = size + sizeof(struct smart_ptr_ctrblock);
+            node->real_size = size + sizeof(struct smartptr_ctr_block);
             node->refs_cnt = SMARTPTR_GET_CTRBLOCK(ptr)->refs_cnt;
             node->file = file;
             node->func = func;
@@ -244,7 +244,7 @@ void *smart_ptr_new_debug(size_t size, void (*free_cb)(void *ptr),
     return ptr;
 }
 
-void smart_ptr_get_debug(void *ptr, const char *file, const char *func, int line)
+void smartptr_get_debug(void *ptr, const char *file, const char *func, int line)
 {
     struct smartptr_info *info = smartptr_detect_init();
     struct listnode *item;
@@ -275,10 +275,10 @@ void smart_ptr_get_debug(void *ptr, const char *file, const char *func, int line
         OS_THREAD_MUTEX_UNLOCK(info->mutex);
     }
 
-    smart_ptr_get(ptr);
+    smartptr_get(ptr);
 }
 
-void smart_ptr_put_debug(void *ptr, const char *file, const char *func, int line)
+void smartptr_put_debug(void *ptr, const char *file, const char *func, int line)
 {
     struct smartptr_info *info = smartptr_detect_init();
     struct listnode *item;
@@ -315,10 +315,10 @@ void smart_ptr_put_debug(void *ptr, const char *file, const char *func, int line
         OS_THREAD_MUTEX_UNLOCK(info->mutex);
     }
 
-    smart_ptr_put(ptr);
+    smartptr_put(ptr);
 }
 
-void smart_ptr_dump_debug()
+void smartptr_dump_debug()
 {
     struct smartptr_info *info  = smartptr_detect_init();
     struct smartptr_node *node;

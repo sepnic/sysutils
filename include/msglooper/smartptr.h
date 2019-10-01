@@ -21,8 +21,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef __SMART_PTR_H__
-#define __SMART_PTR_H__
+#ifndef __SMARTPTR_H__
+#define __SMARTPTR_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,36 +31,36 @@
 extern "C" {
 #endif
 
-//#define ENABLE_SMART_PTR_DETECT
+//#define ENABLE_SMARTPTR_DETECT
 
-#if !defined(ENABLE_SMART_PTR_DETECT)
-    void *smart_ptr_new(size_t size, void (*free_cb)(void *ptr));
-    void smart_ptr_get(void *ptr);
-    void smart_ptr_put(void *ptr);
+#if !defined(ENABLE_SMARTPTR_DETECT)
+    void *smartptr_new(size_t size, void (*free_cb)(void *ptr));
+    void smartptr_get(void *ptr);
+    void smartptr_put(void *ptr);
 
-    #define SMART_PTR_NEW(size, free_cb) smart_ptr_new((size), (free_cb))
-    #define SMART_PTR_GET(ptr) smart_ptr_get(ptr)
-    #define SMART_PTR_PUT(ptr) smart_ptr_put(ptr)
-    #define SMART_PTR_DUMP() do {} while (0)
+    #define SMARTPTR_NEW(size, free_cb) smartptr_new((size), (free_cb))
+    #define SMARTPTR_GET(ptr) smartptr_get(ptr)
+    #define SMARTPTR_PUT(ptr) smartptr_put(ptr)
+    #define SMARTPTR_DUMP() do {} while (0)
 
 #else
-    void *smart_ptr_new_debug(size_t size, void (*free_cb)(void *ptr),
+    void *smartptr_new_debug(size_t size, void (*free_cb)(void *ptr),
                               const char *file, const char *func, int line);
-    void smart_ptr_get_debug(void *ptr, const char *file, const char *func, int line);
-    void smart_ptr_put_debug(void *ptr, const char *file, const char *func, int line);
-    void smart_ptr_dump_debug();
+    void smartptr_get_debug(void *ptr, const char *file, const char *func, int line);
+    void smartptr_put_debug(void *ptr, const char *file, const char *func, int line);
+    void smartptr_dump_debug();
 
-    #define SMART_PTR_NEW(size, free_cb) \
-        smart_ptr_new_debug((size), (free_cb), __FILE__, __FUNCTION__, __LINE__)
-    #define SMART_PTR_GET(ptr) \
-        smart_ptr_get_debug(ptr, __FILE__, __FUNCTION__, __LINE__)
-    #define SMART_PTR_PUT(ptr) \
-        smart_ptr_put_debug(ptr, __FILE__, __FUNCTION__, __LINE__)
-    #define SMART_PTR_DUMP() smart_ptr_dump_debug()
+    #define SMARTPTR_NEW(size, free_cb) \
+        smartptr_new_debug((size), (free_cb), __FILE__, __FUNCTION__, __LINE__)
+    #define SMARTPTR_GET(ptr) \
+        smartptr_get_debug(ptr, __FILE__, __FUNCTION__, __LINE__)
+    #define SMARTPTR_PUT(ptr) \
+        smartptr_put_debug(ptr, __FILE__, __FUNCTION__, __LINE__)
+    #define SMARTPTR_DUMP() smartptr_dump_debug()
 #endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __SMART_PTR_H__ */
+#endif /* __SMARTPTR_H__ */

@@ -21,16 +21,16 @@
  * THE SOFTWARE.
  */
 
-#ifndef __CUTILS_H__
-#define __CUTILS_H__
+#ifndef __CUTILS_MSG_LOOPER_H__
+#define __CUTILS_MSG_LOOPER_H__
 
-#include "include/common_list.h"
-#include "include/smart_ptr.h"
-#include "include/looper.h"
-#include "include/os_thread.h"
-#include "include/os_time.h"
-#include "include/os_timer.h"
-#include "include/os_memory.h"
-#include "include/os_logger.h"
+#include "msglooper/common_list.h"
+#include "msglooper/smartptr.h"
+#include "msglooper/msglooper.h"
+#include "msglooper/os_thread.h"
+#include "msglooper/os_time.h"
+#include "msglooper/os_timer.h"
+#include "msglooper/os_memory.h"
+#include "msglooper/os_logger.h"
 
-#endif /* __CUTILS_H__ */
+#endif /* __CUTILS_MSG_LOOPER_H__ */

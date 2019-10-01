@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include "include/os_timer.h"
-#include "include/os_thread.h"
-#include "include/os_logger.h"
+#include "msglooper/os_timer.h"
+#include "msglooper/os_thread.h"
+#include "msglooper/os_logger.h"
 
 #define LOG_TAG "timertest"
 

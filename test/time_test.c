@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "include/os_time.h"
-#include "include/os_logger.h"
+#include "msglooper/os_time.h"
+#include "msglooper/os_logger.h"
 
 #define LOG_TAG "timetest"
 

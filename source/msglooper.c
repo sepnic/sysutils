@@ -23,20 +23,20 @@
 
 #include <string.h>
 
-#include "include/common_list.h"
-#include "include/os_thread.h"
-#include "include/os_time.h"
-#include "include/os_memory.h"
-#include "include/os_logger.h"
 #include "sw_watchdog.h"
-#include "include/looper.h"
+#include "msglooper/common_list.h"
+#include "msglooper/os_thread.h"
+#include "msglooper/os_time.h"
+#include "msglooper/os_memory.h"
+#include "msglooper/os_logger.h"
+#include "msglooper/msglooper.h"
 
-#define LOG_TAG "looper"
+#define LOG_TAG "msglooper"
 
 #define DEFAULT_LOOPER_PRIORITY  OS_THREAD_PRIO_NORMAL
 #define DEFAULT_LOOPER_STACKSIZE 1024
 
-struct looper {
+struct msglooper {
     struct listnode msg_list;
     size_t msg_count;
     message_handle_cb msg_handle;
@@ -103,7 +103,7 @@ static void looper_clear_msglist(looper_t looper)
 
 static void *looper_thread_entry(void *arg)
 {
-    struct looper *looper = (struct looper *)arg;
+    struct msglooper *looper = (struct msglooper *)arg;
     struct message_node *node = NULL;
     struct message *msg = NULL;
     struct listnode *front = NULL;
@@ -184,7 +184,7 @@ static void *looper_thread_entry(void *arg)
 
 looper_t looper_create(struct os_threadattr *attr, message_handle_cb handle_cb, message_free_cb free_cb)
 {
-    struct looper *looper = calloc(1, sizeof(struct looper));
+    struct msglooper *looper = calloc(1, sizeof(struct msglooper));
     if (looper == NULL) {
         OS_LOGE(LOG_TAG, "Failed to allocate looper");
         return NULL;

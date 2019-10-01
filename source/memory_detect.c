@@ -23,11 +23,11 @@
 
 #include <stdbool.h>
 
-#include "include/common_list.h"
-#include "include/os_thread.h"
-#include "include/os_time.h"
-#include "include/os_logger.h"
-#include "include/os_memory.h"
+#include "msglooper/common_list.h"
+#include "msglooper/os_thread.h"
+#include "msglooper/os_time.h"
+#include "msglooper/os_logger.h"
+#include "msglooper/os_memory.h"
 
 #if defined(ENABLE_MEMORY_LEAK_DETECT) || defined(ENABLE_MEMORY_OVERFLOW_DETECT)
 

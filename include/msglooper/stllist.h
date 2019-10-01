@@ -32,60 +32,60 @@
 extern "C" {
 #endif
 
-typedef struct stl_list *stl_list_t;
+typedef struct stllist *stllist_t;
 typedef void *iterator;
 
-stl_list_t stl_list_create(void (*free_cb)(void *data));
+stllist_t stllist_create(void (*free_cb)(void *data));
 
-void stl_list_destroy(const stl_list_t list);
+void stllist_destroy(const stllist_t list);
 
 // Returns the number of elements in the list
-size_t stl_list_size(const stl_list_t list);
+size_t stllist_size(const stllist_t list);
 
 // Returns whether the list is empty
-bool stl_list_empty(const stl_list_t list);
+bool stllist_empty(const stllist_t list);
 
 // Returns a iterator to the first element in the list
-iterator stl_list_begin(const stl_list_t list);
+iterator stllist_begin(const stllist_t list);
 
 // Returns a iterator to the past-the-end element in the list, that would follow
 // the last element. It does not point to any element, and thus shall not be
 // dereferenced
-iterator stl_list_end(const stl_list_t list);
+iterator stllist_end(const stllist_t list);
 
 // Returns a reverse iterator pointing to the last element
-iterator stl_list_rbegin(const stl_list_t list);
+iterator stllist_rbegin(const stllist_t list);
 
 // Returns a reverse iterator pointing to the theoretical element preceding the
 // first element
-iterator stl_list_rend(const stl_list_t list);
+iterator stllist_rend(const stllist_t list);
 
 // Returns a iterator that followed the specified position
-iterator stl_list_next(iterator iter);
+iterator stllist_next(iterator iter);
 
 // Returns a iterator that before the specified position
-iterator stl_list_prev(iterator iter);
+iterator stllist_prev(iterator iter);
 
 // Adds a new element at the beginning of the list, before current first element
-int stl_list_pushfront(const stl_list_t list, void *data);
+int stllist_pushfront(const stllist_t list, void *data);
 
 // Removes the first elemen in the list
-void stl_list_popfront(const stl_list_t list);
+void stllist_popfront(const stllist_t list);
 
 // Adds a new element at the end of the list, after current last element
-int stl_list_pushback(const stl_list_t list, void *data);
+int stllist_pushback(const stllist_t list, void *data);
 
 // Removes the last elemen in the list
-void stl_list_popback(const stl_list_t list);
+void stllist_popback(const stllist_t list);
 
 // Returns a pointer to the first element in the list
-void *stl_list_front(const stl_list_t list);
+void *stllist_front(const stllist_t list);
 
 // Returns a pointer to the last element in the list
-void *stl_list_back(const stl_list_t list);
+void *stllist_back(const stllist_t list);
 
 // Returns a pointer to the element at specified position
-void *stl_list_at(iterator iter);
+void *stllist_at(iterator iter);
 
 // Extended by inserting new element before the element at the position
 // Parameters:
@@ -93,7 +93,7 @@ void *stl_list_at(iterator iter);
 //   @data: pointer to the inserted element
 // Return:
 //   iterator that points to the newly inserted element
-iterator stl_list_insert(const stl_list_t list, iterator iter, void *data);
+iterator stllist_insert(const stllist_t list, iterator iter, void *data);
 
 // Removes a single element from the list
 // Parameters:
@@ -101,16 +101,16 @@ iterator stl_list_insert(const stl_list_t list, iterator iter, void *data);
 // Return:
 //   iterator to the new location of the element that followd the erased
 //   element
-iterator stl_list_erase(const stl_list_t list, iterator iter);
+iterator stllist_erase(const stllist_t list, iterator iter);
 
 // Removes all elements from the list
-void stl_list_clear(const stl_list_t list);
+void stllist_clear(const stllist_t list);
 
 // Find the element that first meet the condition
-iterator stl_list_find(const stl_list_t list, bool (*match_cb)(void *data));
+iterator stllist_find(const stllist_t list, bool (*match_cb)(void *data));
 
 // Removes the elements that meet the condition
-void stl_list_remove_if(const stl_list_t list, bool (*match_cb)(void *data));
+void stllist_remove_if(const stllist_t list, bool (*match_cb)(void *data));
 
 #ifdef __cplusplus
 }

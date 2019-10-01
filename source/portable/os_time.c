@@ -21,14 +21,15 @@
  * THE SOFTWARE.
  */
 
-#include <unistd.h>
 #include <string.h>
-#include <time.h>
-#include <sys/time.h>
-#include "include/os_time.h"
+#include "msglooper/os_time.h"
 
 #if defined(OS_FREERTOS)
+#include "FreeRTOS_POSIX/unistd.h"
 #include "FreeRTOS_POSIX/time.h"
+#else
+#include <unistd.h>
+#include <time.h>
 #endif
 
 unsigned long OS_TIMESTAMP_TO_UTC(struct os_realtime *rt)

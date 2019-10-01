@@ -21,19 +21,20 @@
  * THE SOFTWARE.
  */
 
-#include <unistd.h>
 #include <string.h>
-#include <time.h>
-#include <sys/time.h>
-#include "include/os_timer.h"
+#include "msglooper/os_timer.h"
 
 #if defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_FREERTOS)
 
 #if defined(OS_FREERTOS)
+#include "FreeRTOS_POSIX/unistd.h"
 #include "FreeRTOS_POSIX/time.h"
-#endif
-
+#include "FreeRTOS_POSIX/signal.h"
+#else
+#include <unistd.h>
+#include <time.h>
 #include <signal.h>
+#endif
 
 typedef void (*timer_notify_cb)(union sigval val);
 
