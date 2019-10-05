@@ -28,6 +28,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#if defined(OS_FREERTOS)
+#include "FreeRTOS_POSIX/pthread.h"
+#else
+#include <pthread.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,6 +41,10 @@ extern "C" {
 typedef void *os_thread_t;
 typedef void *os_mutex_t;
 typedef void *os_cond_t;
+
+#define OS_MUTEX_DECLARE(name) \
+    static pthread_mutex_t temp##name = PTHREAD_MUTEX_INITIALIZER; \
+    static os_mutex_t name = (os_mutex_t)(&temp##name);
 
 enum os_threadprio {
     OS_THREAD_PRIO_INVALID,
@@ -54,9 +64,6 @@ struct os_threadattr {
     unsigned int stacksize;
     bool joinable;
 };
-
-void OS_ENTER_CRITICAL();
-void OS_LEAVE_CRITICAL();
 
 void OS_THREAD_SLEEP_USEC(unsigned long usec);
 void OS_THREAD_SLEEP_MSEC(unsigned long msec);

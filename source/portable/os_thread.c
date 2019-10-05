@@ -35,26 +35,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <pthread.h>
-static pthread_mutex_t g_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
-
-void OS_ENTER_CRITICAL()
-{
-#if defined(OS_FREERTOS)
-    taskENTER_CRITICAL();
-#else
-    pthread_mutex_lock(&g_mutex);
-#endif
-}
-
-void OS_LEAVE_CRITICAL()
-{
-#if defined(OS_FREERTOS)
-    taskEXIT_CRITICAL();
-#else
-    pthread_mutex_unlock(&g_mutex);
-#endif
-}
 
 void OS_THREAD_SLEEP_USEC(unsigned long usec)
 {

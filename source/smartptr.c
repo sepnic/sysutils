@@ -121,6 +121,7 @@ struct smartptr_info {
     os_mutex_t mutex;
 };
 
+OS_MUTEX_DECLARE(g_ptrinfo_mutex);
 static struct smartptr_info *g_ptrinfo = NULL;
 
 static char *file_name(const char *filepath)
@@ -164,13 +165,13 @@ static void smartptr_node_debug(struct smartptr_node *node, const char *info)
 static struct smartptr_info *smartptr_detect_init()
 {
     if (g_ptrinfo == NULL) {
-        OS_ENTER_CRITICAL();
+        OS_THREAD_MUTEX_LOCK(g_ptrinfo_mutex);
 
         if (g_ptrinfo == NULL) {
             g_ptrinfo = calloc(1, sizeof(struct smartptr_info));
             if (g_ptrinfo == NULL) {
                 OS_LOGE(LOG_TAG, "Failed to alloc smartptr_info, abort smartptr detect");
-                OS_LEAVE_CRITICAL();
+                OS_THREAD_MUTEX_UNLOCK(g_ptrinfo_mutex);
                 return NULL;
             }
 
@@ -185,7 +186,7 @@ static struct smartptr_info *smartptr_detect_init()
             list_init(&g_ptrinfo->list);
         }
 
-        OS_LEAVE_CRITICAL();
+        OS_THREAD_MUTEX_UNLOCK(g_ptrinfo_mutex);
     }
 
     return g_ptrinfo;
@@ -197,7 +198,7 @@ error:
     free(g_ptrinfo);
     g_ptrinfo = NULL;
 
-    OS_LEAVE_CRITICAL();
+    OS_THREAD_MUTEX_UNLOCK(g_ptrinfo_mutex);
     return NULL;
 }
 

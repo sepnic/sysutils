@@ -59,6 +59,7 @@ struct swwatchdog_node {
     struct listnode listnode;
 };
 
+OS_MUTEX_DECLARE(g_watchdog_mutex);
 static struct swwatchdog *g_watchdog = NULL;
 
 static void default_timeout_cb(void *data)
@@ -136,7 +137,7 @@ static void *swwatchdog_thread_entry(void *arg)
 static struct swwatchdog *swwatchdog_init()
 {
     if (g_watchdog == NULL) {
-        OS_ENTER_CRITICAL();
+        OS_THREAD_MUTEX_LOCK(g_watchdog_mutex);
 
         if (g_watchdog == NULL) {
             struct os_threadattr attr  = {
@@ -149,7 +150,7 @@ static struct swwatchdog *swwatchdog_init()
             g_watchdog = calloc(1, sizeof(struct swwatchdog));
             if (g_watchdog == NULL) {
                 OS_LOGE(LOG_TAG, "Failed to create watchdog instance");
-                OS_LEAVE_CRITICAL();
+                OS_THREAD_MUTEX_UNLOCK(g_watchdog_mutex);
                 return NULL;
             }
 
@@ -178,7 +179,7 @@ static struct swwatchdog *swwatchdog_init()
             list_init(&g_watchdog->list);
         }
 
-        OS_LEAVE_CRITICAL();
+        OS_THREAD_MUTEX_UNLOCK(g_watchdog_mutex);
     }
     return g_watchdog;
 
@@ -192,7 +193,7 @@ error:
     free(g_watchdog);
     g_watchdog = NULL;
 
-    OS_LEAVE_CRITICAL();
+    OS_THREAD_MUTEX_UNLOCK(g_watchdog_mutex);
     return NULL;
 }
 

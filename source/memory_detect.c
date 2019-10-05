@@ -62,6 +62,7 @@ struct mem_info {
     os_mutex_t mutex;
 };
 
+OS_MUTEX_DECLARE(g_meminfo_mutex);
 static struct mem_info *g_meminfo = NULL;
 
 static char *file_name(const char *filepath)
@@ -160,13 +161,13 @@ static void memory_boundary_verify(struct mem_node *node)
 static struct mem_info *memory_detect_init()
 {
     if (g_meminfo == NULL) {
-        OS_ENTER_CRITICAL();
+        OS_THREAD_MUTEX_LOCK(g_meminfo_mutex);
 
         if (g_meminfo == NULL) {
             g_meminfo = calloc(1, sizeof(struct mem_info));
             if (g_meminfo == NULL) {
                 OS_LOGE(LOG_TAG, "Failed to alloc mem_info, abort memory detect");
-                OS_LEAVE_CRITICAL();
+                OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
                 return NULL;
             }
 
@@ -182,7 +183,7 @@ static struct mem_info *memory_detect_init()
             list_init(&g_meminfo->list);
         }
 
-        OS_LEAVE_CRITICAL();
+        OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
     }
 
     return g_meminfo;
@@ -194,7 +195,7 @@ error:
     free(g_meminfo);
     g_meminfo = NULL;
 
-    OS_LEAVE_CRITICAL();
+    OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
     return NULL;
 }
 
