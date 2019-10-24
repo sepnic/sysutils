@@ -25,10 +25,11 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include "msglooper/common_list.h"
-#include "msglooper/os_thread.h"
-#include "msglooper/os_time.h"
-#include "msglooper/os_logger.h"
+#include "msgutils/common_list.h"
+#include "msgutils/os_memory.h"
+#include "msgutils/os_thread.h"
+#include "msgutils/os_time.h"
+#include "msgutils/os_logger.h"
 #include "sw_watchdog.h"
 
 #define LOG_TAG "watchdog"
@@ -123,7 +124,7 @@ static void *swwatchdog_thread_entry(void *arg)
                     default_timeout_cb(node);
 
                 list_remove(item);
-                free(node);
+                OS_FREE(node);
                 wd->active_num--;
             }
         }
@@ -147,7 +148,7 @@ static struct swwatchdog *swwatchdog_init()
                 .joinable = true,
             };
 
-            g_watchdog = calloc(1, sizeof(struct swwatchdog));
+            g_watchdog = OS_CALLOC(1, sizeof(struct swwatchdog));
             if (g_watchdog == NULL) {
                 OS_LOGE(LOG_TAG, "Failed to create watchdog instance");
                 OS_THREAD_MUTEX_UNLOCK(g_watchdog_mutex);
@@ -190,7 +191,7 @@ error:
     if (g_watchdog->mutex != NULL)
         OS_THREAD_MUTEX_DESTROY(g_watchdog->mutex);
 
-    free(g_watchdog);
+    OS_FREE(g_watchdog);
     g_watchdog = NULL;
 
     OS_THREAD_MUTEX_UNLOCK(g_watchdog_mutex);
@@ -212,7 +213,7 @@ swwatch_t swwatchdog_create(const char *name, unsigned long long timeout_ms, voi
         timeout_ms = DEFAULT_MIN_TIMEOUT_MS;
     }
 
-    node = calloc(1, sizeof(struct swwatchdog_node));
+    node = OS_CALLOC(1, sizeof(struct swwatchdog_node));
     if (node == NULL) {
         OS_LOGE(LOG_TAG, "Failed to allocate watch node");
         return NULL;
@@ -318,7 +319,7 @@ void swwatchdog_destroy(swwatch_t node)
                 wd->active_num--;
 
             list_remove(item);
-            free(temp);
+            OS_FREE(temp);
             break;
         }
     }

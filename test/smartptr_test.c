@@ -1,8 +1,8 @@
 #include <stdio.h>
-#include "msglooper/os_memory.h"
-#include "msglooper/os_logger.h"
-#include "msglooper/os_thread.h"
-#include "msglooper/smartptr.h"
+#include "msgutils/os_memory.h"
+#include "msgutils/os_logger.h"
+#include "msgutils/os_thread.h"
+#include "msgutils/smartptr.h"
 
 #define LOG_TAG "smartptr_test"
 

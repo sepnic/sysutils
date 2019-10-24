@@ -26,9 +26,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "msglooper/os_thread.h"
-#include "msglooper/os_time.h"
-#include "msglooper/os_logger.h"
+#include "msgutils/os_thread.h"
+#include "msgutils/os_time.h"
+#include "msgutils/os_logger.h"
 
 #if defined(OS_FREERTOS)
 #define LOG_BUFFER_SIZE 256

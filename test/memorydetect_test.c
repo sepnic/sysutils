@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "msglooper/os_memory.h"
+#include "msgutils/os_memory.h"
 
 int main()
 {

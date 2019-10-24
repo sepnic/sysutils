@@ -25,10 +25,11 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include "msglooper/common_list.h"
-#include "msglooper/os_thread.h"
-#include "msglooper/os_time.h"
-#include "msglooper/os_logger.h"
+#include "msgutils/common_list.h"
+#include "msgutils/os_memory.h"
+#include "msgutils/os_thread.h"
+#include "msgutils/os_time.h"
+#include "msgutils/os_logger.h"
 #include "sw_timer.h"
 
 #define LOG_TAG "timer"
@@ -112,7 +113,7 @@ swtimer_t swtimer_create(struct swtimer_attr *attr, void (*swtimer_callback)())
         .joinable = true,
     };
 
-    timer = calloc(1, sizeof(struct swtimer));
+    timer = OS_CALLOC(1, sizeof(struct swtimer));
     if (timer == NULL) {
         OS_LOGE(LOG_TAG, "Failed to allocate timer");
         return NULL;
@@ -135,7 +136,7 @@ swtimer_t swtimer_create(struct swtimer_attr *attr, void (*swtimer_callback)())
         goto error;
     }
 
-    timer->thread_name = strdup(thread_attr.name);
+    timer->thread_name = OS_STRDUP(thread_attr.name);
     timer->thread_cb = swtimer_callback;
     timer->thread_exit = false;
 
@@ -156,7 +157,7 @@ error:
         OS_THREAD_COND_DESTROY(timer->thread_cond);
     if (timer->thread_mutex != NULL)
         OS_THREAD_MUTEX_DESTROY(timer->thread_mutex);
-    free(timer);
+    OS_FREE(timer);
     return NULL;
 }
 
@@ -204,6 +205,6 @@ void swtimer_destroy(swtimer_t timer)
     OS_THREAD_MUTEX_DESTROY(timer->thread_mutex);
     OS_THREAD_COND_DESTROY(timer->thread_cond);
 
-    free((void *)(timer->thread_name));
-    free(timer);
+    OS_FREE(timer->thread_name);
+    OS_FREE(timer);
 }

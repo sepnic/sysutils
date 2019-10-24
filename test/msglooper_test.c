@@ -2,12 +2,12 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "msglooper/os_memory.h"
-#include "msglooper/os_logger.h"
-#include "msglooper/os_thread.h"
-#include "msglooper/msglooper.h"
+#include "msgutils/os_memory.h"
+#include "msgutils/os_logger.h"
+#include "msgutils/os_thread.h"
+#include "msgutils/msglooper.h"
 
-#define LOG_TAG "looper_test"
+#define LOG_TAG "msglooper_test"
 
 struct priv_data {
     const char *str;
@@ -37,54 +37,54 @@ static void msg_notify(struct message *msg, enum message_status status)
 int main()
 {
     struct os_threadattr attr;
-    looper_t looper;
+    mlooper_t looper;
     struct message *msg;
     struct priv_data *priv;
 
-    attr.name = "looper_test_thread";
+    attr.name = "msglooper_test";
     attr.priority = OS_THREAD_PRIO_NORMAL;
     attr.stacksize = 1024;
-    looper = looper_create(&attr, msg_handle, msg_free);
+    looper = mlooper_create(&attr, msg_handle, msg_free);
 
-    looper_dump(looper);
+    mlooper_dump(looper);
 
-    looper_start(looper);
+    mlooper_start(looper);
 
     {
         priv = OS_MALLOC(sizeof(struct  priv_data));
-        priv->str = OS_STRDUP("looper_post_message_delay");
+        priv->str = OS_STRDUP("mlooper_post_message_delay");
         // timeout 2s
         msg = message_obtain2(1000, 0, 0, priv, 2000, NULL, NULL, msg_notify);
-        looper_post_message_delay(looper, msg, 2000); // delay 2s
+        mlooper_post_message_delay(looper, msg, 2000); // delay 2s
     }
 
     {
         for (int i = 0; i < 3; i++) {
             priv = OS_MALLOC(sizeof(struct  priv_data));
-            priv->str = OS_STRDUP("looper_post_message");
+            priv->str = OS_STRDUP("mlooper_post_message");
             msg = message_obtain(i+100, 0, 0, priv);
-            looper_post_message(looper, msg);
+            mlooper_post_message(looper, msg);
         }
     }
 
     {
         priv = OS_MALLOC(sizeof(struct  priv_data));
-        priv->str = OS_STRDUP("looper_post_message_front");
+        priv->str = OS_STRDUP("mlooper_post_message_front");
         msg = message_obtain(0, 0, 0, priv);
-        looper_post_message_front(looper, msg);
+        mlooper_post_message_front(looper, msg);
     }
 
-    looper_dump(looper);
+    mlooper_dump(looper);
 
     //OS_LOGI(LOG_TAG, "remove what=1000");
-    //looper_remove_message(looper, 1000);
-    //looper_dump(looper);
+    //mlooper_remove_message(looper, 1000);
+    //mlooper_dump(looper);
 
-    //looper_stop(looper);
-    //looper_dump(looper);
+    //mlooper_stop(looper);
+    //mlooper_dump(looper);
 
     OS_THREAD_SLEEP_MSEC(3000);
-    looper_destroy(looper);
+    mlooper_destroy(looper);
 
     return 0;
 }

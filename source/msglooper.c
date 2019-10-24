@@ -24,12 +24,12 @@
 #include <string.h>
 
 #include "sw_watchdog.h"
-#include "msglooper/common_list.h"
-#include "msglooper/os_thread.h"
-#include "msglooper/os_time.h"
-#include "msglooper/os_memory.h"
-#include "msglooper/os_logger.h"
-#include "msglooper/msglooper.h"
+#include "msgutils/common_list.h"
+#include "msgutils/os_thread.h"
+#include "msgutils/os_time.h"
+#include "msgutils/os_memory.h"
+#include "msgutils/os_logger.h"
+#include "msgutils/msglooper.h"
 
 #define LOG_TAG "msglooper"
 
@@ -65,7 +65,7 @@ struct message_node {
     struct listnode listnode;
 };
 
-static void looper_free_msgnode(looper_t looper, struct message_node *node)
+static void mlooper_free_msgnode(mlooper_t looper, struct message_node *node)
 {
     struct message *msg = &node->msg;
 
@@ -83,7 +83,7 @@ static void looper_free_msgnode(looper_t looper, struct message_node *node)
     OS_FREE(msg);
 }
 
-static void looper_clear_msglist(looper_t looper)
+static void mlooper_clear_msglist(mlooper_t looper)
 {
     struct message_node *node = NULL;
     struct listnode *item, *tmp;
@@ -93,7 +93,7 @@ static void looper_clear_msglist(looper_t looper)
     list_for_each_safe(item, tmp, &looper->msg_list) {
         node = node_to_item(item, struct message_node, listnode);
         list_remove(item);
-        looper_free_msgnode(looper, node);
+        mlooper_free_msgnode(looper, node);
     }
 
     looper->msg_count = 0;
@@ -101,7 +101,7 @@ static void looper_clear_msglist(looper_t looper)
     OS_THREAD_MUTEX_UNLOCK(looper->msg_mutex);
 }
 
-static void *looper_thread_entry(void *arg)
+static void *mlooper_thread_entry(void *arg)
 {
     struct msglooper *looper = (struct msglooper *)arg;
     struct message_node *node = NULL;
@@ -172,19 +172,19 @@ static void *looper_thread_entry(void *arg)
                     swwatchdog_stop(looper->watchdog_node);
             }
 
-            looper_free_msgnode(looper, node);
+            mlooper_free_msgnode(looper, node);
         }
     }
 
-    looper_clear_msglist(looper);
+    mlooper_clear_msglist(looper);
 
     OS_LOGD(LOG_TAG, "[%s]: Leave looper thread: thread_id=[%p]", looper->thread_name, looper->thread_id);
     return NULL;
 }
 
-looper_t looper_create(struct os_threadattr *attr, message_handle_cb handle_cb, message_free_cb free_cb)
+mlooper_t mlooper_create(struct os_threadattr *attr, message_handle_cb handle_cb, message_free_cb free_cb)
 {
-    struct msglooper *looper = calloc(1, sizeof(struct msglooper));
+    struct msglooper *looper = OS_CALLOC(1, sizeof(struct msglooper));
     if (looper == NULL) {
         OS_LOGE(LOG_TAG, "Failed to allocate looper");
         return NULL;
@@ -212,7 +212,7 @@ looper_t looper_create(struct os_threadattr *attr, message_handle_cb handle_cb, 
     looper->msg_count = 0;
     looper->msg_handle = handle_cb;
     looper->msg_free = free_cb;
-    looper->thread_name = (attr && attr->name) ? strdup(attr->name) : strdup("looper");
+    looper->thread_name = (attr && attr->name) ? OS_STRDUP(attr->name) : OS_STRDUP("looper");
     looper->thread_exit = true;
     looper->thread_attr.name = looper->thread_name;
     if (attr != NULL) {
@@ -235,18 +235,18 @@ error:
         OS_THREAD_COND_DESTROY(looper->msg_cond);
     if (looper->msg_mutex != NULL)
         OS_THREAD_MUTEX_DESTROY(looper->msg_mutex);
-    free(looper);
+    OS_FREE(looper);
     return NULL;
 }
 
-int looper_start(looper_t looper)
+int mlooper_start(mlooper_t looper)
 {
     int ret = 0;
     OS_THREAD_MUTEX_LOCK(looper->thread_mutex);
 
     if (looper->thread_exit) {
         looper->thread_exit = false;
-        looper->thread_id = OS_THREAD_CREATE(&(looper->thread_attr), looper_thread_entry, looper);
+        looper->thread_id = OS_THREAD_CREATE(&(looper->thread_attr), mlooper_thread_entry, looper);
         if (looper->thread_id == NULL) {
             OS_LOGE(LOG_TAG, "[%s]: Failed to run thread looper", looper->thread_name);
             looper->thread_exit = true;
@@ -258,12 +258,12 @@ int looper_start(looper_t looper)
     return ret;
 }
 
-int looper_post_message(looper_t looper, struct message *msg)
+int mlooper_post_message(mlooper_t looper, struct message *msg)
 {
-    return looper_post_message_delay(looper, msg, 0);
+    return mlooper_post_message_delay(looper, msg, 0);
 }
 
-int looper_post_message_front(looper_t looper, struct message *msg)
+int mlooper_post_message_front(mlooper_t looper, struct message *msg)
 {
     unsigned long long now = OS_MONOTONIC_USEC();
     struct message_node *node = (struct message_node *)msg;
@@ -294,7 +294,7 @@ int looper_post_message_front(looper_t looper, struct message *msg)
     return 0;
 }
 
-int looper_post_message_delay(looper_t looper, struct message *msg, unsigned long msec)
+int mlooper_post_message_delay(mlooper_t looper, struct message *msg, unsigned long msec)
 {
     unsigned long long now = OS_MONOTONIC_USEC();
     struct message_node *node = (struct message_node *)msg;
@@ -339,7 +339,7 @@ int looper_post_message_delay(looper_t looper, struct message *msg, unsigned lon
     return 0;
 }
 
-int looper_remove_message(looper_t looper, int what)
+int mlooper_remove_message(mlooper_t looper, int what)
 {
     struct message_node *node = NULL;
     struct listnode *item, *tmp;
@@ -350,7 +350,7 @@ int looper_remove_message(looper_t looper, int what)
         node = node_to_item(item, struct message_node, listnode);
         if (node->msg.what == what) {
             list_remove(item);
-            looper_free_msgnode(looper, node);
+            mlooper_free_msgnode(looper, node);
             looper->msg_count--;
         }
     }
@@ -359,7 +359,7 @@ int looper_remove_message(looper_t looper, int what)
     return 0;
 }
 
-int looper_remove_message_if(looper_t looper, message_match_cb match_cb)
+int mlooper_remove_message_if(mlooper_t looper, message_match_cb match_cb)
 {
     struct message_node *node = NULL;
     struct listnode *item, *tmp;
@@ -370,7 +370,7 @@ int looper_remove_message_if(looper_t looper, message_match_cb match_cb)
         node = node_to_item(item, struct message_node, listnode);
         if (match_cb(&node->msg)) {
             list_remove(item);
-            looper_free_msgnode(looper, node);
+            mlooper_free_msgnode(looper, node);
             looper->msg_count--;
         }
     }
@@ -379,12 +379,12 @@ int looper_remove_message_if(looper_t looper, message_match_cb match_cb)
     return 0;
 }
 
-size_t looper_message_count(looper_t looper)
+size_t mlooper_message_count(mlooper_t looper)
 {
     return looper->msg_count;
 }
 
-void looper_dump(looper_t looper)
+void mlooper_dump(mlooper_t looper)
 {
     struct message_node *node = NULL;
     struct listnode *item;
@@ -411,7 +411,7 @@ void looper_dump(looper_t looper)
     OS_THREAD_MUTEX_UNLOCK(looper->msg_mutex);
 }
 
-void looper_stop(looper_t looper)
+void mlooper_stop(mlooper_t looper)
 {
     OS_THREAD_MUTEX_LOCK(looper->thread_mutex);
 
@@ -425,9 +425,9 @@ void looper_stop(looper_t looper)
     OS_THREAD_MUTEX_UNLOCK(looper->thread_mutex);
 }
 
-void looper_destroy(looper_t looper)
+void mlooper_destroy(mlooper_t looper)
 {
-    looper_stop(looper);
+    mlooper_stop(looper);
 
     if (looper->watchdog_node != NULL)
         swwatchdog_destroy(looper->watchdog_node);
@@ -436,11 +436,11 @@ void looper_destroy(looper_t looper)
     OS_THREAD_COND_DESTROY(looper->msg_cond);
     OS_THREAD_MUTEX_DESTROY(looper->msg_mutex);
 
-    free((void *)(looper->thread_name));
-    free(looper);
+    OS_FREE(looper->thread_name);
+    OS_FREE(looper);
 }
 
-int looper_enable_watchdog(looper_t looper, unsigned long long timeout_ms, void (*timeout_cb)(void *arg), void *arg)
+int mlooper_enable_watchdog(mlooper_t looper, unsigned long long timeout_ms, void (*timeout_cb)(void *arg), void *arg)
 {
     OS_THREAD_MUTEX_LOCK(looper->msg_mutex);
 
@@ -460,7 +460,7 @@ int looper_enable_watchdog(looper_t looper, unsigned long long timeout_ms, void 
     return 0;
 }
 
-void looper_disable_watchdog(looper_t looper)
+void mlooper_disable_watchdog(mlooper_t looper)
 {
     OS_THREAD_MUTEX_LOCK(looper->msg_mutex);
 

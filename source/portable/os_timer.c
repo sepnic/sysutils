@@ -22,7 +22,8 @@
  */
 
 #include <string.h>
-#include "msglooper/os_timer.h"
+#include "msgutils/os_memory.h"
+#include "msgutils/os_timer.h"
 
 #if defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_FREERTOS)
 
@@ -59,7 +60,7 @@ os_timer_t OS_TIMER_CREATE(struct os_timerattr *attr, void (*cb)())
     if (ret != 0)
         return NULL;
 
-    handle = malloc(sizeof(struct linux_timer));
+    handle = OS_MALLOC(sizeof(struct linux_timer));
     if (handle != NULL) {
         handle->id = id;
         handle->period_ms = attr->period_ms;
@@ -132,7 +133,7 @@ void OS_TIMER_DESTROY(os_timer_t timer)
     struct linux_timer *handle = (struct linux_timer *)timer;
 
     timer_delete(handle->id);
-    free(handle);
+    OS_FREE(handle);
 }
 
 #elif defined(OS_MACOSX) || defined(OS_IOS)

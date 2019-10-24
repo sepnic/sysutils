@@ -21,16 +21,17 @@
  * THE SOFTWARE.
  */
 
-#ifndef __CUTILS_MSG_LOOPER_H__
-#define __CUTILS_MSG_LOOPER_H__
+#ifndef __MSG_CUTILS_H__
+#define __MSG_CUTILS_H__
 
-#include "msglooper/common_list.h"
-#include "msglooper/smartptr.h"
-#include "msglooper/msglooper.h"
-#include "msglooper/os_thread.h"
-#include "msglooper/os_time.h"
-#include "msglooper/os_timer.h"
-#include "msglooper/os_memory.h"
-#include "msglooper/os_logger.h"
+#include "msgutils/common_list.h"
+#include "msgutils/smartptr.h"
+#include "msgutils/msglooper.h"
+#include "msgutils/msgqueue.h"
+#include "msgutils/os_thread.h"
+#include "msgutils/os_time.h"
+#include "msgutils/os_timer.h"
+#include "msgutils/os_memory.h"
+#include "msgutils/os_logger.h"
 
-#endif /* __CUTILS_MSG_LOOPER_H__ */
+#endif /* __MSG_CUTILS_H__ */

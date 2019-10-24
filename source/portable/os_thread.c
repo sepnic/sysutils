@@ -22,7 +22,7 @@
  */
 
 #include <string.h>
-#include "msglooper/os_thread.h"
+#include "msgutils/os_thread.h"
 
 #if defined(OS_FREERTOS)
 #include "FreeRTOS.h"

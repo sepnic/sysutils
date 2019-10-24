@@ -1,10 +1,11 @@
 ```
 .
 ├── CMakeLists.txt
-├── cutils.h
-├── include
+├── msgutils.h
+├── include/msgutils
 │   ├── common_list.h
 │   ├── msglooper.h
+│   ├── msgqueue.h
 │   ├── os_logger.h
 │   ├── os_memory.h
 │   ├── os_thread.h
@@ -16,6 +17,7 @@
 ├── README.md
 ├── source
 │   ├── msglooper.c
+│   ├── msgqueue.c
 │   ├── memory_detect.c
 │   ├── portable
 │   │   ├── os_logger.c
@@ -32,6 +34,7 @@
     ├── CMakeLists.txt
     ├── looper_test.c
     ├── memorydetect_test.c
+    ├── mqueue_test.c
     ├── smartptr_test.c
     ├── stllist_test.c
     ├── timer_test.c
@@ -42,6 +45,7 @@
 - **common_list**:  linux/android list
 - **smartptr**:     smart pointer for c
 - **msglooper**:    thread looper to handle message
+- **msgqueue**:     message queue and queue-set
 - **sw_timer**:     software timer
 - **sw_watchdog**:  software watchdog
 - **memory_detect**:light weight utils to detect memory leak and overflow

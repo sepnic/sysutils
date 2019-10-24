@@ -24,9 +24,9 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "msglooper/os_memory.h"
-#include "msglooper/os_thread.h"
-#include "msglooper/smartptr.h"
+#include "msgutils/os_memory.h"
+#include "msgutils/os_thread.h"
+#include "msgutils/smartptr.h"
 
 #define LOG_TAG "smartptr"
 
@@ -89,9 +89,9 @@ void smartptr_put(void *ptr)
 }
 
 #if defined(ENABLE_SMARTPTR_DETECT)
-#include "msglooper/common_list.h"
-#include "msglooper/os_time.h"
-#include "msglooper/os_logger.h"
+#include "msgutils/common_list.h"
+#include "msgutils/os_time.h"
+#include "msgutils/os_logger.h"
 
 struct smartptr_node {
     void *ptr;
@@ -168,7 +168,7 @@ static struct smartptr_info *smartptr_detect_init()
         OS_THREAD_MUTEX_LOCK(g_ptrinfo_mutex);
 
         if (g_ptrinfo == NULL) {
-            g_ptrinfo = calloc(1, sizeof(struct smartptr_info));
+            g_ptrinfo = OS_CALLOC(1, sizeof(struct smartptr_info));
             if (g_ptrinfo == NULL) {
                 OS_LOGE(LOG_TAG, "Failed to alloc smartptr_info, abort smartptr detect");
                 OS_THREAD_MUTEX_UNLOCK(g_ptrinfo_mutex);
@@ -195,7 +195,7 @@ error:
     if (g_ptrinfo->mutex != NULL)
         OS_THREAD_MUTEX_DESTROY(g_ptrinfo->mutex);
 
-    free(g_ptrinfo);
+    OS_FREE(g_ptrinfo);
     g_ptrinfo = NULL;
 
     OS_THREAD_MUTEX_UNLOCK(g_ptrinfo_mutex);
@@ -215,7 +215,7 @@ void *smartptr_new_debug(size_t size, void (*free_cb)(void *ptr),
     }
 
     if (info != NULL) {
-        node = malloc(sizeof(struct smartptr_node));
+        node = OS_MALLOC(sizeof(struct smartptr_node));
         if (node != NULL) {
             node->ptr = ptr;
             node->user_size = size;
@@ -305,7 +305,7 @@ void smartptr_put_debug(void *ptr, const char *file, const char *func, int line)
                 info->delete_cnt++;
                 info->cur_used -= node->real_size;
                 list_remove(item);
-                free(node);
+                OS_FREE(node);
             }
         }
         else {

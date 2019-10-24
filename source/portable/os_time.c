@@ -22,7 +22,7 @@
  */
 
 #include <string.h>
-#include "msglooper/os_time.h"
+#include "msgutils/os_time.h"
 
 #if defined(OS_FREERTOS)
 #include "FreeRTOS_POSIX/unistd.h"

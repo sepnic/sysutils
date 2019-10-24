@@ -22,7 +22,8 @@
  */
 
 #include <string.h>
-#include "msglooper/stllist.h"
+#include "msgutils/os_memory.h"
+#include "msgutils/stllist.h"
 
 struct stllist_node {
     void *data;
@@ -38,7 +39,7 @@ struct stllist {
 
 static struct stllist_node *stllist_node_create(void *data)
 {
-    struct stllist_node *node = malloc(sizeof(struct stllist_node));
+    struct stllist_node *node = OS_MALLOC(sizeof(struct stllist_node));
     if (node != NULL)
         node->data = data;
     return node;
@@ -48,7 +49,7 @@ static void stllist_node_destroy(struct stllist_node *node, void (*free_cb)(void
 {
     if (free_cb != NULL && node->data != NULL)
         free_cb(node->data);
-    free(node);
+    OS_FREE(node);
 }
 
 stllist_t stllist_create(void (*free_cb)(void *data))
@@ -56,7 +57,7 @@ stllist_t stllist_create(void (*free_cb)(void *data))
     struct stllist *list;
     struct stllist_node *node;
 
-    list = malloc(sizeof(struct stllist));
+    list = OS_MALLOC(sizeof(struct stllist));
     if (list == NULL) {
         fprintf(stderr, "Out of memory\n");
         return NULL;
@@ -65,7 +66,7 @@ stllist_t stllist_create(void (*free_cb)(void *data))
     node = stllist_node_create(NULL);
     if (node == NULL) {
         fprintf(stderr, "Out of memory\n");
-        free(list);
+        OS_FREE(list);
         return NULL;
     }
     node->next = node;
@@ -80,9 +81,10 @@ stllist_t stllist_create(void (*free_cb)(void *data))
 
 void stllist_destroy(const stllist_t list)
 {
+    stllist_t temp = list;
     stllist_clear(list);
     stllist_node_destroy(list->end, NULL);
-    free(list);
+    OS_FREE(temp);
 }
 
 size_t stllist_size(const stllist_t list)

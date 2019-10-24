@@ -21,8 +21,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef __THREAD_LOOPER_H__
-#define __THREAD_LOOPER_H__
+#ifndef __MSGLOOPER_H__
+#define __MSGLOOPER_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,7 +34,7 @@
 extern "C" {
 #endif
 
-typedef struct msglooper *looper_t;
+typedef struct msglooper *mlooper_t;
 struct message;
 
 enum message_status {
@@ -85,27 +85,27 @@ struct message *message_obtain(int what, int arg1, int arg2, void *data);
 struct message *message_obtain2(int what, int arg1, int arg2, void *data, unsigned long timeout_ms,
                                 message_handle_cb handle_cb, message_free_cb free_cb, message_notify_cb notify_cb);
 
-looper_t looper_create(struct os_threadattr *attr, message_handle_cb handle_cb, message_free_cb free_cb);
-void looper_destroy(looper_t looper);
+mlooper_t mlooper_create(struct os_threadattr *attr, message_handle_cb handle_cb, message_free_cb free_cb);
+void mlooper_destroy(mlooper_t looper);
 
-int looper_start(looper_t looper);
-void looper_stop(looper_t looper);
+int mlooper_start(mlooper_t looper);
+void mlooper_stop(mlooper_t looper);
 
-size_t looper_message_count(looper_t looper);
-void looper_dump(looper_t looper);
+size_t mlooper_message_count(mlooper_t looper);
+void mlooper_dump(mlooper_t looper);
 
-int looper_enable_watchdog(looper_t looper, unsigned long long timeout_ms, void (*timeout_cb)(void *arg), void *arg);
-void looper_disable_watchdog(looper_t looper);
+int mlooper_enable_watchdog(mlooper_t looper, unsigned long long timeout_ms, void (*timeout_cb)(void *arg), void *arg);
+void mlooper_disable_watchdog(mlooper_t looper);
 
-int looper_post_message(looper_t looper, struct message *msg);
-int looper_post_message_front(looper_t looper, struct message *msg);
-int looper_post_message_delay(looper_t looper, struct message *msg, unsigned long msec);
+int mlooper_post_message(mlooper_t looper, struct message *msg);
+int mlooper_post_message_front(mlooper_t looper, struct message *msg);
+int mlooper_post_message_delay(mlooper_t looper, struct message *msg, unsigned long msec);
 
-int looper_remove_message(looper_t looper, int what);
-int looper_remove_message_if(looper_t looper, message_match_cb match_cb);
+int mlooper_remove_message(mlooper_t looper, int what);
+int mlooper_remove_message_if(mlooper_t looper, message_match_cb match_cb);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __THREAD_LOOPER_H__ */
+#endif /* __MSGLOOPER_H__ */
