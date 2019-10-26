@@ -230,8 +230,6 @@ int mqueue_receive(mqueue_t queue, char *msg, unsigned int timeout_ms)
 read_done:
     if (ret == 0)
         OS_THREAD_COND_SIGNAL(queue->can_write);
-    else
-        OS_LOGE(LOG_TAG, "Failed to receive msg from empty queue");
 
     OS_THREAD_MUTEX_UNLOCK(queue->lock);
     return ret;

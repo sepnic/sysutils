@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 
-if (TARGET_DEFINITION)
-    message("including ${TARGET_DEFINITION}")
-    include(${TARGET_DEFINITION})
-endif ()
-
 # include files
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
