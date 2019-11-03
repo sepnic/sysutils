@@ -161,13 +161,15 @@ static void memory_boundary_verify(struct mem_node *node)
 static struct mem_info *memory_detect_init()
 {
     if (g_meminfo == NULL) {
-        OS_THREAD_MUTEX_LOCK(g_meminfo_mutex);
+        if (g_meminfo_mutex != NULL)
+            OS_THREAD_MUTEX_LOCK(g_meminfo_mutex);
 
         if (g_meminfo == NULL) {
             g_meminfo = calloc(1, sizeof(struct mem_info));
             if (g_meminfo == NULL) {
                 OS_LOGE(LOG_TAG, "Failed to alloc mem_info, abort memory detect");
-                OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
+                if (g_meminfo_mutex != NULL)
+                    OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
                 return NULL;
             }
 
@@ -183,7 +185,8 @@ static struct mem_info *memory_detect_init()
             list_init(&g_meminfo->list);
         }
 
-        OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
+        if (g_meminfo_mutex != NULL)
+            OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
     }
 
     return g_meminfo;
@@ -195,7 +198,8 @@ error:
     free(g_meminfo);
     g_meminfo = NULL;
 
-    OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
+    if (g_meminfo_mutex != NULL)
+        OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
     return NULL;
 }
 

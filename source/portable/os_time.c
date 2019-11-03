@@ -22,15 +22,10 @@
  */
 
 #include <string.h>
-#include "msgutils/os_time.h"
-
-#if defined(OS_FREERTOS)
-#include "FreeRTOS_POSIX/unistd.h"
-#include "FreeRTOS_POSIX/time.h"
-#else
 #include <unistd.h>
 #include <time.h>
-#endif
+
+#include "msgutils/os_time.h"
 
 unsigned long OS_TIMESTAMP_TO_UTC(struct os_realtime *rt)
 {

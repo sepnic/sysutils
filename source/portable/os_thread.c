@@ -22,20 +22,11 @@
  */
 
 #include <string.h>
-#include "msgutils/os_thread.h"
-
-#if defined(OS_FREERTOS)
-#include "FreeRTOS.h"
-#include "task.h"
-#include "task_def.h"
-#include "FreeRTOS_POSIX/unistd.h"
-#include "FreeRTOS_POSIX/time.h"
-#include "FreeRTOS_POSIX/pthread.h"
-#else
 #include <unistd.h>
 #include <time.h>
 #include <pthread.h>
-#endif
+
+#include "msgutils/os_thread.h"
 
 void OS_THREAD_SLEEP_USEC(unsigned long usec)
 {
@@ -47,55 +38,25 @@ void OS_THREAD_SLEEP_MSEC(unsigned long msec)
     usleep(msec * 1000);
 }
 
-#if defined(OS_FREERTOS)
-static int OS_THREAD_GET_PRIORITY(enum os_threadprio prio)
-{
-    // FIXME: Config task priority on your platform
-    switch (prio) {
-    case OS_THREAD_PRIO_HARD_REALTIME:
-        return TASK_PRIORITY_HARD_REALTIME;
-    case OS_THREAD_PRIO_SOFT_REALTIME:
-        return TASK_PRIORITY_SOFT_REALTIME;
-    case OS_THREAD_PRIO_HIGH:
-        return TASK_PRIORITY_HIGH;
-    case OS_THREAD_PRIO_ABOVE_NORMAL:
-        return TASK_PRIORITY_ABOVE_NORMAL;
-    case OS_THREAD_PRIO_NORMAL:
-        return TASK_PRIORITY_NORMAL;
-    case OS_THREAD_PRIO_BELOW_NORMAL:
-        return TASK_PRIORITY_BELOW_NORMAL;
-    case OS_THREAD_PRIO_LOW:
-        return TASK_PRIORITY_LOW;
-    case OS_THREAD_PRIO_IDLE:
-        return TASK_PRIORITY_IDLE;
-    default:
-        return TASK_PRIORITY_NORMAL;
-    }
-}
-#endif
-
 os_thread_t OS_THREAD_CREATE(struct os_threadattr *attr, void *(*cb)(void *arg), void *arg)
 {
     pthread_t tid;
-    int ret;
-
-#if defined(OS_FREERTOS)
     pthread_attr_t tattr;
-    struct sched_param tsched;
-    int detachstate;
+    int detachstate = attr->joinable ? PTHREAD_CREATE_JOINABLE : PTHREAD_CREATE_DETACHED;
+    int ret = 0;
 
     pthread_attr_init(&tattr);
-    tsched.sched_priority = OS_THREAD_GET_PRIORITY(attr->priority);
-    pthread_attr_setschedparam(&tattr, &tsched);
-    pthread_attr_setstacksize(&tattr, attr->stacksize);
-    detachstate = attr->joinable ? PTHREAD_CREATE_JOINABLE : PTHREAD_CREATE_DETACHED;
     pthread_attr_setdetachstate(&tattr, detachstate);
 
-    ret = pthread_create(&tid, &tattr, cb, arg);
-#else
-    ret = pthread_create(&tid, NULL, cb, arg);
+#if defined(OS_FREERTOS)
+    struct sched_param tsched;
+    tsched.sched_priority = attr->priority;
+    pthread_attr_setschedparam(&tattr, &tsched);
+    pthread_attr_setstacksize(&tattr, attr->stacksize);
 #endif
 
+    ret = pthread_create(&tid, &tattr, cb, arg);
+    pthread_attr_destroy(&tattr);
     if (ret != 0)
         return NULL;
     return (os_thread_t)tid;

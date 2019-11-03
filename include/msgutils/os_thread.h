@@ -28,12 +28,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#if defined(OS_FREERTOS)
-#include "FreeRTOS_POSIX/pthread.h"
-#else
-#include <pthread.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,21 +36,40 @@ typedef void *os_thread_t;
 typedef void *os_mutex_t;
 typedef void *os_cond_t;
 
+#if 0
+// If PTHREAD_MUTEX_INITIALIZER not supported on some platforms,
+// just declare mutex null, ofcurse it's unsafe.
+#define OS_MUTEX_DECLARE(name) static os_mutex_t name = NULL;
+#else
+#include <pthread.h>
 #define OS_MUTEX_DECLARE(name) \
     static pthread_mutex_t temp##name = PTHREAD_MUTEX_INITIALIZER; \
     static os_mutex_t name = (os_mutex_t)(&temp##name);
+#endif
 
+// FIXME: Config task priority on your platform, current config for MT7686
+#if defined(OS_FREERTOS)
 enum os_threadprio {
-    OS_THREAD_PRIO_INVALID,
+    OS_THREAD_PRIO_INVALID = -1,
+    OS_THREAD_PRIO_IDLE = 0, // lowest, special for idle task
+    OS_THREAD_PRIO_LOW = 2,
+    OS_THREAD_PRIO_NORMAL = 4,
+    OS_THREAD_PRIO_HIGH = 6,
+    OS_THREAD_PRIO_SOFT_REALTIME = 7,
+    OS_THREAD_PRIO_HARD_REALTIME = 8,
+};
+
+#else // NOT USED FOR Linux/MacosX/Android, DON'T MODIFY
+enum os_threadprio {
+    OS_THREAD_PRIO_INVALID = -1,
     OS_THREAD_PRIO_HARD_REALTIME,
     OS_THREAD_PRIO_SOFT_REALTIME,
     OS_THREAD_PRIO_HIGH,
-    OS_THREAD_PRIO_ABOVE_NORMAL,
     OS_THREAD_PRIO_NORMAL,
-    OS_THREAD_PRIO_BELOW_NORMAL,
     OS_THREAD_PRIO_LOW,
-    OS_THREAD_PRIO_IDLE, // lowest, special for idle task
+    OS_THREAD_PRIO_IDLE,
 };
+#endif
 
 struct os_threadattr {
     const char *name;

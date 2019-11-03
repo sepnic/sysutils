@@ -218,7 +218,7 @@ mlooper_t mlooper_create(struct os_threadattr *attr, message_handle_cb handle_cb
     if (attr != NULL) {
         looper->thread_attr.priority = attr->priority;
         looper->thread_attr.stacksize = attr->stacksize > 0 ? attr->stacksize : DEFAULT_LOOPER_STACKSIZE;
-        looper->thread_attr.joinable = attr->joinable;
+        looper->thread_attr.joinable = true; // force joinalbe, wait exit when mlooper_stop
     }
     else {
         looper->thread_attr.priority = DEFAULT_LOOPER_PRIORITY;

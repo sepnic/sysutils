@@ -26,16 +26,9 @@
 #include "msgutils/os_timer.h"
 
 #if defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_FREERTOS)
-
-#if defined(OS_FREERTOS)
-#include "FreeRTOS_POSIX/unistd.h"
-#include "FreeRTOS_POSIX/time.h"
-#include "FreeRTOS_POSIX/signal.h"
-#else
 #include <unistd.h>
 #include <time.h>
 #include <signal.h>
-#endif
 
 typedef void (*timer_notify_cb)(union sigval val);
 

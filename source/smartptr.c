@@ -165,13 +165,15 @@ static void smartptr_node_debug(struct smartptr_node *node, const char *info)
 static struct smartptr_info *smartptr_detect_init()
 {
     if (g_ptrinfo == NULL) {
-        OS_THREAD_MUTEX_LOCK(g_ptrinfo_mutex);
+        if (g_ptrinfo_mutex != NULL)
+            OS_THREAD_MUTEX_LOCK(g_ptrinfo_mutex);
 
         if (g_ptrinfo == NULL) {
             g_ptrinfo = OS_CALLOC(1, sizeof(struct smartptr_info));
             if (g_ptrinfo == NULL) {
                 OS_LOGE(LOG_TAG, "Failed to alloc smartptr_info, abort smartptr detect");
-                OS_THREAD_MUTEX_UNLOCK(g_ptrinfo_mutex);
+                if (g_ptrinfo_mutex != NULL)
+                    OS_THREAD_MUTEX_UNLOCK(g_ptrinfo_mutex);
                 return NULL;
             }
 
@@ -186,7 +188,8 @@ static struct smartptr_info *smartptr_detect_init()
             list_init(&g_ptrinfo->list);
         }
 
-        OS_THREAD_MUTEX_UNLOCK(g_ptrinfo_mutex);
+        if (g_ptrinfo_mutex != NULL)
+            OS_THREAD_MUTEX_UNLOCK(g_ptrinfo_mutex);
     }
 
     return g_ptrinfo;
@@ -198,7 +201,8 @@ error:
     OS_FREE(g_ptrinfo);
     g_ptrinfo = NULL;
 
-    OS_THREAD_MUTEX_UNLOCK(g_ptrinfo_mutex);
+    if (g_ptrinfo_mutex != NULL)
+        OS_THREAD_MUTEX_UNLOCK(g_ptrinfo_mutex);
     return NULL;
 }
 

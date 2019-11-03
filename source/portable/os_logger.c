@@ -32,8 +32,10 @@
 
 #if defined(OS_FREERTOS)
 #define LOG_BUFFER_SIZE 256
+
 #else
 #define LOG_BUFFER_SIZE 1024
+OS_MUTEX_DECLARE(log_config_mutex);
 #endif
 
 #define LOG_FILE_ENABLE    false
@@ -52,7 +54,6 @@ struct log_config {
     os_mutex_t file_mutex;
 };
 
-OS_MUTEX_DECLARE(log_config_mutex);
 static struct log_config log_config = {
     .enable = true,
     .prio   = OS_LOG_PRIO_VERBOSE,
@@ -100,12 +101,14 @@ static void os_logger_save(const char *data, size_t len)
     int ret;
 
     if (log_config.file_mutex == NULL) {
-        OS_THREAD_MUTEX_LOCK(log_config_mutex);
+        if (log_config_mutex != NULL)
+            OS_THREAD_MUTEX_LOCK(log_config_mutex);
 
         if (log_config.file_mutex == NULL)
             log_config.file_mutex = OS_THREAD_MUTEX_CREATE();
 
-        OS_THREAD_MUTEX_UNLOCK(log_config_mutex);
+        if (log_config_mutex != NULL)
+            OS_THREAD_MUTEX_UNLOCK(log_config_mutex);
     }
 
     OS_THREAD_MUTEX_LOCK(log_config.file_mutex);
