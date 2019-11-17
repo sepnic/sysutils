@@ -6,6 +6,7 @@
 │   ├── common_list.h
 │   ├── msglooper.h
 │   ├── msgqueue.h
+│   ├── ringbuf.h
 │   ├── os_logger.h
 │   ├── os_memory.h
 │   ├── os_thread.h
@@ -18,6 +19,7 @@
 ├── source
 │   ├── msglooper.c
 │   ├── msgqueue.c
+│   ├── ringbuf.c
 │   ├── memory_detect.c
 │   ├── portable
 │   │   ├── os_logger.c
@@ -46,6 +48,7 @@
 - **smartptr**:     smart pointer for c
 - **msglooper**:    thread looper to handle message
 - **msgqueue**:     message queue and queue-set
+- **ringbuf**:      thread-safe ring buffer
 - **sw_timer**:     software timer
 - **sw_watchdog**:  software watchdog
 - **memory_detect**:light weight utils to detect memory leak and overflow

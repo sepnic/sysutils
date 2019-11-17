@@ -11,6 +11,7 @@ include_directories(${TOP_DIR}/include)
 set (LIBS_SRC ${TOP_DIR}/source/memory_detect.c
               ${TOP_DIR}/source/msglooper.c
               ${TOP_DIR}/source/msgqueue.c
+              ${TOP_DIR}/source/ringbuf.c
               ${TOP_DIR}/source/smartptr.c
               ${TOP_DIR}/source/stllist.c
               ${TOP_DIR}/source/sw_timer.c

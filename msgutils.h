@@ -28,6 +28,7 @@
 #include "msgutils/smartptr.h"
 #include "msgutils/msglooper.h"
 #include "msgutils/msgqueue.h"
+#include "msgutils/ringbuf.h"
 #include "msgutils/os_thread.h"
 #include "msgutils/os_time.h"
 #include "msgutils/os_timer.h"

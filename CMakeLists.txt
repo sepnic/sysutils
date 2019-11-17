@@ -7,6 +7,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 set (LIBS_SRC ${CMAKE_SOURCE_DIR}/source/memory_detect.c
               ${CMAKE_SOURCE_DIR}/source/msglooper.c
               ${CMAKE_SOURCE_DIR}/source/msgqueue.c
+              ${CMAKE_SOURCE_DIR}/source/ringbuf.c
               ${CMAKE_SOURCE_DIR}/source/smartptr.c
               ${CMAKE_SOURCE_DIR}/source/stllist.c
               ${CMAKE_SOURCE_DIR}/source/sw_timer.c

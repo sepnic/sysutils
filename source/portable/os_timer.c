@@ -25,7 +25,7 @@
 #include "msgutils/os_memory.h"
 #include "msgutils/os_timer.h"
 
-#if defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_FREERTOS)
+#if defined(OS_LINUX) || defined(OS_ANDROID)
 #include <unistd.h>
 #include <time.h>
 #include <signal.h>
@@ -129,7 +129,7 @@ void OS_TIMER_DESTROY(os_timer_t timer)
     OS_FREE(handle);
 }
 
-#elif defined(OS_MACOSX) || defined(OS_IOS)
+#elif defined(OS_MACOSX) || defined(OS_IOS) || defined(OS_FREERTOS)
 
 #include "../sw_timer.h"
 

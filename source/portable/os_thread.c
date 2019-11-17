@@ -59,6 +59,11 @@ os_thread_t OS_THREAD_CREATE(struct os_threadattr *attr, void *(*cb)(void *arg),
     pthread_attr_destroy(&tattr);
     if (ret != 0)
         return NULL;
+
+#if defined(OS_FREERTOS)
+    attr->name = (attr->name != NULL) ? attr->name : "task";
+    pthread_setname_np(tid, attr->name);
+#endif
     return (os_thread_t)tid;
 }
 
@@ -92,7 +97,10 @@ os_mutex_t OS_THREAD_MUTEX_CREATE()
     pthread_mutex_t *mutex = calloc(1, sizeof(pthread_mutex_t));
     if (mutex == NULL) return NULL;
 
-    pthread_mutex_init(mutex, NULL);
+    if (pthread_mutex_init(mutex, NULL) != 0) {
+        free(mutex);
+        return NULL;
+    }
     return (os_mutex_t)mutex;
 }
 
@@ -119,10 +127,22 @@ void OS_THREAD_MUTEX_DESTROY(os_mutex_t mutex)
 
 os_cond_t OS_THREAD_COND_CREATE()
 {
+    int ret = 0;
+    pthread_condattr_t attr;
     pthread_cond_t *cond = calloc(1, sizeof(pthread_cond_t));
     if (cond == NULL) return NULL;
 
-    pthread_cond_init(cond, NULL);
+    pthread_condattr_init(&attr);
+#if !defined(OS_MACOSX) && !defined(OS_IOS)
+    pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
+#endif
+    ret = pthread_cond_init(cond, &attr);
+    pthread_condattr_destroy(&attr);
+
+    if (ret != 0) {
+        free(cond);
+        return NULL;
+    }
     return (os_cond_t)cond;
 }
 
@@ -135,7 +155,11 @@ int OS_THREAD_COND_TIMEDWAIT(os_cond_t cond, os_mutex_t mutex, unsigned long use
 {
     struct timespec ts;
 
+#if defined(OS_MACOSX) || defined(OS_IOS)
     clock_gettime(CLOCK_REALTIME, &ts);
+#else
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+#endif
     ts.tv_sec += usec / 1000000;
     ts.tv_nsec += (usec % 1000000) * 1000;
     while (ts.tv_nsec >= 1000000000L) {
