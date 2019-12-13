@@ -53,7 +53,7 @@ enum os_threadprio {
     OS_THREAD_PRIO_INVALID = -1,
     OS_THREAD_PRIO_IDLE = 0, // lowest, special for idle task
     OS_THREAD_PRIO_LOW = 2,
-    OS_THREAD_PRIO_NORMAL = 4,
+    OS_THREAD_PRIO_NORMAL = 3,
     OS_THREAD_PRIO_HIGH = 6,
     OS_THREAD_PRIO_SOFT_REALTIME = 7,
     OS_THREAD_PRIO_HARD_REALTIME = 8,

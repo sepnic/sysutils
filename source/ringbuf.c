@@ -261,14 +261,18 @@ write_err:
 
 static void rb_abort_read(ringbuf_handle_t rb)
 {
+    OS_THREAD_MUTEX_LOCK(rb->lock);
     rb->abort_read = true;
     OS_THREAD_COND_SIGNAL(rb->can_read);
+    OS_THREAD_MUTEX_UNLOCK(rb->lock);
 }
 
 static void rb_abort_write(ringbuf_handle_t rb)
 {
+    OS_THREAD_MUTEX_LOCK(rb->lock);
     rb->abort_write = true;
     OS_THREAD_COND_SIGNAL(rb->can_write);
+    OS_THREAD_MUTEX_UNLOCK(rb->lock);
 }
 
 void rb_abort(ringbuf_handle_t rb)
@@ -284,20 +288,26 @@ bool rb_is_full(ringbuf_handle_t rb)
 
 void rb_done_write(ringbuf_handle_t rb)
 {
+    OS_THREAD_MUTEX_LOCK(rb->lock);
     rb->is_done_write = true;
     OS_THREAD_COND_SIGNAL(rb->can_read);
+    OS_THREAD_MUTEX_UNLOCK(rb->lock);
 }
 
 void rb_done_read(ringbuf_handle_t rb)
 {
+    OS_THREAD_MUTEX_LOCK(rb->lock);
     rb->is_done_write = true;
     OS_THREAD_COND_SIGNAL(rb->can_write);
+    OS_THREAD_MUTEX_UNLOCK(rb->lock);
 }
 
 void rb_unblock_reader(ringbuf_handle_t rb)
 {
+    OS_THREAD_MUTEX_LOCK(rb->lock);
     rb->unblock_reader_flag = true;
     OS_THREAD_COND_SIGNAL(rb->can_read);
+    OS_THREAD_MUTEX_UNLOCK(rb->lock);
 }
 
 bool rb_is_done_write(ringbuf_handle_t rb)

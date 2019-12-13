@@ -240,6 +240,8 @@ void *memory_detect_malloc(size_t size, const char *file, const char *func, int 
             list_add_tail(&info->list, &node->listnode);
             info->malloc_count++;
             info->cur_used += size;
+            if (info->cur_used > info->max_used)
+                info->max_used = info->cur_used;
 
             OS_THREAD_MUTEX_UNLOCK(info->mutex);
         }
@@ -407,8 +409,8 @@ void memory_detect_dump()
 #endif
         }
 
-        OS_LOGW(LOG_TAG, "Summary: malloc [%d] blocks, free [%d] blocks, current use [%d] Bytes",
-                info->malloc_count, info->free_count, info->cur_used);
+        OS_LOGW(LOG_TAG, "Summary: malloc [%d] blocks, free [%d] blocks, current use [%d] Bytes, max use [%d] Bytes",
+                info->malloc_count, info->free_count, info->cur_used, info->max_used);
 
         OS_THREAD_MUTEX_UNLOCK(info->mutex);
 
