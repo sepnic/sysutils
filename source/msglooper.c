@@ -73,9 +73,6 @@ static void mlooper_free_msgnode(mlooper_t looper, struct message_node *node)
         msg->free_cb(msg);
     else if (looper->msg_free != NULL)
         looper->msg_free(msg);
-    else if (msg->data != NULL)
-        OS_LOGW(LOG_TAG, "[%s]: Forget to free message data: what=[%d], memory leak?",
-                looper->thread_name, msg->what);
 
     if (msg->notify_cb != NULL)
         msg->notify_cb(msg, MESSAGE_DESTROY);
@@ -110,8 +107,6 @@ static void *mlooper_thread_entry(void *arg)
     unsigned long long now;
 
     OS_LOGD(LOG_TAG, "[%s]: Entry looper thread: thread_id=[%p]", looper->thread_name, looper->thread_id);
-
-    OS_THREAD_SET_NAME(looper->thread_id, looper->thread_name);
 
     while (!looper->thread_exit) {
         {
@@ -252,6 +247,9 @@ int mlooper_start(mlooper_t looper)
             looper->thread_exit = true;
             ret = -1;
         }
+        else {
+            OS_THREAD_SET_NAME(looper->thread_id, looper->thread_name);
+        }
     }
 
     OS_THREAD_MUTEX_UNLOCK(looper->thread_mutex);
@@ -273,6 +271,9 @@ int mlooper_post_message_front(mlooper_t looper, struct message *msg)
     if (msg->timeout_ms > 0)
         node->timeout = now + msg->timeout_ms * 1000;
 
+    if (msg->notify_cb != NULL)
+        msg->notify_cb(msg, MESSAGE_PENDING);
+
     {
         OS_THREAD_MUTEX_LOCK(looper->msg_mutex);
 
@@ -289,8 +290,6 @@ int mlooper_post_message_front(mlooper_t looper, struct message *msg)
         OS_THREAD_MUTEX_UNLOCK(looper->msg_mutex);
     }
 
-    if (msg->notify_cb != NULL)
-        msg->notify_cb(msg, MESSAGE_PENDING);
     return 0;
 }
 
@@ -311,6 +310,9 @@ int mlooper_post_message_delay(mlooper_t looper, struct message *msg, unsigned l
             node->timeout = now + msg->timeout_ms * 1000;
         }
     }
+
+    if (msg->notify_cb != NULL)
+        msg->notify_cb(msg, MESSAGE_PENDING);
 
     {
         OS_THREAD_MUTEX_LOCK(looper->msg_mutex);
@@ -334,8 +336,6 @@ int mlooper_post_message_delay(mlooper_t looper, struct message *msg, unsigned l
         OS_THREAD_MUTEX_UNLOCK(looper->msg_mutex);
     }
 
-    if (msg->notify_cb != NULL)
-        msg->notify_cb(msg, MESSAGE_PENDING);
     return 0;
 }
 
