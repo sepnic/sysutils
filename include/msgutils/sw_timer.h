@@ -21,8 +21,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef __SW_TIMER_H__
-#define __SW_TIMER_H__
+#ifndef __MSGUTILS_SW_TIMER_H__
+#define __MSGUTILS_SW_TIMER_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,4 +54,4 @@ void swtimer_destroy(swtimer_t timer);
 }
 #endif
 
-#endif /* __SW_TIMER_H__ */
+#endif /* __MSGUTILS_SW_TIMER_H__ */

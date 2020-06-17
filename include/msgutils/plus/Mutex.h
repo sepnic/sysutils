@@ -1,6 +1,6 @@
 /* The MIT License (MIT)
  *
- * Copyright (c) 2019 luoyun <sysu.zqlong@gmail.com>
+ * Copyright (c) 2018-2020 luoyun <sysu.zqlong@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,30 +21,44 @@
  * THE SOFTWARE.
  */
 
-#ifndef __MSGUTILS_SW_WATCHDOG_H__
-#define __MSGUTILS_SW_WATCHDOG_H__
+#ifndef __MSGUTILS_MUTEX_H__
+#define __MSGUTILS_MUTEX_H__
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <stdbool.h>
+#include "msgutils/os_thread.h"
+#include "namespace_def.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+MSGUTILS_NAMESPACE_BEGIN
 
-typedef struct swwatchdog_node *swwatch_t;
+class Mutex {
+public:
+    Mutex();
+    ~Mutex();
 
-swwatch_t swwatchdog_create(const char *name, unsigned long long timeout_ms, void (*timeout_cb)(void *arg), void *arg);
+    void lock();
+    bool tryLock();
+    void unlock();
 
-int swwatchdog_start(swwatch_t node);
+    void condWait();
+    bool condWait(unsigned long usec);
+    void condSignal();
 
-int swwatchdog_feed(swwatch_t node);
+    // Manages the mutex automatically. It'll be locked when Autolock is
+    // constructed and released when Autolock goes out of scope.
+    class Autolock {
+    public:
+        inline explicit Autolock(Mutex& mutex) : mLock(mutex)  { mLock.lock(); }
+        inline explicit Autolock(Mutex* mutex) : mLock(*mutex) { mLock.lock(); }
+        inline ~Autolock() { mLock.unlock(); }
+    private:
+        Mutex& mLock;
+    };
 
-int swwatchdog_stop(swwatch_t node);
+private:
+    os_mutex_t mMutex;
+    os_cond_t  mCond;
+};
 
-void swwatchdog_destroy(swwatch_t node);
+MSGUTILS_NAMESPACE_END
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __MSGUTILS_SW_WATCHDOG_H__ */
+#endif /* __MSGUTILS_MUTEX_H__ */

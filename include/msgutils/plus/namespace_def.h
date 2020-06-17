@@ -1,6 +1,6 @@
 /* The MIT License (MIT)
  *
- * Copyright (c) 2019 luoyun <sysu.zqlong@gmail.com>
+ * Copyright (c) 2018-2020 luoyun <sysu.zqlong@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,18 +21,15 @@
  * THE SOFTWARE.
  */
 
-#ifndef __MSG_CUTILS_H__
-#define __MSG_CUTILS_H__
+#ifndef __MSGUTILS_NAMESPACE_H__
+#define __MSGUTILS_NAMESPACE_H__
 
-#include "msgutils/common_list.h"
-#include "msgutils/smartptr.h"
-#include "msgutils/msglooper.h"
-#include "msgutils/msgqueue.h"
-#include "msgutils/ringbuf.h"
-#include "msgutils/os_thread.h"
-#include "msgutils/os_time.h"
-#include "msgutils/os_timer.h"
-#include "msgutils/os_memory.h"
-#include "msgutils/os_logger.h"
+#define NAMESPACE_BEGIN(name) namespace name {
+#define NAMESPACE_END()       }
+#define NAMESPACE_USING(name) using namespace name;
 
-#endif /* __MSG_CUTILS_H__ */
+#define MSGUTILS_NAMESPACE_BEGIN NAMESPACE_BEGIN(msgutils)
+#define MSGUTILS_NAMESPACE_END   NAMESPACE_END()
+#define MSGUTILS_NAMESPACE_USING NAMESPACE_USING(msgutils)
+
+#endif /* __MSGUTILS_NAMESPACE_H__ */

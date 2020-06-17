@@ -1,6 +1,6 @@
 /* The MIT License (MIT)
  *
- * Copyright (c) 2019 luoyun <sysu.zqlong@gmail.com>
+ * Copyright (c) 2018-2020 luoyun <sysu.zqlong@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,30 +21,60 @@
  * THE SOFTWARE.
  */
 
-#ifndef __MSGUTILS_SW_WATCHDOG_H__
-#define __MSGUTILS_SW_WATCHDOG_H__
+#include "msgutils/plus/Mutex.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+MSGUTILS_NAMESPACE_BEGIN
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef struct swwatchdog_node *swwatch_t;
-
-swwatch_t swwatchdog_create(const char *name, unsigned long long timeout_ms, void (*timeout_cb)(void *arg), void *arg);
-
-int swwatchdog_start(swwatch_t node);
-
-int swwatchdog_feed(swwatch_t node);
-
-int swwatchdog_stop(swwatch_t node);
-
-void swwatchdog_destroy(swwatch_t node);
-
-#ifdef __cplusplus
+Mutex::Mutex()
+{
+    mMutex = OS_THREAD_MUTEX_CREATE();
+    mCond  = OS_THREAD_COND_CREATE();
 }
-#endif
 
-#endif /* __MSGUTILS_SW_WATCHDOG_H__ */
+Mutex::~Mutex()
+{
+    if (mMutex) OS_THREAD_MUTEX_DESTROY(mMutex);
+    if (mCond)  OS_THREAD_COND_DESTROY(mCond);
+}
+
+void Mutex::lock()
+{
+    if (mMutex)
+        OS_THREAD_MUTEX_LOCK(mMutex);
+}
+
+bool Mutex::tryLock()
+{
+    bool ret = false;
+    if (mMutex)
+        ret = (0 == OS_THREAD_MUTEX_TRYLOCK(mMutex));
+    return ret;
+}
+
+void Mutex::unlock()
+{
+    if (mMutex)
+        OS_THREAD_MUTEX_UNLOCK(mMutex);
+}
+
+void Mutex::condWait()
+{
+    if (mMutex && mCond)
+        OS_THREAD_COND_WAIT(mCond, mMutex);
+}
+
+bool Mutex::condWait(unsigned long usec)
+{
+    bool ret = false;
+    if (mMutex && mCond)
+        ret = (0 == OS_THREAD_COND_TIMEDWAIT(mCond, mMutex, usec));
+    return ret;
+}
+
+void Mutex::condSignal()
+{
+    if (mCond)
+        OS_THREAD_COND_SIGNAL(mCond);
+}
+
+MSGUTILS_NAMESPACE_END

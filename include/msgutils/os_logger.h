@@ -21,8 +21,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef __OS_LOGGER_H__
-#define __OS_LOGGER_H__
+#ifndef __MSGUTILS_OS_LOGGER_H__
+#define __MSGUTILS_OS_LOGGER_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -100,4 +100,4 @@ void os_logger_trace(enum os_logprio prio, const char *tag,
 }
 #endif
 
-#endif /* __OS_LOGGER_H__ */
+#endif /* __MSGUTILS_OS_LOGGER_H__ */

@@ -19,6 +19,7 @@ set (LIBS_SRC ${TOP_DIR}/source/memory_detect.c
               ${TOP_DIR}/port/os_thread.c
               ${TOP_DIR}/port/os_time.c
               ${TOP_DIR}/port/os_timer.c
+              ${TOP_DIR}/source/plus/Mutex.cpp
 )
 
 # cflags

@@ -1,49 +1,45 @@
 ```
 .
 ├── CMakeLists.txt
-├── msgutils.h
-├── include/msgutils
-│   ├── common_list.h
-│   ├── msglooper.h
-│   ├── msgqueue.h
-│   ├── ringbuf.h
-│   ├── os_logger.h
-│   ├── os_memory.h
-│   ├── os_thread.h
-│   ├── os_time.h
-│   ├── os_timer.h
-│   ├── smartptr.h
-│   └── stllist.h
 ├── LICENSE
 ├── README.md
+├── include
+│   └── msgutils
+│       ├── common_list.h
+│       ├── msglooper.h
+│       ├── msgqueue.h
+│       ├── os_logger.h
+│       ├── os_memory.h
+│       ├── os_thread.h
+│       ├── os_time.h
+│       ├── os_timer.h
+│       ├── ringbuf.h
+│       ├── smartptr.h
+│       ├── sw_timer.h
+│       └── sw_watchdog.h
+├── port
+│   ├── os_logger.c
+│   ├── os_thread.c
+│   ├── os_time.c
+│   └── os_timer.c
 ├── source
+│   ├── memory_detect.c
 │   ├── msglooper.c
 │   ├── msgqueue.c
 │   ├── ringbuf.c
-│   ├── memory_detect.c
-│   ├── portable
-│   │   ├── os_logger.c
-│   │   ├── os_thread.c
-│   │   ├── os_time.c
-│   │   └── os_timer.c
 │   ├── smartptr.c
-│   ├── stllist.c
 │   ├── sw_timer.c
-│   ├── sw_timer.h
-│   ├── sw_watchdog.c
-│   └── sw_watchdog.h
+│   └── sw_watchdog.c
 └── test
     ├── CMakeLists.txt
-    ├── looper_test.c
     ├── memorydetect_test.c
-    ├── mqueue_test.c
+    ├── msglooper_test.c
+    ├── msgqueue_test.c
     ├── smartptr_test.c
-    ├── stllist_test.c
-    ├── timer_test.c
-    └── time_test.c
+    ├── time_test.c
+    └── timer_test.c
 ```
 
-- **stllist**:      list container is similar to stl list
 - **common_list**:  linux/android list
 - **smartptr**:     smart pointer for c
 - **msglooper**:    thread looper to handle message

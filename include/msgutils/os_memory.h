@@ -21,8 +21,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef __MEMORY_LEAK_DETECT_H__
-#define __MEMORY_LEAK_DETECT_H__
+#ifndef __MSGUTILS_OS_MEMORY_H__
+#define __MSGUTILS_OS_MEMORY_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -81,4 +81,4 @@ extern "C" {
 }
 #endif
 
-#endif /* __MEMORY_LEAK_DETECT_H__ */
+#endif /* __MSGUTILS_OS_MEMORY_H__ */

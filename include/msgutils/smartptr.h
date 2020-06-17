@@ -21,8 +21,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef __SMARTPTR_H__
-#define __SMARTPTR_H__
+#ifndef __MSGUTILS_SMARTPTR_H__
+#define __MSGUTILS_SMARTPTR_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,4 +62,4 @@ extern "C" {
 }
 #endif
 
-#endif /* __SMARTPTR_H__ */
+#endif /* __MSGUTILS_SMARTPTR_H__ */

@@ -21,8 +21,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef __MSGQUEUE_H__
-#define __MSGQUEUE_H__
+#ifndef __MSGUTILS_MSGQUEUE_H__
+#define __MSGUTILS_MSGQUEUE_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -129,4 +129,4 @@ mqueue_t mqueueset_select_queue(mqueueset_t set, unsigned int timeout_ms);
 }
 #endif
 
-#endif /* __MSGQUEUE_H__ */
+#endif /* __MSGUTILS_MSGQUEUE_H__ */

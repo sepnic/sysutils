@@ -21,8 +21,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef __OS_TIMER_H__
-#define __OS_TIMER_H__
+#ifndef __MSGUTILS_OS_TIMER_H__
+#define __MSGUTILS_OS_TIMER_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,4 +55,4 @@ void OS_TIMER_DESTROY(os_timer_t timer);
 }
 #endif
 
-#endif /* __OS_TIMER_H__ */
+#endif /* __MSGUTILS_OS_TIMER_H__ */
