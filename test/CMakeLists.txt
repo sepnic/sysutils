@@ -19,17 +19,23 @@ set (LIBS_SRC ${TOP_DIR}/source/memory_detect.c
               ${TOP_DIR}/port/os_thread.c
               ${TOP_DIR}/port/os_time.c
               ${TOP_DIR}/port/os_timer.c
-              ${TOP_DIR}/source/plus/Mutex.cpp
+              ${TOP_DIR}/source/plus/Looper.cpp
 )
 
 # cflags
-set(CMAKE_C_FLAGS "-DENABLE_DEBUG -g -DOS_MACOSX -std=gnu99 -Wall -Werror")
+set(CMAKE_C_FLAGS   "-DENABLE_DEBUG -g -DOS_MACOSX -std=gnu99 -Wall -Werror")
+set(CMAKE_CXX_FLAGS "-DENABLE_DEBUG -g -Wall -Werror")
 
 # ENABLE_MEMORY_LEAK_DETECT
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DENABLE_MEMORY_LEAK_DETECT -DENABLE_MEMORY_OVERFLOW_DETECT")
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -DENABLE_MEMORY_LEAK_DETECT -DENABLE_MEMORY_OVERFLOW_DETECT")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_MEMORY_LEAK_DETECT -DENABLE_MEMORY_OVERFLOW_DETECT")
 
 # ENABLE_SMARTPTR_DETECT
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DENABLE_SMARTPTR_DETECT")
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -DENABLE_SMARTPTR_DETECT")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_SMARTPTR_DETECT")
+
+# ENABLE_CLASS_LEAK_DETECT
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_CLASS_LEAK_DETECT")
 
 # ldflags
 set(CMAKE_LDFLAGS "${CMAKE_LDFLAGS} -Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed")
@@ -67,3 +73,8 @@ target_link_libraries(smartptr_test msgutils pthread)
 add_executable(msgqueue_test ${CMAKE_SOURCE_DIR}/msgqueue_test.c)
 target_link_libraries(msgqueue_test msgutils pthread)
 #target_link_libraries(msgqueue_test rt)
+
+# Looper test
+add_executable(LooperTest ${CMAKE_SOURCE_DIR}/LooperTest.cpp)
+target_link_libraries(LooperTest msgutils pthread)
+#target_link_libraries(LooperTest rt)

@@ -32,16 +32,23 @@ MSGUTILS_NAMESPACE_BEGIN
 
 class Mutex {
 public:
-    Mutex();
-    ~Mutex();
+    Mutex() {
+        mMutex = OS_THREAD_MUTEX_CREATE();
+        mCond  = OS_THREAD_COND_CREATE();
+    }
 
-    void lock();
-    bool tryLock();
-    void unlock();
+    ~Mutex() {
+        OS_THREAD_MUTEX_DESTROY(mMutex);
+        OS_THREAD_COND_DESTROY(mCond);
+    }
 
-    void condWait();
-    bool condWait(unsigned long usec);
-    void condSignal();
+    void lock() { OS_THREAD_MUTEX_LOCK(mMutex); }
+    bool tryLock() { return (0 == OS_THREAD_MUTEX_TRYLOCK(mMutex)); }
+    void unlock() { OS_THREAD_MUTEX_UNLOCK(mMutex); }
+
+    void condWait() { OS_THREAD_COND_WAIT(mCond, mMutex); }
+    bool condWait(unsigned long usec) { return (0 == OS_THREAD_COND_TIMEDWAIT(mCond, mMutex, usec)); }
+    void condSignal() { OS_THREAD_COND_SIGNAL(mCond); }
 
     // Manages the mutex automatically. It'll be locked when Autolock is
     // constructed and released when Autolock goes out of scope.

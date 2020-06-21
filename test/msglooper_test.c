@@ -53,7 +53,7 @@ int main()
         priv = OS_MALLOC(sizeof(struct  priv_data));
         priv->str = OS_STRDUP("mlooper_post_message_delay");
         // timeout 2s
-        msg = message_obtain2(1000, 0, 0, priv, 2000, NULL, msg_timeout, NULL);
+        msg = message_obtain2(1000, 0, 0, priv, 2000, NULL, NULL, msg_timeout);
         mlooper_post_message_delay(looper, msg, 2000); // delay 2s
     }
 
@@ -74,6 +74,8 @@ int main()
     }
 
     mlooper_dump(looper);
+    //OS_LOGW(LOG_TAG, "-->Dump memory after post message");
+    //OS_MEMORY_DUMP();
 
     //OS_LOGI(LOG_TAG, "remove what=1000");
     //mlooper_remove_message(looper, 1000);
@@ -85,5 +87,7 @@ int main()
     OS_THREAD_SLEEP_MSEC(3000);
     mlooper_destroy(looper);
 
+    //OS_LOGW(LOG_TAG, "-->Dump memory after destroy mlooper");
+    //OS_MEMORY_DUMP();
     return 0;
 }
