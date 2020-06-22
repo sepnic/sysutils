@@ -31,9 +31,9 @@
 extern "C" {
 #endif
 
-//#define ENABLE_SMARTPTR_DETECT
+//#define ENABLE_SMARTPTR_LEAK_DETECT
 
-#if !defined(ENABLE_SMARTPTR_DETECT)
+#if !defined(ENABLE_SMARTPTR_LEAK_DETECT)
     void *smartptr_new(size_t size, void (*free_cb)(void *ptr));
     void smartptr_get(void *ptr);
     void smartptr_put(void *ptr);

@@ -88,7 +88,7 @@ void smartptr_put(void *ptr)
     OS_THREAD_MUTEX_UNLOCK(block->mutex);
 }
 
-#if defined(ENABLE_SMARTPTR_DETECT)
+#if defined(ENABLE_SMARTPTR_LEAK_DETECT)
 #include "msgutils/common_list.h"
 #include "msgutils/os_time.h"
 #include "msgutils/os_logger.h"
@@ -101,12 +101,7 @@ struct smartptr_node {
     const char *file;
     const char *func;
     int line;
-#if defined(OS_FREERTOS)
-    unsigned long when;
-#else
     struct os_realtime when;
-#endif
-
     struct listnode listnode;
 };
 
@@ -146,23 +141,15 @@ static char *file_name(const char *filepath)
 
 static void smartptr_node_debug(struct smartptr_node *node, const char *info)
 {
-#if defined(OS_FREERTOS)
-    OS_LOGW(LOG_TAG, "> %s: ptr=[%p], user_size=[%d], real_size=[%d], refs_cnt=[%d], "
-           "created by [%s:%d], at [%lu]",
-           info, node->ptr, node->user_size, node->real_size, node->refs_cnt,
-           node->func, node->line, node->when);
-
-#else
     OS_LOGW(LOG_TAG, "> %s: ptr=[%p], user_size=[%d], real_size=[%d], refs_cnt=[%d], "
            "created by [%s:%s:%d], at [%04d%02d%02d-%02d%02d%02d:%03d]",
            info, node->ptr, node->user_size, node->real_size, node->refs_cnt,
            file_name(node->file), node->func, node->line,
            node->when.year, node->when.mon, node->when.day,
            node->when.hour, node->when.min, node->when.sec, node->when.msec);
-#endif
 }
 
-static struct smartptr_info *smartptr_detect_init()
+static struct smartptr_info *smartptr_debug_init()
 {
     if (g_ptrinfo == NULL) {
         if (g_ptrinfo_mutex != NULL)
@@ -211,7 +198,7 @@ void *smartptr_new_debug(size_t size, void (*free_cb)(void *ptr),
 {
     void *ptr = smartptr_new(size, free_cb);
     struct smartptr_node *node;
-    struct smartptr_info *info = smartptr_detect_init();
+    struct smartptr_info *info = smartptr_debug_init();
 
     if (ptr == NULL) {
         OS_LOGF(LOG_TAG, "%s:%s:%d: failed to alloc smartptr", file_name(file), func, line);
@@ -228,11 +215,7 @@ void *smartptr_new_debug(size_t size, void (*free_cb)(void *ptr),
             node->file = file;
             node->func = func;
             node->line = line;
-#if defined(OS_FREERTOS)
-            node->when = (unsigned long)(OS_MONOTONIC_USEC()/1000);
-#else
             OS_TIMESTAMP_TO_LOCAL(&node->when);
-#endif
 
             //smartptr_node_debug(node, "New");
 
@@ -251,7 +234,7 @@ void *smartptr_new_debug(size_t size, void (*free_cb)(void *ptr),
 
 void smartptr_get_debug(void *ptr, const char *file, const char *func, int line)
 {
-    struct smartptr_info *info = smartptr_detect_init();
+    struct smartptr_info *info = smartptr_debug_init();
     struct listnode *item;
 
     if (info != NULL) {
@@ -285,7 +268,7 @@ void smartptr_get_debug(void *ptr, const char *file, const char *func, int line)
 
 void smartptr_put_debug(void *ptr, const char *file, const char *func, int line)
 {
-    struct smartptr_info *info = smartptr_detect_init();
+    struct smartptr_info *info = smartptr_debug_init();
     struct listnode *item;
 
     if (info != NULL) {
@@ -325,7 +308,7 @@ void smartptr_put_debug(void *ptr, const char *file, const char *func, int line)
 
 void smartptr_dump_debug()
 {
-    struct smartptr_info *info  = smartptr_detect_init();
+    struct smartptr_info *info  = smartptr_debug_init();
     struct smartptr_node *node;
     struct listnode *item;
 

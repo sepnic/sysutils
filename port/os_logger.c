@@ -30,14 +30,13 @@
 #include "msgutils/os_time.h"
 #include "msgutils/os_logger.h"
 
-#if defined(OS_FREERTOS)
-#define LOG_BUFFER_SIZE 256
+//#define ENABLE_LOG_SAVE
 
-#else
-#define LOG_BUFFER_SIZE 1024
+#if defined(ENABLE_LOG_SAVE)
 OS_MUTEX_DECLARE(log_config_mutex);
 #endif
 
+#define LOG_BUFFER_SIZE    1024
 #define LOG_FILE_ENABLE    false
 #define LOG_FILE_PATH      "/tmp"
 #define LOG_FILE_PREFIX    "log"
@@ -80,7 +79,7 @@ void os_logger_config(bool enable, enum os_logprio prio)
     log_config.prio = prio;
 }
 
-#if !defined(OS_FREERTOS)
+#if defined(ENABLE_LOG_SAVE)
 static int file_size(const char *filename, size_t *size)
 {
     struct stat statbuf;
@@ -163,13 +162,6 @@ static void os_logger_print(enum os_logprio prio, const char *tag,
     char log_entry[LOG_BUFFER_SIZE];
     size_t valid_size = LOG_BUFFER_SIZE - 2;
 
-#if defined(OS_FREERTOS)
-    unsigned long monotonic_ms = (unsigned long)(OS_MONOTONIC_USEC() / 1000);
-    // add time to header
-    if ((int)(valid_size - offset) > 0)
-        offset += snprintf(log_entry + offset, valid_size - offset, "%lu", monotonic_ms);
-
-#else
     struct os_realtime ts;
     // add data & time to header
     OS_TIMESTAMP_TO_LOCAL(&ts);
@@ -177,7 +169,6 @@ static void os_logger_print(enum os_logprio prio, const char *tag,
         offset += snprintf(log_entry + offset, valid_size - offset,
                            "%4d-%02d-%02d %02d:%02d:%02d:%03d",
                            ts.year, ts.mon, ts.day, ts.hour, ts.min, ts.sec, ts.msec);
-#endif
 
     // add priority to header
     if ((int)(valid_size - offset) > 0)
@@ -209,7 +200,7 @@ static void os_logger_print(enum os_logprio prio, const char *tag,
     // print log to console
     fprintf(stdout, "%s", log_entry);
 
-#if !defined(OS_FREERTOS)
+#if defined(ENABLE_LOG_SAVE)
     // save log to file if need
     if (log_config.file_enable)
         os_logger_save(log_entry, offset);

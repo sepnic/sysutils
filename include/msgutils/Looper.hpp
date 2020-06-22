@@ -27,8 +27,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string>
-#include "Mutex.h"
-#include "namespace_def.h"
+#include "Mutex.hpp"
+#include "namespace_def.hpp"
 
 MSGUTILS_NAMESPACE_BEGIN
 

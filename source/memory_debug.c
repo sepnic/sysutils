@@ -31,7 +31,7 @@
 
 #if defined(ENABLE_MEMORY_LEAK_DETECT) || defined(ENABLE_MEMORY_OVERFLOW_DETECT)
 
-#define LOG_TAG "memory_detect"
+#define LOG_TAG "memdebug"
 
 #define MEMORY_BOUNDARY_SIZE    8
 #define MEMORY_BOUNDARY_FLAG    '*'
@@ -42,12 +42,7 @@ struct mem_node {
     const char *file;
     const char *func;
     int line;
-#if defined(OS_FREERTOS)
-    unsigned long when;
-#else
     struct os_realtime when;
-#endif
-
     struct listnode listnode;
 };
 
@@ -87,18 +82,12 @@ static char *file_name(const char *filepath)
 
 static void memory_node_debug(struct mem_node *node, const char *info)
 {
-#if defined(OS_FREERTOS)
-    OS_LOGW(LOG_TAG, "> %s: ptr=[%p], size=[%d], created by [%s:%d], at [%lu]",
-            info, node->ptr, node->size, node->func, node->line, node->when);
-
-#else
     OS_LOGW(LOG_TAG, "> %s: ptr=[%p], size=[%d], "
            "created by [%s:%s:%d], at [%04d%02d%02d-%02d%02d%02d:%03d]",
            info, node->ptr, node->size,
            file_name(node->file), node->func, node->line,
            node->when.year, node->when.mon, node->when.day,
            node->when.hour, node->when.min, node->when.sec, node->when.msec);
-#endif
 }
 
 #if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
@@ -158,7 +147,7 @@ static void memory_boundary_verify(struct mem_node *node)
 }
 #endif
 
-static struct mem_info *memory_detect_init()
+static struct mem_info *memory_debug_init()
 {
     if (g_meminfo == NULL) {
         if (g_meminfo_mutex != NULL)
@@ -203,11 +192,11 @@ error:
     return NULL;
 }
 
-void *memory_detect_malloc(size_t size, const char *file, const char *func, int line)
+void *memory_debug_malloc(size_t size, const char *file, const char *func, int line)
 {
     void *ptr;
     struct mem_node *node;
-    struct mem_info *info = memory_detect_init();
+    struct mem_info *info = memory_debug_init();
 
 #if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
     ptr = memory_boundary_malloc(size);
@@ -227,11 +216,7 @@ void *memory_detect_malloc(size_t size, const char *file, const char *func, int 
             node->file = file;
             node->func = func;
             node->line = line;
-#if defined(OS_FREERTOS)
-            node->when = (unsigned long)(OS_MONOTONIC_USEC()/1000);
-#else
             OS_TIMESTAMP_TO_LOCAL(&node->when);
-#endif
 
             //memory_node_debug(node, "Malloc");
 
@@ -250,32 +235,32 @@ void *memory_detect_malloc(size_t size, const char *file, const char *func, int 
     return ptr;
 }
 
-void *memory_detect_calloc(size_t n, size_t size, const char *file, const char *func, int line)
+void *memory_debug_calloc(size_t n, size_t size, const char *file, const char *func, int line)
 {
-    void *ptr = memory_detect_malloc(size * n, file, func, line);
+    void *ptr = memory_debug_malloc(size * n, file, func, line);
     if (ptr != NULL)
         memset(ptr, 0x0, size * n);
     return ptr;
 }
 
-void *memory_detect_realloc(void *ptr, size_t size, const char *file, const char *func, int line)
+void *memory_debug_realloc(void *ptr, size_t size, const char *file, const char *func, int line)
 {
     struct mem_info *info;
     struct listnode *item;
 
     if (ptr == NULL) {
         if (size > 0)
-            return memory_detect_malloc(size, file, func, line);
+            return memory_debug_malloc(size, file, func, line);
         else
             return NULL;
     }
 
     if (size == 0) {
-        memory_detect_free(ptr, file, func, line);
+        memory_debug_free(ptr, file, func, line);
         return NULL;
     }
 
-    info = memory_detect_init();
+    info = memory_debug_init();
 
     if (info != NULL) {
         void *prev_ptr = NULL;
@@ -301,11 +286,11 @@ void *memory_detect_realloc(void *ptr, size_t size, const char *file, const char
         OS_THREAD_MUTEX_UNLOCK(info->mutex);
 
         if (size > prev_size) {
-            void *new_ptr = memory_detect_malloc(size, file, func, line);
+            void *new_ptr = memory_debug_malloc(size, file, func, line);
             if (new_ptr != NULL)
                 memcpy(new_ptr, prev_ptr, prev_size);
 
-            memory_detect_free(prev_ptr, file, func, line);
+            memory_debug_free(prev_ptr, file, func, line);
             return new_ptr;
         }
         else
@@ -324,9 +309,9 @@ void *memory_detect_realloc(void *ptr, size_t size, const char *file, const char
     return NULL;
 }
 
-void memory_detect_free(void *ptr, const char *file, const char *func, int line)
+void memory_debug_free(void *ptr, const char *file, const char *func, int line)
 {
-    struct mem_info *info = memory_detect_init();
+    struct mem_info *info = memory_debug_init();
     struct listnode *item;
 
     if (info != NULL) {
@@ -371,7 +356,7 @@ void memory_detect_free(void *ptr, const char *file, const char *func, int line)
 #endif
 }
 
-void *memory_detect_strdup(void *str, const char *file, const char *func, int line)
+void *memory_debug_strdup(void *str, const char *file, const char *func, int line)
 {
     char *ptr;
     size_t len;
@@ -380,7 +365,7 @@ void *memory_detect_strdup(void *str, const char *file, const char *func, int li
         return NULL;
 
     len = strlen(str);
-    ptr = memory_detect_malloc(len + 1, file, func, line);
+    ptr = memory_debug_malloc(len + 1, file, func, line);
     if (ptr != NULL) {
         memcpy(ptr, str, len);
         ptr[len] = '\0';
@@ -389,9 +374,9 @@ void *memory_detect_strdup(void *str, const char *file, const char *func, int li
     return ptr;
 }
 
-void memory_detect_dump()
+void memory_debug_dump()
 {
-    struct mem_info *info  = memory_detect_init();
+    struct mem_info *info  = memory_debug_init();
     struct mem_node *node;
     struct listnode *item;
 

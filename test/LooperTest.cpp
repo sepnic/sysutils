@@ -5,9 +5,9 @@
 #include "msgutils/os_memory.h"
 #include "msgutils/os_logger.h"
 #include "msgutils/os_thread.h"
-#include "msgutils/plus/os_class.h"
-#include "msgutils/plus/namespace_def.h"
-#include "msgutils/plus/Looper.h"
+#include "msgutils/os_class.hpp"
+#include "msgutils/namespace_def.hpp"
+#include "msgutils/Looper.hpp"
 
 #define LOG_TAG "LooperTest"
 

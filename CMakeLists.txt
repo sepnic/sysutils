@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # source files
-set (LIBS_SRC ${CMAKE_SOURCE_DIR}/source/memory_detect.c
+set (LIBS_SRC ${CMAKE_SOURCE_DIR}/source/memory_debug.c
               ${CMAKE_SOURCE_DIR}/source/msglooper.c
               ${CMAKE_SOURCE_DIR}/source/msgqueue.c
               ${CMAKE_SOURCE_DIR}/source/ringbuf.c
@@ -15,7 +15,7 @@ set (LIBS_SRC ${CMAKE_SOURCE_DIR}/source/memory_detect.c
               ${CMAKE_SOURCE_DIR}/port/os_thread.c
               ${CMAKE_SOURCE_DIR}/port/os_time.c
               ${CMAKE_SOURCE_DIR}/port/os_timer.c
-              ${CMAKE_SOURCE_DIR}/source/plus/Looper.cpp
+              ${CMAKE_SOURCE_DIR}/source/Looper.cpp
 )
 
 # cflags: OS_LINUX, OS_ANDROID, OS_MACOSX, OS_IOS, OS_FREERTOS
@@ -33,9 +33,9 @@ set(CMAKE_LDFLAGS "${CMAKE_LDFLAGS} -Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}     -DENABLE_MEMORY_OVERFLOW_DETECT")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_MEMORY_OVERFLOW_DETECT")
 
-# ENABLE_SMARTPTR_DETECT
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}     -DENABLE_SMARTPTR_DETECT")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_SMARTPTR_DETECT")
+# ENABLE_SMARTPTR_LEAK_DETECT
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}     -DENABLE_SMARTPTR_LEAK_DETECT")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_SMARTPTR_LEAK_DETECT")
 
 # ENABLE_CLASS_LEAK_DETECT
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_CLASS_LEAK_DETECT")

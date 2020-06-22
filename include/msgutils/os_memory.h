@@ -51,29 +51,29 @@ extern "C" {
     #define OS_MEMORY_DUMP() do {} while (0)
 
 #else
-    void *memory_detect_malloc(size_t size, const char *file, const char *func, int line);
-    void *memory_detect_calloc(size_t n, size_t size, const char *file, const char *func, int line);
-    void *memory_detect_realloc(void *ptr, size_t size, const char *file, const char *func, int line);
-    void memory_detect_free(void *ptr, const char *file, const char *func, int line);
-    void *memory_detect_strdup(void *str, const char *file, const char *func, int line);
-    void memory_detect_dump();
+    void *memory_debug_malloc(size_t size, const char *file, const char *func, int line);
+    void *memory_debug_calloc(size_t n, size_t size, const char *file, const char *func, int line);
+    void *memory_debug_realloc(void *ptr, size_t size, const char *file, const char *func, int line);
+    void memory_debug_free(void *ptr, const char *file, const char *func, int line);
+    void *memory_debug_strdup(void *str, const char *file, const char *func, int line);
+    void memory_debug_dump();
 
     #define OS_MALLOC(size) \
-        memory_detect_malloc((size_t)(size), __FILE__, __FUNCTION__, __LINE__)
+        memory_debug_malloc((size_t)(size), __FILE__, __FUNCTION__, __LINE__)
     #define OS_CALLOC(n, size) \
-        memory_detect_calloc((size_t)(n), (size_t)(size), __FILE__, __FUNCTION__, __LINE__)
+        memory_debug_calloc((size_t)(n), (size_t)(size), __FILE__, __FUNCTION__, __LINE__)
     #define OS_REALLOC(ptr, size) \
-        memory_detect_realloc((void *)(ptr), (size_t)(size), __FILE__, __FUNCTION__, __LINE__)
+        memory_debug_realloc((void *)(ptr), (size_t)(size), __FILE__, __FUNCTION__, __LINE__)
     #define OS_FREE(ptr) \
         do {\
             if (ptr) {\
-                memory_detect_free((void *)(ptr), __FILE__, __FUNCTION__, __LINE__);\
+                memory_debug_free((void *)(ptr), __FILE__, __FUNCTION__, __LINE__);\
                 (ptr) = NULL;\
             }\
         } while (0)
-    #define OS_STRDUP(str) memory_detect_strdup((void *)(str), __FILE__, __FUNCTION__, __LINE__)
+    #define OS_STRDUP(str) memory_debug_strdup((void *)(str), __FILE__, __FUNCTION__, __LINE__)
     #define OS_STREQUAL(str1, str2) (((str1) && (str2)) ? (strcmp((str1), (str2)) == 0) : false)
-    #define OS_MEMORY_DUMP() memory_detect_dump()
+    #define OS_MEMORY_DUMP() memory_debug_dump()
 
 #endif
 
