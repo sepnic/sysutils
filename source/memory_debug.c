@@ -57,8 +57,8 @@ struct mem_info {
     os_mutex_t mutex;
 };
 
-OS_MUTEX_DECLARE(g_meminfo_mutex);
-static struct mem_info *g_meminfo = NULL;
+OS_MUTEX_DECLARE(g_info_mutex);
+static struct mem_info *g_info = NULL;
 
 static char *file_name(const char *filepath)
 {
@@ -80,7 +80,7 @@ static char *file_name(const char *filepath)
     return filename;
 }
 
-static void memory_node_debug(struct mem_node *node, const char *info)
+static void memory_node_print(struct mem_node *node, const char *info)
 {
     OS_LOGW(LOG_TAG, "> %s: ptr=[%p], size=[%d], "
            "created by [%s:%s:%d], at [%04d%02d%02d-%02d%02d%02d:%03d]",
@@ -127,20 +127,20 @@ static void memory_boundary_verify(struct mem_node *node)
     int i = 0;
     char *ptr;
 
-    // check upper boundary
+    // check lower boundary
     ptr = (char *)node->ptr - MEMORY_BOUNDARY_SIZE;
     for (i = 0; i < MEMORY_BOUNDARY_SIZE; i++) {
         if (((char *)ptr)[i] != MEMORY_BOUNDARY_FLAG) {
-            memory_node_debug(node, "Overflow at upper boundary");
+            memory_node_print(node, "Overflow at lower boundary");
             break;
         }
     }
 
-    // check lower boundary
+    // check upper boundary
     ptr = (char *)node->ptr + node->size;
     for (i = 0; i < MEMORY_BOUNDARY_SIZE; i++) {
         if (((char *)ptr)[i] != MEMORY_BOUNDARY_FLAG) {
-            memory_node_debug(node, "Overflow at lower boundary");
+            memory_node_print(node, "Overflow at upper boundary");
             break;
         }
     }
@@ -149,46 +149,46 @@ static void memory_boundary_verify(struct mem_node *node)
 
 static struct mem_info *memory_debug_init()
 {
-    if (g_meminfo == NULL) {
-        if (g_meminfo_mutex != NULL)
-            OS_THREAD_MUTEX_LOCK(g_meminfo_mutex);
+    if (g_info == NULL) {
+        if (g_info_mutex != NULL)
+            OS_THREAD_MUTEX_LOCK(g_info_mutex);
 
-        if (g_meminfo == NULL) {
-            g_meminfo = calloc(1, sizeof(struct mem_info));
-            if (g_meminfo == NULL) {
-                OS_LOGE(LOG_TAG, "Failed to alloc mem_info, abort memory detect");
-                if (g_meminfo_mutex != NULL)
-                    OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
+        if (g_info == NULL) {
+            g_info = calloc(1, sizeof(struct mem_info));
+            if (g_info == NULL) {
+                OS_LOGE(LOG_TAG, "Failed to alloc mem_info, abort memory debug");
+                if (g_info_mutex != NULL)
+                    OS_THREAD_MUTEX_UNLOCK(g_info_mutex);
                 return NULL;
             }
 
-            g_meminfo->mutex = OS_THREAD_MUTEX_CREATE();
-            if (g_meminfo->mutex == NULL) {
-                OS_LOGE(LOG_TAG, "Failed to alloc mem_mutex, abort memory detect");
+            g_info->mutex = OS_THREAD_MUTEX_CREATE();
+            if (g_info->mutex == NULL) {
+                OS_LOGE(LOG_TAG, "Failed to alloc mem_mutex, abort memory debug");
                 goto error;
             }
 
-            g_meminfo->malloc_count = 0;
-            g_meminfo->free_count = 0;
-            g_meminfo->max_used = 0;
-            list_init(&g_meminfo->list);
+            g_info->malloc_count = 0;
+            g_info->free_count = 0;
+            g_info->max_used = 0;
+            list_init(&g_info->list);
         }
 
-        if (g_meminfo_mutex != NULL)
-            OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
+        if (g_info_mutex != NULL)
+            OS_THREAD_MUTEX_UNLOCK(g_info_mutex);
     }
 
-    return g_meminfo;
+    return g_info;
 
 error:
-    if (g_meminfo->mutex != NULL)
-        OS_THREAD_MUTEX_DESTROY(g_meminfo->mutex);
+    if (g_info->mutex != NULL)
+        OS_THREAD_MUTEX_DESTROY(g_info->mutex);
 
-    free(g_meminfo);
-    g_meminfo = NULL;
+    free(g_info);
+    g_info = NULL;
 
-    if (g_meminfo_mutex != NULL)
-        OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
+    if (g_info_mutex != NULL)
+        OS_THREAD_MUTEX_UNLOCK(g_info_mutex);
     return NULL;
 }
 
@@ -218,7 +218,7 @@ void *memory_debug_malloc(size_t size, const char *file, const char *func, int l
             node->line = line;
             OS_TIMESTAMP_TO_LOCAL(&node->when);
 
-            //memory_node_debug(node, "Malloc");
+            //memory_node_print(node, "Malloc");
 
             OS_THREAD_MUTEX_LOCK(info->mutex);
 
@@ -332,7 +332,7 @@ void memory_debug_free(void *ptr, const char *file, const char *func, int line)
 #if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
             memory_boundary_verify(node);
 #endif
-            //memory_node_debug(node, "Free");
+            //memory_node_print(node, "Free");
 
             info->free_count++;
             info->cur_used -= node->size;
@@ -382,13 +382,13 @@ void memory_debug_dump()
 
     if (info != NULL) {
         OS_LOGW(LOG_TAG, ">>");
-        OS_LOGW(LOG_TAG, "++++++++++++++++++++ MEMORY DETECT ++++++++++++++++++++");
+        OS_LOGW(LOG_TAG, "++++++++++++++++++++ MEMORY DEBUG ++++++++++++++++++++");
 
         OS_THREAD_MUTEX_LOCK(info->mutex);
 
         list_for_each(item, &info->list) {
             node = node_to_item(item, struct mem_node, listnode);
-            memory_node_debug(node, "Dump");
+            memory_node_print(node, "Dump");
 #if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
             memory_boundary_verify(node);
 #endif
@@ -399,7 +399,7 @@ void memory_debug_dump()
 
         OS_THREAD_MUTEX_UNLOCK(info->mutex);
 
-        OS_LOGW(LOG_TAG, "-------------------- MEMORY DETECT --------------------");
+        OS_LOGW(LOG_TAG, "-------------------- MEMORY DEBUG --------------------");
         OS_LOGW(LOG_TAG, "<<");
     }
 }

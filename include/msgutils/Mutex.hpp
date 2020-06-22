@@ -26,7 +26,7 @@
 
 #include <stdbool.h>
 #include "msgutils/os_thread.h"
-#include "namespace_def.hpp"
+#include "Namespace.hpp"
 
 MSGUTILS_NAMESPACE_BEGIN
 

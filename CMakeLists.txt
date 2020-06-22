@@ -15,6 +15,7 @@ set (LIBS_SRC ${CMAKE_SOURCE_DIR}/source/memory_debug.c
               ${CMAKE_SOURCE_DIR}/port/os_thread.c
               ${CMAKE_SOURCE_DIR}/port/os_time.c
               ${CMAKE_SOURCE_DIR}/port/os_timer.c
+              ${CMAKE_SOURCE_DIR}/source/class_debug.cpp
               ${CMAKE_SOURCE_DIR}/source/Looper.cpp
 )
 

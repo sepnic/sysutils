@@ -25,7 +25,7 @@
 #include "msgutils/os_time.h"
 #include "msgutils/os_logger.h"
 #include "msgutils/os_class.hpp"
-#include "msgutils/namespace_def.hpp"
+#include "msgutils/Namespace.hpp"
 #include "msgutils/Looper.hpp"
 
 #define TAG "Looper"
@@ -488,23 +488,6 @@ void Handler::dump()
         mLooper->dump();
 }
 
-void *handlerThreadEntry(void *arg)
-{
-    HandlerThread *thiz = static_cast<HandlerThread *>(arg);
-    OS_LOGD(TAG, "[%s]: Entry handler thread", thiz->mThreadName.c_str());
-    if (!thiz->mLooper) {
-        OS_NEW(thiz->mLooper, Looper, thiz->mThreadName.c_str());
-        {
-            Mutex::Autolock _l(thiz->mThreadMutex);
-            thiz->mIsRunning = true;
-            thiz->mThreadMutex.condSignal();
-        }
-        thiz->mLooper->loop();
-    }
-    OS_LOGD(TAG, "[%s]: Leave handler thread", thiz->mThreadName.c_str());
-    return NULL;
-}
-
 HandlerThread::HandlerThread(const char *threadName)
     : mLooper(NULL),
       mThreadPriority(DEFAULT_LOOPER_PRIORITY),
@@ -529,6 +512,23 @@ HandlerThread::~HandlerThread()
     OS_DELETE(mLooper);
 }
 
+void *HandlerThread::threadEntry(void *arg)
+{
+    HandlerThread * const thiz = static_cast<HandlerThread *>(arg);
+    OS_LOGD(TAG, "[%s]: Entry handler thread", thiz->mThreadName.c_str());
+    if (!thiz->mLooper) {
+        OS_NEW(thiz->mLooper, Looper, thiz->mThreadName.c_str());
+        {
+            Mutex::Autolock _l(thiz->mThreadMutex);
+            thiz->mIsRunning = true;
+            thiz->mThreadMutex.condSignal();
+        }
+        thiz->mLooper->loop();
+    }
+    OS_LOGD(TAG, "[%s]: Leave handler thread", thiz->mThreadName.c_str());
+    return NULL;
+}
+
 bool HandlerThread::start()
 {
     Mutex::Autolock _l(mThreadMutex);
@@ -540,7 +540,7 @@ bool HandlerThread::start()
             .stacksize = mThreadStacksize,
             .joinable = false,
         };
-        os_thread_t tid = OS_THREAD_CREATE(&attr, handlerThreadEntry, this);
+        os_thread_t tid = OS_THREAD_CREATE(&attr, threadEntry, this);
         mHasStarted = (tid != NULL);
     }
     return mHasStarted;

@@ -6,7 +6,7 @@
 #include "msgutils/os_logger.h"
 #include "msgutils/os_thread.h"
 #include "msgutils/os_class.hpp"
-#include "msgutils/namespace_def.hpp"
+#include "msgutils/Namespace.hpp"
 #include "msgutils/Looper.hpp"
 
 #define LOG_TAG "LooperTest"
@@ -117,13 +117,13 @@ int main()
     looperTest->removeMessage(-1);
     looperTest->dump();
 
-    OS_LOGW(LOG_TAG, "-->Dump memory after post message");
-    OS_MEMORY_DUMP();
+    OS_LOGW(LOG_TAG, "-->Dump class after post message");
+    OS_CLASS_DUMP();
 
     sleep(3);
     OS_DELETE(looperTest);
 
-    OS_LOGW(LOG_TAG, "-->Dump memory after delete looper");
-    OS_MEMORY_DUMP();
+    OS_LOGW(LOG_TAG, "-->Dump class after delete looper");
+    OS_CLASS_DUMP();
     return 0;
 }

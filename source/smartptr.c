@@ -116,8 +116,8 @@ struct smartptr_info {
     os_mutex_t mutex;
 };
 
-OS_MUTEX_DECLARE(g_ptrinfo_mutex);
-static struct smartptr_info *g_ptrinfo = NULL;
+OS_MUTEX_DECLARE(g_info_mutex);
+static struct smartptr_info *g_info = NULL;
 
 static char *file_name(const char *filepath)
 {
@@ -139,7 +139,7 @@ static char *file_name(const char *filepath)
     return filename;
 }
 
-static void smartptr_node_debug(struct smartptr_node *node, const char *info)
+static void smartptr_node_print(struct smartptr_node *node, const char *info)
 {
     OS_LOGW(LOG_TAG, "> %s: ptr=[%p], user_size=[%d], real_size=[%d], refs_cnt=[%d], "
            "created by [%s:%s:%d], at [%04d%02d%02d-%02d%02d%02d:%03d]",
@@ -151,50 +151,50 @@ static void smartptr_node_debug(struct smartptr_node *node, const char *info)
 
 static struct smartptr_info *smartptr_debug_init()
 {
-    if (g_ptrinfo == NULL) {
-        if (g_ptrinfo_mutex != NULL)
-            OS_THREAD_MUTEX_LOCK(g_ptrinfo_mutex);
+    if (g_info == NULL) {
+        if (g_info_mutex != NULL)
+            OS_THREAD_MUTEX_LOCK(g_info_mutex);
 
-        if (g_ptrinfo == NULL) {
-            g_ptrinfo = OS_CALLOC(1, sizeof(struct smartptr_info));
-            if (g_ptrinfo == NULL) {
-                OS_LOGE(LOG_TAG, "Failed to alloc smartptr_info, abort smartptr detect");
-                if (g_ptrinfo_mutex != NULL)
-                    OS_THREAD_MUTEX_UNLOCK(g_ptrinfo_mutex);
+        if (g_info == NULL) {
+            g_info = OS_CALLOC(1, sizeof(struct smartptr_info));
+            if (g_info == NULL) {
+                OS_LOGE(LOG_TAG, "Failed to alloc smartptr_info, abort smartptr debug");
+                if (g_info_mutex != NULL)
+                    OS_THREAD_MUTEX_UNLOCK(g_info_mutex);
                 return NULL;
             }
 
-            g_ptrinfo->mutex = OS_THREAD_MUTEX_CREATE();
-            if (g_ptrinfo->mutex == NULL) {
-                OS_LOGE(LOG_TAG, "Failed to alloc smartptr_mutex, abort smartptr detect");
+            g_info->mutex = OS_THREAD_MUTEX_CREATE();
+            if (g_info->mutex == NULL) {
+                OS_LOGE(LOG_TAG, "Failed to alloc smartptr_mutex, abort smartptr debug");
                 goto error;
             }
 
-            g_ptrinfo->new_cnt = 0;
-            g_ptrinfo->delete_cnt = 0;
-            list_init(&g_ptrinfo->list);
+            g_info->new_cnt = 0;
+            g_info->delete_cnt = 0;
+            list_init(&g_info->list);
         }
 
-        if (g_ptrinfo_mutex != NULL)
-            OS_THREAD_MUTEX_UNLOCK(g_ptrinfo_mutex);
+        if (g_info_mutex != NULL)
+            OS_THREAD_MUTEX_UNLOCK(g_info_mutex);
     }
 
-    return g_ptrinfo;
+    return g_info;
 
 error:
-    if (g_ptrinfo->mutex != NULL)
-        OS_THREAD_MUTEX_DESTROY(g_ptrinfo->mutex);
+    if (g_info->mutex != NULL)
+        OS_THREAD_MUTEX_DESTROY(g_info->mutex);
 
-    OS_FREE(g_ptrinfo);
-    g_ptrinfo = NULL;
+    OS_FREE(g_info);
+    g_info = NULL;
 
-    if (g_ptrinfo_mutex != NULL)
-        OS_THREAD_MUTEX_UNLOCK(g_ptrinfo_mutex);
+    if (g_info_mutex != NULL)
+        OS_THREAD_MUTEX_UNLOCK(g_info_mutex);
     return NULL;
 }
 
-void *smartptr_new_debug(size_t size, void (*free_cb)(void *ptr),
-                           const char *file, const char *func, int line)
+void *smartptr_debug_new(size_t size, void (*free_cb)(void *ptr),
+                         const char *file, const char *func, int line)
 {
     void *ptr = smartptr_new(size, free_cb);
     struct smartptr_node *node;
@@ -217,7 +217,7 @@ void *smartptr_new_debug(size_t size, void (*free_cb)(void *ptr),
             node->line = line;
             OS_TIMESTAMP_TO_LOCAL(&node->when);
 
-            //smartptr_node_debug(node, "New");
+            //smartptr_node_print(node, "New");
 
             OS_THREAD_MUTEX_LOCK(info->mutex);
 
@@ -232,7 +232,7 @@ void *smartptr_new_debug(size_t size, void (*free_cb)(void *ptr),
     return ptr;
 }
 
-void smartptr_get_debug(void *ptr, const char *file, const char *func, int line)
+void smartptr_debug_get(void *ptr, const char *file, const char *func, int line)
 {
     struct smartptr_info *info = smartptr_debug_init();
     struct listnode *item;
@@ -253,10 +253,10 @@ void smartptr_get_debug(void *ptr, const char *file, const char *func, int line)
 
         if (found) {
             node->refs_cnt = SMARTPTR_GET_CTRBLOCK(ptr)->refs_cnt + 1;
-            //smartptr_node_debug(node, "Get");
+            //smartptr_node_print(node, "Get");
         }
         else {
-            OS_LOGF(LOG_TAG, "%s:%s:%d: failed to find ptr[%p] in list, will overflow",
+            OS_LOGF(LOG_TAG, "%s:%s:%d: failed to find ptr[%p] in list",
                    file_name(file), func, line, ptr);
         }
 
@@ -266,7 +266,7 @@ void smartptr_get_debug(void *ptr, const char *file, const char *func, int line)
     smartptr_get(ptr);
 }
 
-void smartptr_put_debug(void *ptr, const char *file, const char *func, int line)
+void smartptr_debug_put(void *ptr, const char *file, const char *func, int line)
 {
     struct smartptr_info *info = smartptr_debug_init();
     struct listnode *item;
@@ -287,7 +287,7 @@ void smartptr_put_debug(void *ptr, const char *file, const char *func, int line)
 
         if (found) {
             node->refs_cnt = SMARTPTR_GET_CTRBLOCK(ptr)->refs_cnt - 1;
-            //smartptr_node_debug(node, "Put");
+            //smartptr_node_print(node, "Put");
             if (node->refs_cnt == 0) {
                 info->delete_cnt++;
                 info->cur_used -= node->real_size;
@@ -296,7 +296,7 @@ void smartptr_put_debug(void *ptr, const char *file, const char *func, int line)
             }
         }
         else {
-            OS_LOGF(LOG_TAG, "%s:%s:%d: failed to find ptr[%p] in list, will overflow",
+            OS_LOGF(LOG_TAG, "%s:%s:%d: failed to find ptr[%p] in list",
                    file_name(file), func, line, ptr);
         }
 
@@ -306,7 +306,7 @@ void smartptr_put_debug(void *ptr, const char *file, const char *func, int line)
     smartptr_put(ptr);
 }
 
-void smartptr_dump_debug()
+void smartptr_debug_dump()
 {
     struct smartptr_info *info  = smartptr_debug_init();
     struct smartptr_node *node;
@@ -314,13 +314,13 @@ void smartptr_dump_debug()
 
     if (info != NULL) {
         OS_LOGW(LOG_TAG, ">>");
-        OS_LOGW(LOG_TAG, "++++++++++++++++++++ SMARTPTR DETECT ++++++++++++++++++++");
+        OS_LOGW(LOG_TAG, "++++++++++++++++++++ SMARTPTR DEBUG ++++++++++++++++++++");
 
         OS_THREAD_MUTEX_LOCK(info->mutex);
 
         list_for_each(item, &info->list) {
             node = node_to_item(item, struct smartptr_node, listnode);
-            smartptr_node_debug(node, "Dump");
+            smartptr_node_print(node, "Dump");
         }
 
         OS_LOGW(LOG_TAG, "Summary: new [%d] blocks, delete [%d] blocks, current use [%d] Bytes",
@@ -328,7 +328,7 @@ void smartptr_dump_debug()
 
         OS_THREAD_MUTEX_UNLOCK(info->mutex);
 
-        OS_LOGW(LOG_TAG, "-------------------- SMARTPTR DETECT --------------------");
+        OS_LOGW(LOG_TAG, "-------------------- SMARTPTR DEBUG --------------------");
         OS_LOGW(LOG_TAG, "<<");
     }
 }

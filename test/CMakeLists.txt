@@ -19,6 +19,7 @@ set (LIBS_SRC ${TOP_DIR}/source/memory_debug.c
               ${TOP_DIR}/port/os_thread.c
               ${TOP_DIR}/port/os_time.c
               ${TOP_DIR}/port/os_timer.c
+              ${TOP_DIR}/source/class_debug.cpp
               ${TOP_DIR}/source/Looper.cpp
 )
 

@@ -28,7 +28,7 @@
 #include <stdbool.h>
 #include <string>
 #include "Mutex.hpp"
-#include "namespace_def.hpp"
+#include "Namespace.hpp"
 
 MSGUTILS_NAMESPACE_BEGIN
 
@@ -149,6 +149,7 @@ private:
     Mutex mThreadMutex;
     bool mIsRunning;
     bool mHasStarted;
+    static void *threadEntry(void *arg);
 };
 
 MSGUTILS_NAMESPACE_END

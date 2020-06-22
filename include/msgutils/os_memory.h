@@ -41,11 +41,11 @@ extern "C" {
     #define OS_REALLOC(ptr, size) realloc((void *)(ptr), (size_t)(size))
     #define OS_FREE(ptr) \
         do {\
-             if (ptr) {\
-                 free((void *)(ptr));\
-                 (ptr) = NULL;\
-             }\
-         } while (0)
+            if (ptr) {\
+                free((void *)(ptr));\
+                (ptr) = NULL;\
+            }\
+        } while (0)
     #define OS_STRDUP(str) (str) ? strdup(str) : NULL
     #define OS_STREQUAL(str1, str2) (((str1) && (str2)) ? (strcmp((str1), (str2)) == 0) : false)
     #define OS_MEMORY_DUMP() do {} while (0)
