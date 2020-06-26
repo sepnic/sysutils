@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string>
+#include "os_thread.h"
 #include "Mutex.hpp"
 #include "Namespace.hpp"
 

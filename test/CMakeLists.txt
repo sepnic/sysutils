@@ -21,6 +21,7 @@ set (LIBS_SRC ${TOP_DIR}/source/memory_debug.c
               ${TOP_DIR}/port/os_timer.c
               ${TOP_DIR}/source/class_debug.cpp
               ${TOP_DIR}/source/Looper.cpp
+              ${TOP_DIR}/source/Thread.cpp
 )
 
 # cflags
@@ -79,3 +80,8 @@ target_link_libraries(msgqueue_test msgutils pthread)
 add_executable(LooperTest ${CMAKE_SOURCE_DIR}/LooperTest.cpp)
 target_link_libraries(LooperTest msgutils pthread)
 #target_link_libraries(LooperTest rt)
+
+# Thread test
+add_executable(ThreadTest ${CMAKE_SOURCE_DIR}/ThreadTest.cpp)
+target_link_libraries(ThreadTest msgutils pthread)
+#target_link_libraries(ThreadTest rt)

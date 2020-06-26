@@ -541,7 +541,10 @@ bool HandlerThread::start()
             .joinable = false,
         };
         os_thread_t tid = OS_THREAD_CREATE(&attr, threadEntry, this);
-        mHasStarted = (tid != NULL);
+        if (tid != NULL){
+            OS_THREAD_SET_NAME(tid, mThreadName.c_str());
+            mHasStarted = true;
+        }
     }
     return mHasStarted;
 }
