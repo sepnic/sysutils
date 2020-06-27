@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string>
+#include <list>
 #include "os_thread.h"
 #include "Mutex.hpp"
 #include "Namespace.hpp"
@@ -63,13 +64,10 @@ public:
 private:
     HandlerCallback *handlerCallback;
     unsigned long long when;
-    Message *next;
 
     Message();
-    int  count();
     void reset();
     void recycle();
-    void destroy();
 };
 
 class Looper {
@@ -92,7 +90,7 @@ public:
 
 private:
     std::string mLooperName;
-    Message *mMsgList;
+    std::list<Message *> mMsgList;
     Mutex mMsgMutex;
     Mutex mExitMutex;
     bool mExitPending;

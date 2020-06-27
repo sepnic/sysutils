@@ -36,8 +36,7 @@
 MSGUTILS_NAMESPACE_BEGIN
 
 static const int kCacheMsgMaxCount = 20;
-static int kCacheMsgCount = 0;
-static Message *kCacheMsgList = NULL;
+std::list<Message *> kCacheMsgList;
 static Mutex kCacheMsgMutex;
 
 Message *Message::obtain(int what)
@@ -61,11 +60,9 @@ Message *Message::obtain(int what, int arg1, int arg2, void *data, HandlerCallba
 
     {
         Mutex::Autolock _l(kCacheMsgMutex);
-        if (kCacheMsgList) {
-            Message *next = kCacheMsgList->next;
-            msg = kCacheMsgList;
-            kCacheMsgList = next;
-            kCacheMsgCount--;
+        if (!kCacheMsgList.empty()) {
+            msg = kCacheMsgList.front();
+            kCacheMsgList.pop_front();
         }
     }
 
@@ -77,26 +74,13 @@ Message *Message::obtain(int what, int arg1, int arg2, void *data, HandlerCallba
     msg->arg2 = arg2;
     msg->data = data;
     msg->handlerCallback = handlerCallback;
-    msg->next = NULL;
     msg->when = 0;
     return msg;
 }
 
 Message::Message()
-    : handlerCallback(NULL),
-      next(NULL)
+    : handlerCallback(NULL)
 {}
-
-int Message::count()
-{
-    int count = 0;
-    Message *next = this;
-    while (next) {
-        count++;
-        next = next->next;
-    }
-    return count;
-}
 
 void Message::reset()
 {
@@ -107,7 +91,6 @@ void Message::reset()
     this->arg2 = 0;
     this->data = NULL;
     this->handlerCallback = NULL;
-    this->next = NULL;
     this->when = 0;
 }
 
@@ -120,11 +103,8 @@ void Message::recycle()
 
     {
         Mutex::Autolock _l(kCacheMsgMutex);
-        if (kCacheMsgCount < kCacheMsgMaxCount) {
-            if (kCacheMsgList)
-                msg->next = kCacheMsgList;
-            kCacheMsgList = msg;
-            kCacheMsgCount++;
+        if (kCacheMsgList.size() < kCacheMsgMaxCount) {
+            kCacheMsgList.push_back(msg);
             cached = true;
         }
     }
@@ -133,30 +113,21 @@ void Message::recycle()
         OS_DELETE(msg);
 }
 
-void Message::destroy()
-{
-    Message *next = this->next, *msg;
-    while (next) {
-        msg = next;
-        next = next->next;
-        msg->recycle();
-    }
-    this->recycle();
-}
-
 Looper::Looper(const char *looperName)
-    : mMsgList(NULL),
-      mExitPending(false),
+    : mExitPending(false),
       mExited(true)
 {
     mLooperName = looperName ? looperName : "Looper";
+    mMsgList.clear();
 }
 
 Looper::~Looper()
 {
     quitSafely();
-    if (mMsgList)
-        mMsgList->destroy();
+
+    std::list<Message *>::iterator it;
+    for (it = mMsgList.begin(); it != mMsgList.end(); it++)
+        (*it)->recycle();
 }
 
 void Looper::loop()
@@ -171,7 +142,7 @@ void Looper::loop()
         {
             Mutex::Autolock _l(mMsgMutex);
 
-            while (mMsgList == NULL && !mExitPending) {
+            while (mMsgList.empty() && !mExitPending) {
                 OS_LOGV(TAG, "[%s]: mMsgMutex condWait, waiting", mLooperName.c_str());
                 mMsgMutex.condWait();
                 OS_LOGV(TAG, "[%s]: mMsgMutex condWait, wakeup", mLooperName.c_str());
@@ -179,7 +150,7 @@ void Looper::loop()
             if (mExitPending)
                 break;
 
-            msg = mMsgList;
+            msg = mMsgList.front();
             now = OS_MONOTONIC_USEC();
             if (msg->when > now) {
                 unsigned long long wait = msg->when - now;
@@ -191,8 +162,7 @@ void Looper::loop()
                 msg = NULL;
             }
             else {
-                mMsgList = msg->next;
-                msg->next = NULL;
+                mMsgList.pop_front();
             }
         }
 
@@ -250,31 +220,19 @@ bool Looper::postMessageDelay(Message *msg, unsigned long delayMs)
         return false;
 
     msg->when = OS_MONOTONIC_USEC() + delayMs * 1000;
-    msg->next = NULL;
-
     {
         Mutex::Autolock _l(mMsgMutex);
 
-        if (mMsgList && mMsgList->when <= msg->when) {
-            Message *next = mMsgList->next;
-            Message *curr = mMsgList;
-            while (next) {
-                if (next->when > msg->when) {
-                    msg->next = next;
-                    break;
-                }
-                else {
-                    curr = next;
-                }
-                next = next->next;
+        std::list<Message *>::reverse_iterator rit;
+        for (rit = mMsgList.rbegin(); rit != mMsgList.rend(); rit++) {
+            if (msg->when >= (*rit)->when) {
+                // rit.base() pointing to the element that followed the element referred to rit
+                mMsgList.insert(rit.base(), msg);
+                break;
             }
-            curr->next = msg;
         }
-        else {
-            if (mMsgList)
-                msg->next = mMsgList;
-            mMsgList = msg;
-        }
+        if (rit == mMsgList.rend())
+            mMsgList.push_front(msg);
 
         mMsgMutex.condSignal();
     }
@@ -287,17 +245,15 @@ bool Looper::postMessageFront(Message *msg)
         return false;
 
     msg->when = OS_MONOTONIC_USEC();
-    msg->next = NULL;
-
     {
         Mutex::Autolock _l(mMsgMutex);
 
-        if (mMsgList) {
-            if (msg->when > mMsgList->when)
-                msg->when = mMsgList->when;
-            msg->next = mMsgList;
+        if (!mMsgList.empty()) {
+            Message *front = mMsgList.front();
+            if (msg->when > front->when)
+                msg->when = front->when;
         }
-        mMsgList = msg;
+        mMsgList.push_front(msg);
 
         mMsgMutex.condSignal();
     }
@@ -306,51 +262,35 @@ bool Looper::postMessageFront(Message *msg)
 
 void Looper::removeMessage(int what)
 {
-    Message *deleteList = NULL;
-
-    {
-        Mutex::Autolock _l(mMsgMutex);
-
-        Message *curr = mMsgList, *prev = NULL, *next = NULL;
-        while (curr) {
-            next = curr->next;
-            if (curr->what == what) {
-                if (prev)
-                    prev->next = curr->next;
-                else
-                    mMsgList = curr->next;
-                curr->next = deleteList;
-                deleteList = curr;
-            }
-            else {
-                prev = curr;
-            }
-            curr = next;
+    Mutex::Autolock _l(mMsgMutex);
+    std::list<Message *>::iterator it;
+    for (it = mMsgList.begin(); it != mMsgList.end(); ) {
+        if ((*it)->what == what) {
+            (*it)->recycle();
+            it = mMsgList.erase(it);
+        }
+        else {
+            it++;
         }
     }
-
-    if (deleteList)
-        deleteList->destroy();
 }
 
 void Looper::removeMessage()
 {
     Mutex::Autolock _l(mMsgMutex);
-    if (mMsgList) {
-        mMsgList->destroy();
-        mMsgList = NULL;
-    }
+    std::list<Message *>::iterator it;
+    for (it = mMsgList.begin(); it != mMsgList.end(); it++)
+        (*it)->recycle();
+    mMsgList.clear();
 }
 
 bool Looper::hasMessage(int what)
 {
     Mutex::Autolock _l(mMsgMutex);
-    Message *msg = mMsgList;
-    while (msg) {
-        if (msg->what == what) {
+    std::list<Message *>::iterator it;
+    for (it = mMsgList.begin(); it != mMsgList.end(); it++) {
+        if ((*it)->what == what)
             return true;
-        }
-        msg = msg->next;
     }
     return false;
 }
@@ -367,15 +307,13 @@ void Looper::dump()
     OS_LOGI(TAG, "[%s]: Dump looper message:", mLooperName.c_str());
     OS_LOGI(TAG, " > looper_name=[%s]", mLooperName.c_str());
     OS_LOGI(TAG, " > looper_exit=[%s]", mExited ? "true" : "false");
-    OS_LOGI(TAG, " > message_count=[%d]", mMsgList ? mMsgList->count() : 0);
+    OS_LOGI(TAG, " > message_count=[%d]", mMsgList.size());
 
-    Message *msg = mMsgList;
+    std::list<Message *>::iterator it;
     int i = 0;
-    while (msg) {
+    for (it = mMsgList.begin(); it != mMsgList.end(); it++, i++) {
         OS_LOGI(TAG, "   > [%d]: what=[%d], arg1=[%d], arg2=[%d], when=[%llu]",
-                             i, msg->what, msg->arg1, msg->arg2, msg->when);
-        msg = msg->next;
-        i++;
+                            i, (*it)->what, (*it)->arg1, (*it)->arg2, (*it)->when);
     }
 }
 
