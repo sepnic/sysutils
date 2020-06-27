@@ -105,7 +105,7 @@ static void *mlooper_thread_entry(void *arg)
 
     OS_LOGD(LOG_TAG, "[%s]: Entry looper thread: thread_id=[%p]", looper->thread_name, looper->thread_id);
 
-    while (!looper->thread_exit) {
+    while (1) {
         {
             OS_THREAD_MUTEX_LOCK(looper->msg_mutex);
 
@@ -398,16 +398,26 @@ void mlooper_dump(mlooper_t looper)
 
 void mlooper_stop(mlooper_t looper)
 {
-    OS_THREAD_MUTEX_LOCK(looper->thread_mutex);
-
-    if (!looper->thread_exit) {
-        looper->thread_exit = true;
-        OS_THREAD_COND_SIGNAL(looper->msg_cond);
-
-        OS_THREAD_JOIN(looper->thread_id, NULL);
+    if (looper->thread_id == OS_THREAD_SELF()) {
+        OS_LOGW(LOG_TAG,
+                "Thread (%p:%s): don't call mlooper_stop() from this Thread object's thread. Maybe deadlock!",
+                looper->thread_id, looper->thread_name);
     }
 
-    OS_THREAD_MUTEX_UNLOCK(looper->thread_mutex);
+    {
+        OS_THREAD_MUTEX_LOCK(looper->thread_mutex);
+
+        if (!looper->thread_exit) {
+            OS_THREAD_MUTEX_LOCK(looper->msg_mutex);
+            looper->thread_exit = true;
+            OS_THREAD_COND_SIGNAL(looper->msg_cond);
+            OS_THREAD_MUTEX_UNLOCK(looper->msg_mutex);
+
+            OS_THREAD_JOIN(looper->thread_id, NULL);
+        }
+
+        OS_THREAD_MUTEX_UNLOCK(looper->thread_mutex);
+    }
 }
 
 void mlooper_destroy(mlooper_t looper)

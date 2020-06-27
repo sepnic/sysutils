@@ -85,7 +85,7 @@ public:
     void removeMessage(int what);
     void removeMessage();
     bool hasMessage(int what);
-    bool hasExited();
+    bool isRunning();
     void dump();
 
 private:
@@ -94,7 +94,7 @@ private:
     Mutex mMsgMutex;
     Mutex mExitMutex;
     bool mExitPending;
-    bool mExited;
+    bool mRunning;
 };
 
 class Handler : public HandlerCallback {
@@ -142,6 +142,7 @@ public:
 
 private:
     Looper *mLooper;
+    os_thread_t mThreadId;
     std::string mThreadName;
     enum os_threadprio mThreadPriority;
     unsigned int mThreadStacksize;

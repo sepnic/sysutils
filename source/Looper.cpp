@@ -115,7 +115,7 @@ void Message::recycle()
 
 Looper::Looper(const char *looperName)
     : mExitPending(false),
-      mExited(true)
+      mRunning(false)
 {
     mLooperName = looperName ? looperName : "Looper";
     mMsgList.clear();
@@ -134,11 +134,9 @@ void Looper::loop()
 {
     OS_LOGD(TAG, "[%s]: Entry looper thread", mLooperName.c_str());
 
-    mExited = false;
-    while (!mExitPending) {
+    mRunning = true;
+    while (1) {
         Message *msg = NULL;
-        unsigned long long now;
-
         {
             Mutex::Autolock _l(mMsgMutex);
 
@@ -151,7 +149,7 @@ void Looper::loop()
                 break;
 
             msg = mMsgList.front();
-            now = OS_MONOTONIC_USEC();
+            unsigned long long now = OS_MONOTONIC_USEC();
             if (msg->when > now) {
                 unsigned long long wait = msg->when - now;
                 OS_LOGV(TAG, "[%s]: mMsgMutex(what=%d, when=%llu) condWait(%llu), waiting",
@@ -177,7 +175,7 @@ void Looper::loop()
 
     {
         Mutex::Autolock _l(mExitMutex);
-        mExited = true;
+        mRunning = false;
         mExitMutex.condSignal();
     }
 
@@ -201,7 +199,7 @@ void Looper::quitSafely()
 
     {
         Mutex::Autolock _l(mExitMutex);
-        while (!mExited) {
+        while (mRunning) {
             OS_LOGV(TAG, "[%s]: mExitMutex condWait, waiting", mLooperName.c_str());
             mExitMutex.condWait();
             OS_LOGV(TAG, "[%s]: mExitMutex condWait, wakeup", mLooperName.c_str());
@@ -295,9 +293,9 @@ bool Looper::hasMessage(int what)
     return false;
 }
 
-bool Looper::hasExited()
+bool Looper::isRunning()
 {
-    return mExited;
+    return mRunning;
 }
 
 void Looper::dump()
@@ -306,7 +304,7 @@ void Looper::dump()
 
     OS_LOGI(TAG, "[%s]: Dump looper message:", mLooperName.c_str());
     OS_LOGI(TAG, " > looper_name=[%s]", mLooperName.c_str());
-    OS_LOGI(TAG, " > looper_exit=[%s]", mExited ? "true" : "false");
+    OS_LOGI(TAG, " > looper_running=[%s]", mRunning ? "true" : "false");
     OS_LOGI(TAG, " > message_count=[%d]", mMsgList.size());
 
     std::list<Message *>::iterator it;
@@ -428,6 +426,7 @@ void Handler::dump()
 
 HandlerThread::HandlerThread(const char *threadName)
     : mLooper(NULL),
+      mThreadId(NULL),
       mThreadPriority(DEFAULT_LOOPER_PRIORITY),
       mThreadStacksize(DEFAULT_LOOPER_STACKSIZE),
       mHasStarted(false)
@@ -437,6 +436,7 @@ HandlerThread::HandlerThread(const char *threadName)
 
 HandlerThread::HandlerThread(const char *threadName, enum os_threadprio threadPriority, unsigned int threadStacksize)
     : mLooper(NULL),
+      mThreadId(NULL),
       mThreadPriority(threadPriority),
       mThreadStacksize(threadStacksize),
       mIsRunning(false),
@@ -478,9 +478,9 @@ bool HandlerThread::start()
             .stacksize = mThreadStacksize,
             .joinable = false,
         };
-        os_thread_t tid = OS_THREAD_CREATE(&attr, threadEntry, this);
-        if (tid != NULL){
-            OS_THREAD_SET_NAME(tid, mThreadName.c_str());
+        mThreadId = OS_THREAD_CREATE(&attr, threadEntry, this);
+        if (mThreadId != NULL){
+            OS_THREAD_SET_NAME(mThreadId, mThreadName.c_str());
             mHasStarted = true;
         }
     }
@@ -495,6 +495,12 @@ void HandlerThread::stop()
 
 void HandlerThread::stopSafely()
 {
+    if (mThreadId == OS_THREAD_SELF()) {
+        OS_LOGW(TAG,
+                "Thread (%p:%s): don't call stopSafely() from this Thread object's thread. Maybe deadlock!",
+                mThreadId, mThreadName.c_str());
+    }
+
     if (mLooper)
         mLooper->quitSafely();
 }
