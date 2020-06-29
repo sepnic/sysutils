@@ -37,12 +37,12 @@ LooperTest::LooperTest()
 {
     OS_NEW(mHandlerThread, HandlerThread, "LooperTest");
     OS_NEW(mHandler, Handler, mHandlerThread->getLooper(), this);
+    mHandlerThread->run();
 }
 
 LooperTest::~LooperTest()
 {
-    if (mHandlerThread)
-        mHandlerThread->stopSafely();
+    mHandlerThread->requestExitAndWait();
     OS_DELETE(mHandlerThread);
     OS_DELETE(mHandler);
 }
@@ -60,32 +60,27 @@ void LooperTest::onFree(Message *msg)
 
 void LooperTest::postMessage(Message *msg)
 {
-    if (mHandler)
-        mHandler->postMessage(msg);
+    mHandler->postMessage(msg);
 }
 
 void LooperTest::postMessageDelay(Message *msg, unsigned long delayMs)
 {
-    if (mHandler)
-        mHandler->postMessageDelay(msg, delayMs);
+    mHandler->postMessageDelay(msg, delayMs);
 }
 
 void LooperTest::postMessageFront(Message *msg)
 {
-    if (mHandler)
-        mHandler->postMessageFront(msg);
+    mHandler->postMessageFront(msg);
 }
 
 void LooperTest::removeMessage(int what)
 {
-    if (mHandler)
-        mHandler->removeMessage(what);
+    mHandler->removeMessage(what);
 }
 
 void LooperTest::dump()
 {
-    if (mHandler)
-        mHandler->dump();
+    mHandler->dump();
 }
 
 int main()
@@ -117,13 +112,13 @@ int main()
     looperTest->removeMessage(-1);
     looperTest->dump();
 
-    OS_LOGW(LOG_TAG, "-->Dump class after post message");
-    OS_CLASS_DUMP();
+    //OS_LOGW(LOG_TAG, "-->Dump class after post message");
+    //OS_CLASS_DUMP();
 
     sleep(3);
     OS_DELETE(looperTest);
 
-    OS_LOGW(LOG_TAG, "-->Dump class after delete looper");
-    OS_CLASS_DUMP();
+    //OS_LOGW(LOG_TAG, "-->Dump class after delete looper");
+    //OS_CLASS_DUMP();
     return 0;
 }

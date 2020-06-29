@@ -25,9 +25,6 @@
 
 #define TAG "ThreadBase"
 
-#define DEFAULT_THREAD_PRIORITY  OS_THREAD_PRIO_NORMAL
-#define DEFAULT_THREAD_STACKSIZE 1024
-
 MSGUTILS_NAMESPACE_BEGIN
 
 Thread::Thread()
@@ -51,7 +48,7 @@ bool Thread::run(const char *name, enum os_threadprio priority, unsigned int sta
     Mutex::Autolock _l(mLock);
 
     if (mRunning) {
-        // thread already started
+        OS_LOGD(TAG, "Thread already run");
         return true;
     }
 
@@ -61,8 +58,6 @@ bool Thread::run(const char *name, enum os_threadprio priority, unsigned int sta
     mThread = NULL;
     mRunning = true;
 
-    if (name == NULL)
-        name = "ThreadBase";
     struct os_threadattr attr = {
         .name = name != NULL ? name : "ThreadBase",
         .priority = priority,
@@ -72,11 +67,10 @@ bool Thread::run(const char *name, enum os_threadprio priority, unsigned int sta
     mThread = OS_THREAD_CREATE(&attr, _threadLoop, this);
     if (mThread != NULL) {
         OS_THREAD_SET_NAME(mThread, name);
-        return true;
+        mRunning = true;
     }
 
-    mRunning = false;
-    return false;
+    return mRunning;
 }
 
 void *Thread::_threadLoop(void *user)

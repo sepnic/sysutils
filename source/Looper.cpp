@@ -30,9 +30,6 @@
 
 #define TAG "Looper"
 
-#define DEFAULT_LOOPER_PRIORITY  OS_THREAD_PRIO_NORMAL
-#define DEFAULT_LOOPER_STACKSIZE 1024
-
 MSGUTILS_NAMESPACE_BEGIN
 
 static const int kCacheMsgMaxCount = 20;
@@ -113,11 +110,11 @@ void Message::recycle()
         OS_DELETE(msg);
 }
 
-Looper::Looper(const char *looperName)
-    : mExitPending(false),
+Looper::Looper(const char *name)
+    : mLooperName(name ? name : "Looper"),
+      mExitPending(false),
       mRunning(false)
 {
-    mLooperName = looperName ? looperName : "Looper";
     mMsgList.clear();
 }
 
@@ -132,9 +129,12 @@ Looper::~Looper()
 
 void Looper::loop()
 {
-    OS_LOGD(TAG, "[%s]: Entry looper thread", mLooperName.c_str());
+    Mutex::Autolock _l(mLoopMutex);
 
+    OS_LOGD(TAG, "[%s]: Entry looper thread", mLooperName.c_str());
+    mExitPending = false;
     mRunning = true;
+
     while (1) {
         Message *msg = NULL;
         {
@@ -173,12 +173,8 @@ void Looper::loop()
         }
     }
 
-    {
-        Mutex::Autolock _l(mExitMutex);
-        mRunning = false;
-        mExitMutex.condSignal();
-    }
-
+    mRunning = false;
+    mLoopMutex.condSignal();
     OS_LOGD(TAG, "[%s]: Leave looper thread", mLooperName.c_str());
 }
 
@@ -191,20 +187,19 @@ void Looper::quit()
 
 void Looper::quitSafely()
 {
-    {
-        Mutex::Autolock _l(mMsgMutex);
-        mExitPending = true;
-        mMsgMutex.condSignal();
-    }
+    quit();
 
-    {
-        Mutex::Autolock _l(mExitMutex);
-        while (mRunning) {
-            OS_LOGV(TAG, "[%s]: mExitMutex condWait, waiting", mLooperName.c_str());
-            mExitMutex.condWait();
-            OS_LOGV(TAG, "[%s]: mExitMutex condWait, wakeup", mLooperName.c_str());
-        }
+    Mutex::Autolock _l(mLoopMutex);
+    while (mRunning) {
+        OS_LOGV(TAG, "[%s]: mLoopMutex condWait, waiting", mLooperName.c_str());
+        mLoopMutex.condWait();
+        OS_LOGV(TAG, "[%s]: mLoopMutex condWait, wakeup", mLooperName.c_str());
     }
+}
+
+bool Looper::isRunning()
+{
+    return mRunning;
 }
 
 bool Looper::postMessage(Message *msg)
@@ -258,12 +253,12 @@ bool Looper::postMessageFront(Message *msg)
     return true;
 }
 
-void Looper::removeMessage(int what)
+void Looper::removeMessage(int what, HandlerCallback *handlerCallback)
 {
     Mutex::Autolock _l(mMsgMutex);
     std::list<Message *>::iterator it;
     for (it = mMsgList.begin(); it != mMsgList.end(); ) {
-        if ((*it)->what == what) {
+        if ((*it)->what == what && (*it)->handlerCallback == handlerCallback) {
             (*it)->recycle();
             it = mMsgList.erase(it);
         }
@@ -273,45 +268,46 @@ void Looper::removeMessage(int what)
     }
 }
 
-void Looper::removeMessage()
+void Looper::removeMessage(HandlerCallback *handlerCallback)
 {
     Mutex::Autolock _l(mMsgMutex);
     std::list<Message *>::iterator it;
-    for (it = mMsgList.begin(); it != mMsgList.end(); it++)
-        (*it)->recycle();
-    mMsgList.clear();
+    for (it = mMsgList.begin(); it != mMsgList.end(); ) {
+        if ((*it)->handlerCallback == handlerCallback) {
+            (*it)->recycle();
+            it = mMsgList.erase(it);
+        }
+        else {
+            it++;
+        }
+    }
 }
 
-bool Looper::hasMessage(int what)
+bool Looper::hasMessage(int what, HandlerCallback *handlerCallback)
 {
     Mutex::Autolock _l(mMsgMutex);
     std::list<Message *>::iterator it;
     for (it = mMsgList.begin(); it != mMsgList.end(); it++) {
-        if ((*it)->what == what)
+        if ((*it)->what == what && (*it)->handlerCallback == handlerCallback)
             return true;
     }
     return false;
-}
-
-bool Looper::isRunning()
-{
-    return mRunning;
 }
 
 void Looper::dump()
 {
     Mutex::Autolock _l(mMsgMutex);
 
-    OS_LOGI(TAG, "[%s]: Dump looper message:", mLooperName.c_str());
-    OS_LOGI(TAG, " > looper_name=[%s]", mLooperName.c_str());
-    OS_LOGI(TAG, " > looper_running=[%s]", mRunning ? "true" : "false");
-    OS_LOGI(TAG, " > message_count=[%d]", mMsgList.size());
+    OS_LOGI(TAG, "[%s]: Dump looper messages:", mLooperName.c_str());
+    OS_LOGI(TAG, " > Name     : %s", mLooperName.c_str());
+    OS_LOGI(TAG, " > Running  : %s", mRunning ? "true" : "false");
+    OS_LOGI(TAG, " > Messages : %d", mMsgList.size());
 
     std::list<Message *>::iterator it;
     int i = 0;
     for (it = mMsgList.begin(); it != mMsgList.end(); it++, i++) {
-        OS_LOGI(TAG, "   > [%d]: what=[%d], arg1=[%d], arg2=[%d], when=[%llu]",
-                            i, (*it)->what, (*it)->arg1, (*it)->arg2, (*it)->when);
+        OS_LOGI(TAG, "   > [%d]: handler=[%p], what=[%d], arg1=[%d], arg2=[%d], when=[%llu]",
+                i, (*it)->handlerCallback, (*it)->what, (*it)->arg1, (*it)->arg2, (*it)->when);
     }
 }
 
@@ -329,6 +325,11 @@ Handler::Handler()
     : mHandlerCallback(NULL),
       mLooper(NULL)
 {}
+
+Handler::~Handler()
+{
+    removeMessage();
+}
 
 void Handler::setHandlerCallback(HandlerCallback *callback)
 {
@@ -374,8 +375,7 @@ bool Handler::postMessage(Message *msg)
 bool Handler::postMessageDelay(Message *msg, unsigned long delayMs)
 {
     if (msg) {
-        if (msg->handlerCallback == NULL)
-            msg->handlerCallback = this;
+        msg->handlerCallback = this;
         if (mLooper && mLooper->postMessageDelay(msg, delayMs)) {
             return true;
         }
@@ -388,8 +388,7 @@ bool Handler::postMessageDelay(Message *msg, unsigned long delayMs)
 bool Handler::postMessageFront(Message *msg)
 {
     if (msg) {
-        if (msg->handlerCallback == NULL)
-            msg->handlerCallback = this;
+        msg->handlerCallback = this;
         if (mLooper && mLooper->postMessageFront(msg)) {
             return true;
         }
@@ -402,19 +401,19 @@ bool Handler::postMessageFront(Message *msg)
 void Handler::removeMessage(int what)
 {
     if (mLooper)
-        mLooper->removeMessage(what);
+        mLooper->removeMessage(what, this);
 }
 
 void Handler::removeMessage()
 {
     if (mLooper)
-        mLooper->removeMessage();
+        mLooper->removeMessage(this);
 }
 
 bool Handler::hasMessage(int what)
 {
     if (mLooper)
-        return mLooper->hasMessage(what);
+        return mLooper->hasMessage(what, this);
     return false;
 }
 
@@ -424,25 +423,14 @@ void Handler::dump()
         mLooper->dump();
 }
 
-HandlerThread::HandlerThread(const char *threadName)
-    : mLooper(NULL),
-      mThreadId(NULL),
-      mThreadPriority(DEFAULT_LOOPER_PRIORITY),
-      mThreadStacksize(DEFAULT_LOOPER_STACKSIZE),
-      mHasStarted(false)
+HandlerThread::HandlerThread(const char *name, enum os_threadprio priority, unsigned int stacksize)
+    : mThreadId(NULL),
+      mThreadName(name ? name : "HandlerThread"),
+      mThreadPriority(priority),
+      mThreadStacksize(stacksize),
+      mRunning(false)
 {
-    mThreadName = threadName ? threadName : "HandlerThread";
-}
-
-HandlerThread::HandlerThread(const char *threadName, enum os_threadprio threadPriority, unsigned int threadStacksize)
-    : mLooper(NULL),
-      mThreadId(NULL),
-      mThreadPriority(threadPriority),
-      mThreadStacksize(threadStacksize),
-      mIsRunning(false),
-      mHasStarted(false)
-{
-    mThreadName = threadName ? threadName : "HandlerThread";
+    OS_NEW(mLooper, Looper, mThreadName.c_str());
 }
 
 HandlerThread::~HandlerThread()
@@ -454,80 +442,77 @@ void *HandlerThread::threadEntry(void *arg)
 {
     HandlerThread * const thiz = static_cast<HandlerThread *>(arg);
     OS_LOGD(TAG, "[%s]: Entry handler thread", thiz->mThreadName.c_str());
-    if (!thiz->mLooper) {
-        OS_NEW(thiz->mLooper, Looper, thiz->mThreadName.c_str());
-        {
-            Mutex::Autolock _l(thiz->mThreadMutex);
-            thiz->mIsRunning = true;
-            thiz->mThreadMutex.condSignal();
-        }
-        thiz->mLooper->loop();
+
+    thiz->mLooper->loop();
+    {
+        Mutex::Autolock _l(thiz->mThreadMutex);
+        thiz->mThreadId = NULL;
+        thiz->mRunning = false;
+        thiz->mThreadMutex.condSignal();
     }
+
     OS_LOGD(TAG, "[%s]: Leave handler thread", thiz->mThreadName.c_str());
     return NULL;
 }
 
-bool HandlerThread::start()
+bool HandlerThread::run()
 {
     Mutex::Autolock _l(mThreadMutex);
 
-    if (!mHasStarted) {
-        struct os_threadattr attr = {
-            .name = mThreadName.c_str(),
-            .priority = mThreadPriority,
-            .stacksize = mThreadStacksize,
-            .joinable = false,
-        };
-        mThreadId = OS_THREAD_CREATE(&attr, threadEntry, this);
-        if (mThreadId != NULL){
-            OS_THREAD_SET_NAME(mThreadId, mThreadName.c_str());
-            mHasStarted = true;
-        }
+    if (mRunning) {
+        OS_LOGD(TAG, "[%s]: HandlerThread already run", mThreadName.c_str());
+        return true;
     }
-    return mHasStarted;
+
+    struct os_threadattr attr = {
+        .name = mThreadName.c_str(),
+        .priority = mThreadPriority,
+        .stacksize = mThreadStacksize,
+        .joinable = false,
+    };
+    mThreadId = OS_THREAD_CREATE(&attr, threadEntry, this);
+    if (mThreadId != NULL){
+        OS_THREAD_SET_NAME(mThreadId, mThreadName.c_str());
+        mRunning = true;
+    }
+    return mRunning;
 }
 
-void HandlerThread::stop()
+void HandlerThread::requestExit()
 {
-    if (mLooper)
-        mLooper->quit();
+    Mutex::Autolock _l(mThreadMutex);
+    mLooper->quit();
 }
 
-void HandlerThread::stopSafely()
+void HandlerThread::requestExitAndWait()
 {
+    Mutex::Autolock _l(mThreadMutex);
+
     if (mThreadId == OS_THREAD_SELF()) {
         OS_LOGW(TAG,
-                "Thread (%p:%s): don't call stopSafely() from this Thread object's thread. Maybe deadlock!",
+                "Thread (%p:%s): don't call requestExitAndWait() from this "
+                "Thread object's thread. Maybe deadlock!",
                 mThreadId, mThreadName.c_str());
     }
 
-    if (mLooper)
-        mLooper->quitSafely();
-}
+    mLooper->quitSafely();
 
-Looper *HandlerThread::getLooper()
-{
-    if (!this->start())
-        return NULL;
-
-    Mutex::Autolock _l(mThreadMutex);
-    while (!mIsRunning) {
+    while (mRunning) {
         OS_LOGV(TAG, "[%s]: mThreadMutex condWait, waiting", mThreadName.c_str());
         mThreadMutex.condWait();
         OS_LOGV(TAG, "[%s]: mThreadMutex condWait, wakeup", mThreadName.c_str());
     }
-
-    return mLooper;
-}
-
-const char *HandlerThread::getThreadName()
-{
-    return mThreadName.c_str();
 }
 
 bool HandlerThread::isRunning()
 {
-    return mIsRunning;
+    Mutex::Autolock _l(mThreadMutex);
+    return mRunning;
+}
+
+Looper *HandlerThread::getLooper()
+{
+    return mLooper;
 }
 
 MSGUTILS_NAMESPACE_END

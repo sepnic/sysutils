@@ -72,27 +72,27 @@ private:
 
 class Looper {
 public:
-    Looper(const char *looperName);
+    Looper(const char *name = 0);
     ~Looper();
 
     void loop();
     void quit();
     void quitSafely();
+    bool isRunning();
 
     bool postMessage(Message *msg);
     bool postMessageDelay(Message *msg, unsigned long delayMs);
     bool postMessageFront(Message *msg);
-    void removeMessage(int what);
-    void removeMessage();
-    bool hasMessage(int what);
-    bool isRunning();
+    void removeMessage(int what, HandlerCallback *handlerCallback);
+    void removeMessage(HandlerCallback *handlerCallback);
+    bool hasMessage(int what, HandlerCallback *handlerCallback);
     void dump();
 
 private:
     std::string mLooperName;
     std::list<Message *> mMsgList;
     Mutex mMsgMutex;
-    Mutex mExitMutex;
+    Mutex mLoopMutex;
     bool mExitPending;
     bool mRunning;
 };
@@ -102,6 +102,7 @@ public:
     Handler(Looper *looper, HandlerCallback *callback);
     Handler(Looper *looper);
     Handler();
+    ~Handler();
 
     void setHandlerCallback(HandlerCallback *callback);
     HandlerCallback *getHandlerCallback();
@@ -125,20 +126,17 @@ private:
 };
 
 class HandlerThread {
-    friend void *handlerThreadEntry(void *arg);
-
 public:
-    HandlerThread(const char *threadName);
-    HandlerThread(const char *threadName, enum os_threadprio threadPriority, unsigned int threadStacksize);
+    HandlerThread(const char *name = 0,
+                  enum os_threadprio priority = OS_THREAD_PRIO_NORMAL,
+                  unsigned int stacksize = 1024);
     ~HandlerThread();
 
-    bool start();
-    void stop();
-    void stopSafely();
-
-    Looper *getLooper();
-    const char *getThreadName();
+    bool run();
+    void requestExit();
+    void requestExitAndWait();
     bool isRunning();
+    Looper *getLooper();
 
 private:
     Looper *mLooper;
@@ -147,8 +145,7 @@ private:
     enum os_threadprio mThreadPriority;
     unsigned int mThreadStacksize;
     Mutex mThreadMutex;
-    bool mIsRunning;
-    bool mHasStarted;
+    bool mRunning;
     static void *threadEntry(void *arg);
 };
 
