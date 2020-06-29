@@ -43,8 +43,8 @@ LooperTest::LooperTest()
 LooperTest::~LooperTest()
 {
     mHandlerThread->requestExitAndWait();
-    OS_DELETE(mHandlerThread);
     OS_DELETE(mHandler);
+    OS_DELETE(mHandlerThread);
 }
 
 void LooperTest::onHandle(Message *msg)

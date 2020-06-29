@@ -328,7 +328,7 @@ Handler::Handler()
 
 Handler::~Handler()
 {
-    removeMessage();
+    //removeMessage();
 }
 
 void Handler::setHandlerCallback(HandlerCallback *callback)
