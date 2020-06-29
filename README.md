@@ -17,13 +17,13 @@
 │       ├── smartptr.h
 │       ├── sw_timer.h
 │       └── sw_watchdog.h
-├── port
+├── osal
 │   ├── os_logger.c
 │   ├── os_thread.c
 │   ├── os_time.c
 │   └── os_timer.c
 ├── source
-│   ├── memory_detect.c
+│   ├── memory_debug.c
 │   ├── msglooper.c
 │   ├── msgqueue.c
 │   ├── ringbuf.c
@@ -47,7 +47,7 @@
 - **ringbuf**:      thread-safe ring buffer
 - **sw_timer**:     software timer
 - **sw_watchdog**:  software watchdog
-- **memory_detect**:light weight utils to detect memory leak and overflow
+- **memory_debug**: light weight utils to detect memory leak and overflow
 - **os_logger**:    log utils to format and save log [portable]
 - **os_thread**:    thread interfaces that platform dependent [portable]
 - **os_time**:      time interfaces that platform dependent [portable]

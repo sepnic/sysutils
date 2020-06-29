@@ -11,10 +11,10 @@ set (LIBS_SRC ${CMAKE_SOURCE_DIR}/source/memory_debug.c
               ${CMAKE_SOURCE_DIR}/source/smartptr.c
               ${CMAKE_SOURCE_DIR}/source/sw_timer.c
               ${CMAKE_SOURCE_DIR}/source/sw_watchdog.c
-              ${CMAKE_SOURCE_DIR}/port/os_logger.c
-              ${CMAKE_SOURCE_DIR}/port/os_thread.c
-              ${CMAKE_SOURCE_DIR}/port/os_time.c
-              ${CMAKE_SOURCE_DIR}/port/os_timer.c
+              ${CMAKE_SOURCE_DIR}/osal/os_logger.c
+              ${CMAKE_SOURCE_DIR}/osal/os_thread.c
+              ${CMAKE_SOURCE_DIR}/osal/os_time.c
+              ${CMAKE_SOURCE_DIR}/osal/os_timer.c
               ${CMAKE_SOURCE_DIR}/source/class_debug.cpp
               ${CMAKE_SOURCE_DIR}/source/Looper.cpp
               ${CMAKE_SOURCE_DIR}/source/Thread.cpp
