@@ -88,25 +88,25 @@ int main()
     LooperTest *looperTest;
     OS_NEW(looperTest, LooperTest);
 
-    Message *msg1 = Message::obtain(2000, 0, 0, OS_STRDUP("postMessageDelay(msg1, 2000)"), NULL);
+    Message *msg1 = Message::obtain(2000, OS_STRDUP("postMessageDelay(msg1, 2000)"));
     looperTest->postMessageDelay(msg1, 2000); // delay 2S;
 
-    Message *msg2 = Message::obtain(1000, 0, 0, OS_STRDUP("postMessageDelay(msg2, 1000)"), NULL);
+    Message *msg2 = Message::obtain(1000, OS_STRDUP("postMessageDelay(msg2, 1000)"));
     looperTest->postMessageDelay(msg2, 1000); // delay 1S;
 
-    Message *msg3 = Message::obtain(1, 0, 0, OS_STRDUP("postMessage(msg3)"), NULL);
+    Message *msg3 = Message::obtain(1, OS_STRDUP("postMessage(msg3)"));
     looperTest->postMessage(msg3);
 
-    Message *msg4 = Message::obtain(2, 0, 0, OS_STRDUP("postMessage(msg4)"), NULL);
+    Message *msg4 = Message::obtain(2, OS_STRDUP("postMessage(msg4)"));
     looperTest->postMessage(msg4);
 
-    Message *msg5 = Message::obtain(0, 0, 0, OS_STRDUP("postMessageFront(msg5)"), NULL);
+    Message *msg5 = Message::obtain(0, OS_STRDUP("postMessageFront(msg5)"));
     looperTest->postMessageFront(msg5);
 
-    Message *msg6 = Message::obtain(-1, 0, 0, OS_STRDUP("postMessageDelay(msg6, 1000)"), NULL);
+    Message *msg6 = Message::obtain(-1, OS_STRDUP("postMessageDelay(msg6, 1000)"));
     looperTest->postMessageDelay(msg6, 1000);
 
-    Message *msg7 = Message::obtain(-1, 0, 0, OS_STRDUP("postMessageDelay(msg7, 2000)"), NULL);
+    Message *msg7 = Message::obtain(-1, OS_STRDUP("postMessageDelay(msg7, 2000)"));
     looperTest->postMessageDelay(msg7, 2000);
 
     looperTest->removeMessage(-1);

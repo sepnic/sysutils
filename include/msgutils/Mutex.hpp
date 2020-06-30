@@ -49,6 +49,7 @@ public:
     void condWait() { OS_THREAD_COND_WAIT(mCond, mMutex); }
     bool condWait(unsigned long usec) { return (0 == OS_THREAD_COND_TIMEDWAIT(mCond, mMutex, usec)); }
     void condSignal() { OS_THREAD_COND_SIGNAL(mCond); }
+    void condBroadcast() { OS_THREAD_COND_BROADCAST(mCond); }
 
     // Manages the mutex automatically. It'll be locked when Autolock is
     // constructed and released when Autolock goes out of scope.

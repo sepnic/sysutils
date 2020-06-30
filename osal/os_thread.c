@@ -175,6 +175,11 @@ int OS_THREAD_COND_SIGNAL(os_cond_t cond)
     return pthread_cond_signal((pthread_cond_t *)cond);
 }
 
+int OS_THREAD_COND_BROADCAST(os_cond_t cond)
+{
+    return pthread_cond_broadcast((pthread_cond_t *)cond);
+}
+
 void OS_THREAD_COND_DESTROY(os_cond_t cond)
 {
     pthread_cond_destroy((pthread_cond_t *)cond);

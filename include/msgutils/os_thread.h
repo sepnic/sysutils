@@ -98,6 +98,7 @@ os_cond_t OS_THREAD_COND_CREATE();
 int OS_THREAD_COND_WAIT(os_cond_t cond, os_mutex_t mutex);
 int OS_THREAD_COND_TIMEDWAIT(os_cond_t cond, os_mutex_t mutex, unsigned long usec);
 int OS_THREAD_COND_SIGNAL(os_cond_t cond);
+int OS_THREAD_COND_BROADCAST(os_cond_t cond);
 void OS_THREAD_COND_DESTROY(os_cond_t cond);
 
 #ifdef __cplusplus
