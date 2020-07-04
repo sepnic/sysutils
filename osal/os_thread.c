@@ -25,6 +25,9 @@
 #include <unistd.h>
 #include <time.h>
 #include <pthread.h>
+#if defined(OS_ANDROID)
+#include <sys/signal.h>
+#endif
 
 #include "msgutils/os_thread.h"
 
@@ -69,7 +72,11 @@ os_thread_t OS_THREAD_CREATE(struct os_threadattr *attr, void *(*cb)(void *arg),
 
 void OS_THREAD_CANCEL(os_thread_t tid)
 {
+#if defined(OS_ANDROID)
+    pthread_kill((pthread_t)tid, SIGUSR1);
+#else
     pthread_cancel((pthread_t)tid);
+#endif
 }
 
 int OS_THREAD_JOIN(os_thread_t tid, void **retval)
