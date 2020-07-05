@@ -82,7 +82,7 @@ void mlooper_destroy(mlooper_t looper);
 int mlooper_start(mlooper_t looper);
 void mlooper_stop(mlooper_t looper);
 
-size_t mlooper_message_count(mlooper_t looper);
+int mlooper_message_count(mlooper_t looper);
 void mlooper_dump(mlooper_t looper);
 
 int mlooper_enable_watchdog(mlooper_t looper, unsigned long long timeout_ms, void (*timeout_cb)(void *arg), void *arg);

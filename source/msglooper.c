@@ -38,7 +38,7 @@
 
 struct msglooper {
     struct listnode msg_list;
-    size_t msg_count;
+    int msg_count;
     message_handle_cb msg_handle;
     message_free_cb msg_free;
     os_mutex_t msg_mutex;
@@ -364,7 +364,7 @@ int mlooper_remove_message_if(mlooper_t looper, message_match_cb match_cb)
     return 0;
 }
 
-size_t mlooper_message_count(mlooper_t looper)
+int mlooper_message_count(mlooper_t looper)
 {
     return looper->msg_count;
 }
