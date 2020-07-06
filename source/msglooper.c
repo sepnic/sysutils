@@ -22,7 +22,6 @@
  */
 
 #include <string.h>
-
 #include "msgutils/sw_watchdog.h"
 #include "msgutils/common_list.h"
 #include "msgutils/os_thread.h"

@@ -25,7 +25,6 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
 #include "msgutils/os_thread.h"
 #include "msgutils/os_time.h"
 #include "msgutils/os_logger.h"
@@ -55,7 +54,7 @@ struct log_config {
 
 static struct log_config log_config = {
     .enable = true,
-    .prio   = OS_LOG_PRIO_VERBOSE,
+    .prio   = OS_LOG_VERBOSE,
 
     .file_enable    = LOG_FILE_ENABLE,
     .file_path      = LOG_FILE_PATH,
@@ -65,12 +64,12 @@ static struct log_config log_config = {
 };
 
 static const char *log_prio_string[] = {
-    [OS_LOG_PRIO_FATAL]   = "F",
-    [OS_LOG_PRIO_ERROR]   = "E",
-    [OS_LOG_PRIO_WARNING] = "W",
-    [OS_LOG_PRIO_INFO]    = "I",
-    [OS_LOG_PRIO_DEBUG]   = "D",
-    [OS_LOG_PRIO_VERBOSE] = "V",
+    [OS_LOG_FATAL]   = "F",
+    [OS_LOG_ERROR]   = "E",
+    [OS_LOG_WARN]    = "W",
+    [OS_LOG_INFO]    = "I",
+    [OS_LOG_DEBUG]   = "D",
+    [OS_LOG_VERBOSE] = "V",
 };
 
 void os_logger_config(bool enable, enum os_logprio prio)

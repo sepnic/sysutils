@@ -23,7 +23,6 @@
 
 #include <string.h>
 #include <stdbool.h>
-
 #include "msgutils/common_list.h"
 #include "msgutils/os_time.h"
 #include "msgutils/os_logger.h"

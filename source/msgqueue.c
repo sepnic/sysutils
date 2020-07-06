@@ -23,7 +23,6 @@
 
 #include <string.h>
 #include <stdbool.h>
-
 #include "msgutils/os_memory.h"
 #include "msgutils/os_thread.h"
 #include "msgutils/os_logger.h"

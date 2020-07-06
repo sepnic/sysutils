@@ -30,15 +30,15 @@ set(CMAKE_C_FLAGS   "-DENABLE_DEBUG -g -DOS_MACOSX -std=gnu99 -Wall -Werror")
 set(CMAKE_CXX_FLAGS "-DENABLE_DEBUG -g -Wall -Werror")
 
 # ENABLE_MEMORY_LEAK_DETECT
-set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -DENABLE_MEMORY_LEAK_DETECT -DENABLE_MEMORY_OVERFLOW_DETECT")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_MEMORY_LEAK_DETECT -DENABLE_MEMORY_OVERFLOW_DETECT")
+#set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -DENABLE_MEMORY_LEAK_DETECT -DENABLE_MEMORY_OVERFLOW_DETECT")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_MEMORY_LEAK_DETECT -DENABLE_MEMORY_OVERFLOW_DETECT")
 
 # ENABLE_SMARTPTR_LEAK_DETECT
-set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -DENABLE_SMARTPTR_LEAK_DETECT")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_SMARTPTR_LEAK_DETECT")
+#set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -DENABLE_SMARTPTR_LEAK_DETECT")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_SMARTPTR_LEAK_DETECT")
 
 # ENABLE_CLASS_LEAK_DETECT
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_CLASS_LEAK_DETECT")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_CLASS_LEAK_DETECT")
 
 # ldflags
 set(CMAKE_LDFLAGS "${CMAKE_LDFLAGS} -Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed")
@@ -48,41 +48,17 @@ add_library(msgutils   SHARED ${LIBS_SRC})
 add_library(msgutils_s STATIC ${LIBS_SRC})
 
 # msglooper test
-add_executable(msglooper ${CMAKE_SOURCE_DIR}/msglooper_test.c)
+add_executable(msglooper ${CMAKE_SOURCE_DIR}/msglooper_main.c)
 target_link_libraries(msglooper msgutils pthread)
-#target_link_libraries(msglooper rt)
-
-# memorydetect test
-add_executable(memorydetect_test ${CMAKE_SOURCE_DIR}/memorydetect_test.c)
-target_link_libraries(memorydetect_test msgutils pthread)
-#target_link_libraries(memorydetect_test rt)
-
-# time test
-add_executable(time_test ${CMAKE_SOURCE_DIR}/time_test.c)
-target_link_libraries(time_test msgutils pthread)
-#target_link_libraries(time_test rt)
-
-# timer test
-add_executable(timer_test ${CMAKE_SOURCE_DIR}/timer_test.c)
-target_link_libraries(timer_test msgutils pthread)
-#target_link_libraries(timer_test rt)
-
-# smartptr test
-add_executable(smartptr_test ${CMAKE_SOURCE_DIR}/smartptr_test.c)
-target_link_libraries(smartptr_test msgutils pthread)
-#target_link_libraries(smartptr_test rt)
 
 # msgqueue test
-add_executable(msgqueue_test ${CMAKE_SOURCE_DIR}/msgqueue_test.c)
-target_link_libraries(msgqueue_test msgutils pthread)
-#target_link_libraries(msgqueue_test rt)
+add_executable(msgqueue ${CMAKE_SOURCE_DIR}/msgqueue_main.c)
+target_link_libraries(msgqueue msgutils pthread)
 
 # Looper test
-add_executable(LooperTest ${CMAKE_SOURCE_DIR}/LooperTest.cpp)
-target_link_libraries(LooperTest msgutils pthread)
-#target_link_libraries(LooperTest rt)
+add_executable(Looper ${CMAKE_SOURCE_DIR}/Looper_main.cpp)
+target_link_libraries(Looper msgutils pthread)
 
 # Thread test
-add_executable(ThreadTest ${CMAKE_SOURCE_DIR}/ThreadTest.cpp)
-target_link_libraries(ThreadTest msgutils pthread)
-#target_link_libraries(ThreadTest rt)
+add_executable(Thread ${CMAKE_SOURCE_DIR}/Thread_main.cpp)
+target_link_libraries(Thread msgutils pthread)

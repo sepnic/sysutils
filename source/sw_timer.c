@@ -24,7 +24,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdbool.h>
-
 #include "msgutils/common_list.h"
 #include "msgutils/os_memory.h"
 #include "msgutils/os_thread.h"

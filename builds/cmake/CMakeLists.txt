@@ -1,24 +1,26 @@
 cmake_minimum_required(VERSION 2.8)
 project(msgutils)
 
+set(TOP_DIR "${CMAKE_SOURCE_DIR}/../..")
+
 # include files
-include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${TOP_DIR}/include)
 
 # source files
-set (LIBS_SRC ${CMAKE_SOURCE_DIR}/source/memory_debug.c
-              ${CMAKE_SOURCE_DIR}/source/msglooper.c
-              ${CMAKE_SOURCE_DIR}/source/msgqueue.c
-              ${CMAKE_SOURCE_DIR}/source/ringbuf.c
-              ${CMAKE_SOURCE_DIR}/source/smartptr.c
-              ${CMAKE_SOURCE_DIR}/source/sw_timer.c
-              ${CMAKE_SOURCE_DIR}/source/sw_watchdog.c
-              ${CMAKE_SOURCE_DIR}/osal/os_logger.c
-              ${CMAKE_SOURCE_DIR}/osal/os_thread.c
-              ${CMAKE_SOURCE_DIR}/osal/os_time.c
-              ${CMAKE_SOURCE_DIR}/osal/os_timer.c
-              ${CMAKE_SOURCE_DIR}/source/class_debug.cpp
-              ${CMAKE_SOURCE_DIR}/source/Looper.cpp
-              ${CMAKE_SOURCE_DIR}/source/Thread.cpp
+set (LIBS_SRC ${TOP_DIR}/source/memory_debug.c
+              ${TOP_DIR}/source/msglooper.c
+              ${TOP_DIR}/source/msgqueue.c
+              ${TOP_DIR}/source/ringbuf.c
+              ${TOP_DIR}/source/smartptr.c
+              ${TOP_DIR}/source/sw_timer.c
+              ${TOP_DIR}/source/sw_watchdog.c
+              ${TOP_DIR}/osal/os_logger.c
+              ${TOP_DIR}/osal/os_thread.c
+              ${TOP_DIR}/osal/os_time.c
+              ${TOP_DIR}/osal/os_timer.c
+              ${TOP_DIR}/source/class_debug.cpp
+              ${TOP_DIR}/source/Looper.cpp
+              ${TOP_DIR}/source/Thread.cpp
 )
 
 # cflags: OS_LINUX, OS_ANDROID, OS_MACOSX, OS_IOS, OS_FREERTOS

@@ -28,7 +28,6 @@
 #if defined(OS_ANDROID)
 #include <sys/signal.h>
 #endif
-
 #include "msgutils/os_thread.h"
 
 void OS_THREAD_SLEEP_USEC(unsigned long usec)

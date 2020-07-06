@@ -32,25 +32,31 @@
 extern "C" {
 #endif
 
-#define OS_LOG_COLOR_ENABLE
-
 enum os_logprio {
-    OS_LOG_PRIO_FATAL = 0,
-    OS_LOG_PRIO_ERROR,
-    OS_LOG_PRIO_WARNING,
-    OS_LOG_PRIO_INFO,
-    OS_LOG_PRIO_DEBUG,
-    OS_LOG_PRIO_VERBOSE,
+    OS_LOG_FATAL = 0,
+    OS_LOG_ERROR,
+    OS_LOG_WARN,
+    OS_LOG_INFO,
+    OS_LOG_DEBUG,
+    OS_LOG_VERBOSE,
 };
 
 void os_logger_config(bool enable, enum os_logprio prio);
 
 // [date] [time] [pid] [tid] [prio] [tag]:[func]:[line]: [log]
-void os_logger_trace(enum os_logprio prio, const char *tag,
-                     const char *func, unsigned int line,
+void os_logger_trace(enum os_logprio prio, const char *tag, const char *func, unsigned int line,
                      const char *format, ...);
 
-#if defined(OS_LOG_COLOR_ENABLE)
+#if defined(OS_ANDROID)
+    #include <android/log.h>
+    #define OS_LOGF(tag, format, ...) __android_log_print(ANDROID_LOG_FATAL, tag, format, ##__VA_ARGS__)
+    #define OS_LOGE(tag, format, ...) __android_log_print(ANDROID_LOG_ERROR, tag, format, ##__VA_ARGS__)
+    #define OS_LOGW(tag, format, ...) __android_log_print(ANDROID_LOG_WARN, tag, format, ##__VA_ARGS__)
+    #define OS_LOGI(tag, format, ...) __android_log_print(ANDROID_LOG_INFO, tag, format, ##__VA_ARGS__)
+    #define OS_LOGD(tag, format, ...) __android_log_print(ANDROID_LOG_DEBUG, tag, format, ##__VA_ARGS__)
+    #define OS_LOGV(tag, format, ...) __android_log_print(ANDROID_LOG_VERBOSE, tag, format, ##__VA_ARGS__)
+
+#else
     #define OS_LOG_BLACK         "\033[0;30m"
     #define OS_LOG_RED           "\033[0;31m"
     #define OS_LOG_GREEN         "\033[0;32m"
@@ -66,40 +72,20 @@ void os_logger_trace(enum os_logprio prio, const char *tag,
     #define OS_LOG_COLOR_I       OS_LOG_GREEN
     #define OS_LOG_COLOR_D       OS_LOG_BLUE
     #define OS_LOG_COLOR_V       "\033[1;30m"
-#else
-    #define OS_LOG_COLOR_RESET
-    #define OS_LOG_COLOR_F
-    #define OS_LOG_COLOR_E
-    #define OS_LOG_COLOR_W
-    #define OS_LOG_COLOR_I
-    #define OS_LOG_COLOR_D
-    #define OS_LOG_COLOR_V
-#endif
+    #define OS_LOG_FORMAT(letter, format)  OS_LOG_COLOR_ ## letter format OS_LOG_COLOR_RESET
 
-#define OS_LOG_FORMAT(letter, format)  OS_LOG_COLOR_ ## letter format OS_LOG_COLOR_RESET
-
-#if defined(OS_ANDROID)
-    #include <android/log.h>
-    #define OS_LOGF(tag, format, ...) __android_log_print(ANDROID_LOG_FATAL, tag, format, ##__VA_ARGS__)
-    #define OS_LOGE(tag, format, ...) __android_log_print(ANDROID_LOG_ERROR, tag, format, ##__VA_ARGS__)
-    #define OS_LOGW(tag, format, ...) __android_log_print(ANDROID_LOG_WARN, tag, format, ##__VA_ARGS__)
-    #define OS_LOGI(tag, format, ...) __android_log_print(ANDROID_LOG_INFO, tag, format, ##__VA_ARGS__)
-    #define OS_LOGD(tag, format, ...) __android_log_print(ANDROID_LOG_DEBUG, tag, format, ##__VA_ARGS__)
-    #define OS_LOGV(tag, format, ...) __android_log_print(ANDROID_LOG_VERBOSE, tag, format, ##__VA_ARGS__)
-
-#else
     #define OS_LOGF(tag, format, ...) \
-        os_logger_trace(OS_LOG_PRIO_FATAL, tag, __FUNCTION__, __LINE__, OS_LOG_FORMAT(F, format), ##__VA_ARGS__)
+        os_logger_trace(OS_LOG_FATAL, tag, __FUNCTION__, __LINE__, OS_LOG_FORMAT(F, format), ##__VA_ARGS__)
     #define OS_LOGE(tag, format, ...) \
-        os_logger_trace(OS_LOG_PRIO_ERROR, tag, __FUNCTION__, __LINE__, OS_LOG_FORMAT(E, format), ##__VA_ARGS__)
+        os_logger_trace(OS_LOG_ERROR, tag, __FUNCTION__, __LINE__, OS_LOG_FORMAT(E, format), ##__VA_ARGS__)
     #define OS_LOGW(tag, format, ...) \
-        os_logger_trace(OS_LOG_PRIO_WARNING, tag, __FUNCTION__, __LINE__, OS_LOG_FORMAT(W, format), ##__VA_ARGS__)
+        os_logger_trace(OS_LOG_WARN, tag, __FUNCTION__, __LINE__, OS_LOG_FORMAT(W, format), ##__VA_ARGS__)
     #define OS_LOGI(tag, format, ...) \
-        os_logger_trace(OS_LOG_PRIO_INFO, tag, __FUNCTION__, __LINE__, OS_LOG_FORMAT(I, format), ##__VA_ARGS__)
+        os_logger_trace(OS_LOG_INFO, tag, __FUNCTION__, __LINE__, OS_LOG_FORMAT(I, format), ##__VA_ARGS__)
     #define OS_LOGD(tag, format, ...) \
-        os_logger_trace(OS_LOG_PRIO_DEBUG, tag, __FUNCTION__, __LINE__, OS_LOG_FORMAT(D, format), ##__VA_ARGS__)
+        os_logger_trace(OS_LOG_DEBUG, tag, __FUNCTION__, __LINE__, OS_LOG_FORMAT(D, format), ##__VA_ARGS__)
     #define OS_LOGV(tag, format, ...) \
-        os_logger_trace(OS_LOG_PRIO_VERBOSE, tag, __FUNCTION__, __LINE__, OS_LOG_FORMAT(V, format), ##__VA_ARGS__)
+        os_logger_trace(OS_LOG_VERBOSE, tag, __FUNCTION__, __LINE__, OS_LOG_FORMAT(V, format), ##__VA_ARGS__)
 #endif
 
 #ifdef __cplusplus

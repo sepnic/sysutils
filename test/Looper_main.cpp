@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-
 #include "msgutils/os_memory.h"
 #include "msgutils/os_logger.h"
 #include "msgutils/os_thread.h"

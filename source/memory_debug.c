@@ -22,7 +22,6 @@
  */
 
 #include <stdbool.h>
-
 #include "msgutils/common_list.h"
 #include "msgutils/os_thread.h"
 #include "msgutils/os_time.h"

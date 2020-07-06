@@ -324,7 +324,7 @@ void Looper::dump()
     OS_LOGI(TAG, "[%s]: Dump looper messages:", mLooperName.c_str());
     OS_LOGI(TAG, " > Name     : %s", mLooperName.c_str());
     OS_LOGI(TAG, " > Running  : %s", mRunning ? "true" : "false");
-    OS_LOGI(TAG, " > Messages : %d", mMsgList.size());
+    OS_LOGI(TAG, " > Messages : %d", (int)mMsgList.size());
 
     std::list<Message *>::iterator it;
     int i = 0;
