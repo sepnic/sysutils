@@ -6,7 +6,6 @@ TOP_DIR := ${LOCAL_PATH}/../../..
 
 LOCAL_SRC_FILES := \
     ${TOP_DIR}/source/memory_debug.c \
-    ${TOP_DIR}/source/memory_debug.c \
     ${TOP_DIR}/source/msglooper.c \
     ${TOP_DIR}/source/msgqueue.c \
     ${TOP_DIR}/source/ringbuf.c \
@@ -19,7 +18,7 @@ LOCAL_SRC_FILES := \
     ${TOP_DIR}/osal/os_timer.c \
     ${TOP_DIR}/source/class_debug.cpp \
     ${TOP_DIR}/source/Looper.cpp \
-    ${TOP_DIR}/source/Thread.cpp \
+    ${TOP_DIR}/source/Thread.cpp
 
 LOCAL_C_INCLUDES += ${TOP_DIR}/include
 

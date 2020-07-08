@@ -30,8 +30,6 @@
 #include "msgutils/os_thread.h"
 #include "msgutils/os_class.hpp"
 
-#if defined(ENABLE_CLASS_LEAK_DETECT)
-
 #define LOG_TAG "objdebug"
 
 struct class_node {
@@ -198,7 +196,7 @@ void class_debug_dump()
             class_node_print(node, "Dump");
         }
 
-        OS_LOGW(LOG_TAG, "Summary: new [%d] blocks, delete [%d] blocks", info->new_cnt, info->delete_cnt);
+        OS_LOGW(LOG_TAG, "Summary: new [%ld] blocks, delete [%ld] blocks", info->new_cnt, info->delete_cnt);
 
         OS_THREAD_MUTEX_UNLOCK(info->mutex);
 
@@ -206,5 +204,3 @@ void class_debug_dump()
         OS_LOGW(LOG_TAG, "<<");
     }
 }
-
-#endif

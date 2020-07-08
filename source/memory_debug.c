@@ -28,8 +28,6 @@
 #include "msgutils/os_logger.h"
 #include "msgutils/os_memory.h"
 
-#if defined(ENABLE_MEMORY_LEAK_DETECT) || defined(ENABLE_MEMORY_OVERFLOW_DETECT)
-
 #define LOG_TAG "memdebug"
 
 #define MEMORY_BOUNDARY_SIZE    8
@@ -59,6 +57,13 @@ struct mem_info {
 OS_MUTEX_DECLARE(g_info_mutex);
 static struct mem_info *g_info = NULL;
 
+void *memory_debug_malloc(size_t size, const char *file, const char *func, int line, bool overflow_detect);
+void *memory_debug_calloc(size_t n, size_t size, const char *file, const char *func, int line, bool overflow_detect);
+void *memory_debug_realloc(void *ptr, size_t size, const char *file, const char *func, int line, bool overflow_detect);
+void memory_debug_free(void *ptr, const char *file, const char *func, int line, bool overflow_detect);
+void *memory_debug_strdup(void *str, const char *file, const char *func, int line, bool overflow_detect);
+void memory_debug_dump(bool overflow_detect);
+
 static char *file_name(const char *filepath)
 {
     char *filename = (char *)filepath;
@@ -81,15 +86,14 @@ static char *file_name(const char *filepath)
 
 static void memory_node_print(struct mem_node *node, const char *info)
 {
-    OS_LOGW(LOG_TAG, "> %s: ptr=[%p], size=[%d], "
+    OS_LOGW(LOG_TAG, "> %s: ptr=[%p], size=[%lu], "
            "created by [%s:%s:%d], at [%04d%02d%02d-%02d%02d%02d:%03d]",
-           info, node->ptr, node->size,
+           info, node->ptr, (unsigned long)node->size,
            file_name(node->file), node->func, node->line,
            node->when.year, node->when.mon, node->when.day,
            node->when.hour, node->when.min, node->when.sec, node->when.msec);
 }
 
-#if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
 static void *memory_boundary_malloc(size_t size)
 {
     void *ptr = NULL;
@@ -144,7 +148,6 @@ static void memory_boundary_verify(struct mem_node *node)
         }
     }
 }
-#endif
 
 static struct mem_info *memory_debug_init()
 {
@@ -191,17 +194,17 @@ error:
     return NULL;
 }
 
-void *memory_debug_malloc(size_t size, const char *file, const char *func, int line)
+void *memory_debug_malloc(size_t size, const char *file, const char *func, int line, bool overflow_detect)
 {
     void *ptr;
     struct mem_node *node;
     struct mem_info *info = memory_debug_init();
 
-#if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
-    ptr = memory_boundary_malloc(size);
-#else
-    ptr = malloc(size);
-#endif
+    if (overflow_detect)
+        ptr = memory_boundary_malloc(size);
+    else
+        ptr = malloc(size);
+
     if (ptr == NULL) {
         OS_LOGF(LOG_TAG, "%s:%s:%d: failed to alloc memory", file_name(file), func, line);
         return NULL;
@@ -234,28 +237,28 @@ void *memory_debug_malloc(size_t size, const char *file, const char *func, int l
     return ptr;
 }
 
-void *memory_debug_calloc(size_t n, size_t size, const char *file, const char *func, int line)
+void *memory_debug_calloc(size_t n, size_t size, const char *file, const char *func, int line, bool overflow_detect)
 {
-    void *ptr = memory_debug_malloc(size * n, file, func, line);
+    void *ptr = memory_debug_malloc(size * n, file, func, line, overflow_detect);
     if (ptr != NULL)
         memset(ptr, 0x0, size * n);
     return ptr;
 }
 
-void *memory_debug_realloc(void *ptr, size_t size, const char *file, const char *func, int line)
+void *memory_debug_realloc(void *ptr, size_t size, const char *file, const char *func, int line, bool overflow_detect)
 {
     struct mem_info *info;
     struct listnode *item;
 
     if (ptr == NULL) {
         if (size > 0)
-            return memory_debug_malloc(size, file, func, line);
+            return memory_debug_malloc(size, file, func, line, overflow_detect);
         else
             return NULL;
     }
 
     if (size == 0) {
-        memory_debug_free(ptr, file, func, line);
+        memory_debug_free(ptr, file, func, line, overflow_detect);
         return NULL;
     }
 
@@ -285,30 +288,31 @@ void *memory_debug_realloc(void *ptr, size_t size, const char *file, const char 
         OS_THREAD_MUTEX_UNLOCK(info->mutex);
 
         if (size > prev_size) {
-            void *new_ptr = memory_debug_malloc(size, file, func, line);
+            void *new_ptr = memory_debug_malloc(size, file, func, line, overflow_detect);
             if (new_ptr != NULL)
                 memcpy(new_ptr, prev_ptr, prev_size);
 
-            memory_debug_free(prev_ptr, file, func, line);
+            memory_debug_free(prev_ptr, file, func, line, overflow_detect);
             return new_ptr;
         }
         else
             return prev_ptr;
     }
     else {
-#if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
-        OS_LOGF(LOG_TAG, "%s:%s:%d: failed to create mem_info instance, abort realloc",
-               file_name(file), func, line);
-        return NULL;
-#else
-        return realloc(ptr, size);
-#endif
+        if (overflow_detect) {
+            OS_LOGF(LOG_TAG, "%s:%s:%d: failed to create mem_info instance, abort realloc",
+                    file_name(file), func, line);
+            return NULL;
+        }
+        else {
+            return realloc(ptr, size);
+        }
     }
 
     return NULL;
 }
 
-void memory_debug_free(void *ptr, const char *file, const char *func, int line)
+void memory_debug_free(void *ptr, const char *file, const char *func, int line, bool overflow_detect)
 {
     struct mem_info *info = memory_debug_init();
     struct listnode *item;
@@ -328,9 +332,9 @@ void memory_debug_free(void *ptr, const char *file, const char *func, int line)
         }
 
         if (found) {
-#if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
-            memory_boundary_verify(node);
-#endif
+            if (overflow_detect)
+                memory_boundary_verify(node);
+
             //memory_node_print(node, "Free");
 
             info->free_count++;
@@ -348,14 +352,13 @@ void memory_debug_free(void *ptr, const char *file, const char *func, int line)
     }
 
     // free memory
-#if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
-    memory_boundary_free(ptr);
-#else
-    free(ptr);
-#endif
+    if (overflow_detect)
+        memory_boundary_free(ptr);
+    else
+        free(ptr);
 }
 
-void *memory_debug_strdup(void *str, const char *file, const char *func, int line)
+void *memory_debug_strdup(void *str, const char *file, const char *func, int line, bool overflow_detect)
 {
     char *ptr;
     size_t len;
@@ -364,7 +367,7 @@ void *memory_debug_strdup(void *str, const char *file, const char *func, int lin
         return NULL;
 
     len = strlen(str);
-    ptr = memory_debug_malloc(len + 1, file, func, line);
+    ptr = memory_debug_malloc(len + 1, file, func, line, overflow_detect);
     if (ptr != NULL) {
         memcpy(ptr, str, len);
         ptr[len] = '\0';
@@ -373,7 +376,7 @@ void *memory_debug_strdup(void *str, const char *file, const char *func, int lin
     return ptr;
 }
 
-void memory_debug_dump()
+void memory_debug_dump(bool overflow_detect)
 {
     struct mem_info *info  = memory_debug_init();
     struct mem_node *node;
@@ -388,13 +391,12 @@ void memory_debug_dump()
         list_for_each(item, &info->list) {
             node = node_to_item(item, struct mem_node, listnode);
             memory_node_print(node, "Dump");
-#if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
-            memory_boundary_verify(node);
-#endif
+            if (overflow_detect)
+                memory_boundary_verify(node);
         }
 
-        OS_LOGW(LOG_TAG, "Summary: malloc [%d] blocks, free [%d] blocks, current use [%d] Bytes, max use [%d] Bytes",
-                info->malloc_count, info->free_count, info->cur_used, info->max_used);
+        OS_LOGW(LOG_TAG, "Summary: malloc [%ld] blocks, free [%ld] blocks, current use [%lu] Bytes, max use [%lu] Bytes",
+                info->malloc_count, info->free_count, (unsigned long)info->cur_used, (unsigned long)info->max_used);
 
         OS_THREAD_MUTEX_UNLOCK(info->mutex);
 
@@ -402,5 +404,3 @@ void memory_debug_dump()
         OS_LOGW(LOG_TAG, "<<");
     }
 }
-
-#endif

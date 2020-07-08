@@ -87,7 +87,7 @@ void smartptr_put(void *ptr)
     OS_THREAD_MUTEX_UNLOCK(block->mutex);
 }
 
-#if defined(ENABLE_SMARTPTR_LEAK_DETECT)
+//#if defined(ENABLE_SMARTPTR_LEAK_DETECT)
 #include "msgutils/common_list.h"
 #include "msgutils/os_time.h"
 #include "msgutils/os_logger.h"
@@ -140,9 +140,9 @@ static char *file_name(const char *filepath)
 
 static void smartptr_node_print(struct smartptr_node *node, const char *info)
 {
-    OS_LOGW(LOG_TAG, "> %s: ptr=[%p], user_size=[%d], real_size=[%d], refs_cnt=[%d], "
+    OS_LOGW(LOG_TAG, "> %s: ptr=[%p], user_size=[%lu], real_size=[%lu], refs_cnt=[%d], "
            "created by [%s:%s:%d], at [%04d%02d%02d-%02d%02d%02d:%03d]",
-           info, node->ptr, node->user_size, node->real_size, node->refs_cnt,
+           info, node->ptr, (unsigned long)node->user_size, (unsigned long)node->real_size, node->refs_cnt,
            file_name(node->file), node->func, node->line,
            node->when.year, node->when.mon, node->when.day,
            node->when.hour, node->when.min, node->when.sec, node->when.msec);
@@ -322,8 +322,8 @@ void smartptr_debug_dump()
             smartptr_node_print(node, "Dump");
         }
 
-        OS_LOGW(LOG_TAG, "Summary: new [%d] blocks, delete [%d] blocks, current use [%d] Bytes",
-               info->new_cnt, info->delete_cnt, info->cur_used);
+        OS_LOGW(LOG_TAG, "Summary: new [%ld] blocks, delete [%ld] blocks, current use [%lu] Bytes",
+               info->new_cnt, info->delete_cnt, (unsigned long)info->cur_used);
 
         OS_THREAD_MUTEX_UNLOCK(info->mutex);
 
@@ -331,4 +331,4 @@ void smartptr_debug_dump()
         OS_LOGW(LOG_TAG, "<<");
     }
 }
-#endif
+//#endif
