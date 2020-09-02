@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-TOP_DIR := ${LOCAL_PATH}/../../..
+TOP_DIR := ${LOCAL_PATH}/../..
 
 LOCAL_SRC_FILES := \
     ${TOP_DIR}/source/memory_debug.c \

@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.4.1)
 project(msgutils)
 
-set(TOP_DIR "${CMAKE_SOURCE_DIR}/../..")
+set(TOP_DIR "${CMAKE_SOURCE_DIR}")
 
 # include files
 include_directories(${TOP_DIR}/include)
