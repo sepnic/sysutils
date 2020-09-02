@@ -18,7 +18,9 @@ LOCAL_SRC_FILES := \
     ${TOP_DIR}/osal/os_timer.c \
     ${TOP_DIR}/source/class_debug.cpp \
     ${TOP_DIR}/source/Looper.cpp \
-    ${TOP_DIR}/source/Thread.cpp
+    ${TOP_DIR}/source/Thread.cpp \
+    ${TOP_DIR}/source/cJSON.cpp \
+    ${TOP_DIR}/source/JsonWrapper.cpp
 
 LOCAL_C_INCLUDES += ${TOP_DIR}/include
 

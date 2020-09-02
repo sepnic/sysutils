@@ -21,6 +21,8 @@ set (LIBS_SRC ${TOP_DIR}/source/memory_debug.c
               ${TOP_DIR}/source/class_debug.cpp
               ${TOP_DIR}/source/Looper.cpp
               ${TOP_DIR}/source/Thread.cpp
+              ${TOP_DIR}/source/cJSON.cpp
+              ${TOP_DIR}/source/JsonWrapper.cpp
 )
 
 # cflags: OS_LINUX, OS_ANDROID, OS_MACOSX, OS_IOS, OS_FREERTOS
