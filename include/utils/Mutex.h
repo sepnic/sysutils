@@ -25,8 +25,8 @@
 #define __MSGUTILS_MUTEX_H__
 
 #include <stdbool.h>
-#include "msgutils/os_thread.h"
-#include "Namespace.hpp"
+#include "cutils/os_thread.h"
+#include "Namespace.h"
 
 MSGUTILS_NAMESPACE_BEGIN
 

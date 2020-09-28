@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string>
-#include "Namespace.hpp"
+#include "Namespace.h"
 
 MSGUTILS_NAMESPACE_BEGIN
 

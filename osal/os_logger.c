@@ -25,9 +25,9 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "msgutils/os_thread.h"
-#include "msgutils/os_time.h"
-#include "msgutils/os_logger.h"
+#include "cutils/os_thread.h"
+#include "cutils/os_time.h"
+#include "cutils/os_logger.h"
 
 //#define ENABLE_LOG_SAVE
 

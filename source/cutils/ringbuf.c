@@ -29,10 +29,10 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include "msgutils/os_thread.h"
-#include "msgutils/os_memory.h"
-#include "msgutils/os_logger.h"
-#include "msgutils/ringbuf.h"
+#include "cutils/os_thread.h"
+#include "cutils/os_memory.h"
+#include "cutils/os_logger.h"
+#include "cutils/ringbuf.h"
 
 #define LOG_TAG "ringbuf"
 

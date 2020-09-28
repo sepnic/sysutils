@@ -22,8 +22,8 @@
  */
 
 #include <string.h>
-#include "msgutils/os_memory.h"
-#include "msgutils/os_timer.h"
+#include "cutils/os_memory.h"
+#include "cutils/os_timer.h"
 
 #if defined(OS_LINUX) || defined(OS_ANDROID)
 #include <unistd.h>
@@ -131,7 +131,7 @@ void OS_TIMER_DESTROY(os_timer_t timer)
 
 #elif defined(OS_MACOSX) || defined(OS_IOS) || defined(OS_FREERTOS)
 
-#include "msgutils/sw_timer.h"
+#include "cutils/sw_timer.h"
 
 os_timer_t OS_TIMER_CREATE(struct os_timerattr *attr, void (*cb)())
 {

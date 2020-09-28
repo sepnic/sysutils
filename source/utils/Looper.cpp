@@ -21,12 +21,12 @@
  * THE SOFTWARE.
  */
 
-#include "msgutils/os_thread.h"
-#include "msgutils/os_time.h"
-#include "msgutils/os_logger.h"
-#include "msgutils/os_class.hpp"
-#include "msgutils/Namespace.hpp"
-#include "msgutils/Looper.hpp"
+#include "cutils/os_thread.h"
+#include "cutils/os_time.h"
+#include "cutils/os_logger.h"
+#include "utils/os_class.h"
+#include "utils/Namespace.h"
+#include "utils/Looper.h"
 
 #define TAG "Looper"
 

@@ -23,7 +23,7 @@
 #ifndef __MSGUTILS_CJSON_H__
 #define __MSGUTILS_CJSON_H__
 
-#include "Namespace.hpp"
+#include "Namespace.h"
 
 MSGUTILS_NAMESPACE_BEGIN
 

@@ -24,7 +24,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
-#include "msgutils/os_time.h"
+#include "cutils/os_time.h"
 
 unsigned long OS_TIMESTAMP_TO_UTC(struct os_realtime *rt)
 {

@@ -18,10 +18,10 @@
  * Copyright (c) 2018-2020 LUOYUN <sysu.zqlong@gmail.com>
  */
 
-#include "msgutils/os_thread.h"
-#include "msgutils/os_logger.h"
-#include "msgutils/Namespace.hpp"
-#include "msgutils/Thread.hpp"
+#include "cutils/os_thread.h"
+#include "cutils/os_logger.h"
+#include "utils/Namespace.h"
+#include "utils/Thread.h"
 
 #define TAG "ThreadBase"
 

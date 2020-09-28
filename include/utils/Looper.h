@@ -28,9 +28,9 @@
 #include <stdbool.h>
 #include <string>
 #include <list>
-#include "os_thread.h"
-#include "Mutex.hpp"
-#include "Namespace.hpp"
+#include "cutils/os_thread.h"
+#include "Mutex.h"
+#include "Namespace.h"
 
 MSGUTILS_NAMESPACE_BEGIN
 

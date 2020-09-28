@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-#include "msgutils/os_memory.h"
-#include "msgutils/os_logger.h"
-#include "msgutils/os_thread.h"
-#include "msgutils/msgqueue.h"
+#include "cutils/os_memory.h"
+#include "cutils/os_logger.h"
+#include "cutils/os_thread.h"
+#include "cutils/msgqueue.h"
 
 #define LOG_TAG "msgqueue_test"
 

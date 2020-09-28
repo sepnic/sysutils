@@ -22,11 +22,11 @@
  */
 
 #include <stdbool.h>
-#include "msgutils/common_list.h"
-#include "msgutils/os_thread.h"
-#include "msgutils/os_time.h"
-#include "msgutils/os_logger.h"
-#include "msgutils/os_memory.h"
+#include "cutils/common_list.h"
+#include "cutils/os_thread.h"
+#include "cutils/os_time.h"
+#include "cutils/os_logger.h"
+#include "cutils/os_memory.h"
 
 #define LOG_TAG "memdebug"
 

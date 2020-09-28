@@ -9,25 +9,27 @@ set(TOP_DIR "${CMAKE_SOURCE_DIR}/..")
 include_directories(${TOP_DIR}/include)
 
 # source files
-set (LIBS_SRC ${TOP_DIR}/source/memory_debug.c
-              ${TOP_DIR}/source/msglooper.c
-              ${TOP_DIR}/source/msgqueue.c
-              ${TOP_DIR}/source/ringbuf.c
-              ${TOP_DIR}/source/smartptr.c
-              ${TOP_DIR}/source/sw_timer.c
-              ${TOP_DIR}/source/sw_watchdog.c
+set (LIBS_SRC ${TOP_DIR}/source/cutils/memory_debug.c
+              ${TOP_DIR}/source/cutils/msglooper.c
+              ${TOP_DIR}/source/cutils/msgqueue.c
+              ${TOP_DIR}/source/cutils/ringbuf.c
+              ${TOP_DIR}/source/cutils/sw_timer.c
+              ${TOP_DIR}/source/cutils/sw_watchdog.c
               ${TOP_DIR}/osal/os_logger.c
               ${TOP_DIR}/osal/os_thread.c
               ${TOP_DIR}/osal/os_time.c
               ${TOP_DIR}/osal/os_timer.c
-              ${TOP_DIR}/source/class_debug.cpp
-              ${TOP_DIR}/source/Looper.cpp
-              ${TOP_DIR}/source/Thread.cpp
+              ${TOP_DIR}/source/utils/class_debug.cpp
+              ${TOP_DIR}/source/utils/Looper.cpp
+              ${TOP_DIR}/source/utils/Thread.cpp
+              ${TOP_DIR}/source/utils/cJSON.cpp
+              ${TOP_DIR}/source/utils/JsonWrapper.cpp
+              ${TOP_DIR}/source/utils/RefBase.cpp
 )
 
 # cflags
-set(CMAKE_C_FLAGS   "-DENABLE_DEBUG -g -DOS_MACOSX -std=gnu99 -Wall -Werror")
-set(CMAKE_CXX_FLAGS "-DENABLE_DEBUG -g -Wall -Werror")
+set(CMAKE_C_FLAGS   "-DENABLE_DEBUG -std=gnu99 -Wall -Werror -DOS_MACOSX")
+set(CMAKE_CXX_FLAGS "-DENABLE_DEBUG -std=c++11 -Wall -Werror")
 
 # ENABLE_MEMORY_LEAK_DETECT
 #set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -DENABLE_MEMORY_LEAK_DETECT -DENABLE_MEMORY_OVERFLOW_DETECT")
@@ -62,3 +64,7 @@ target_link_libraries(Looper msgutils pthread)
 # Thread test
 add_executable(Thread ${CMAKE_SOURCE_DIR}/Thread_main.cpp)
 target_link_libraries(Thread msgutils pthread)
+
+# RefBase test
+add_executable(RefBase ${CMAKE_SOURCE_DIR}/RefBase_main.cpp)
+target_link_libraries(RefBase msgutils pthread)

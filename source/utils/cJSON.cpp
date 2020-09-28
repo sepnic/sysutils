@@ -56,8 +56,8 @@
 #pragma GCC visibility pop
 #endif
 
-#include "msgutils/Namespace.hpp"
-#include "msgutils/cJSON.hpp"
+#include "utils/Namespace.h"
+#include "utils/cJSON.h"
 
 MSGUTILS_NAMESPACE_BEGIN
 

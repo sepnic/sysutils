@@ -27,9 +27,9 @@
 #include <string.h>
 #include <vector>
 
-#include "msgutils/Namespace.hpp"
-#include "msgutils/cJSON.hpp"
-#include "msgutils/JsonWrapper.hpp"
+#include "utils/Namespace.h"
+#include "utils/cJSON.h"
+#include "utils/JsonWrapper.h"
 
 MSGUTILS_NAMESPACE_BEGIN
 

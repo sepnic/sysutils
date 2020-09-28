@@ -7,27 +7,27 @@ set(TOP_DIR "${CMAKE_SOURCE_DIR}")
 include_directories(${TOP_DIR}/include)
 
 # source files
-set (LIBS_SRC ${TOP_DIR}/source/memory_debug.c
-              ${TOP_DIR}/source/msglooper.c
-              ${TOP_DIR}/source/msgqueue.c
-              ${TOP_DIR}/source/ringbuf.c
-              ${TOP_DIR}/source/smartptr.c
-              ${TOP_DIR}/source/sw_timer.c
-              ${TOP_DIR}/source/sw_watchdog.c
+set (LIBS_SRC ${TOP_DIR}/source/cutils/memory_debug.c
+              ${TOP_DIR}/source/cutils/msglooper.c
+              ${TOP_DIR}/source/cutils/msgqueue.c
+              ${TOP_DIR}/source/cutils/ringbuf.c
+              ${TOP_DIR}/source/cutils/sw_timer.c
+              ${TOP_DIR}/source/cutils/sw_watchdog.c
               ${TOP_DIR}/osal/os_logger.c
               ${TOP_DIR}/osal/os_thread.c
               ${TOP_DIR}/osal/os_time.c
               ${TOP_DIR}/osal/os_timer.c
-              ${TOP_DIR}/source/class_debug.cpp
-              ${TOP_DIR}/source/Looper.cpp
-              ${TOP_DIR}/source/Thread.cpp
-              ${TOP_DIR}/source/cJSON.cpp
-              ${TOP_DIR}/source/JsonWrapper.cpp
+              ${TOP_DIR}/source/utils/class_debug.cpp
+              ${TOP_DIR}/source/utils/Looper.cpp
+              ${TOP_DIR}/source/utils/Thread.cpp
+              ${TOP_DIR}/source/utils/cJSON.cpp
+              ${TOP_DIR}/source/utils/JsonWrapper.cpp
+              ${TOP_DIR}/source/utils/RefBase.cpp
 )
 
 # cflags: OS_LINUX, OS_ANDROID, OS_MACOSX, OS_IOS, OS_FREERTOS
-set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -g -Wall -Werror -DOS_MACOSX")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Werror -DOS_MACOSX")
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -std=gnu99 -Wall -Werror -DOS_MACOSX")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -DOS_MACOSX")
 
 # ldflags
 set(CMAKE_LDFLAGS "${CMAKE_LDFLAGS} -Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed")

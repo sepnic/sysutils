@@ -22,13 +22,13 @@
  */
 
 #include <string.h>
-#include "msgutils/sw_watchdog.h"
-#include "msgutils/common_list.h"
-#include "msgutils/os_thread.h"
-#include "msgutils/os_time.h"
-#include "msgutils/os_memory.h"
-#include "msgutils/os_logger.h"
-#include "msgutils/msglooper.h"
+#include "cutils/sw_watchdog.h"
+#include "cutils/common_list.h"
+#include "cutils/os_thread.h"
+#include "cutils/os_time.h"
+#include "cutils/os_memory.h"
+#include "cutils/os_logger.h"
+#include "cutils/msglooper.h"
 
 #define LOG_TAG "msglooper"
 
