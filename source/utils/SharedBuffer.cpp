@@ -19,8 +19,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "cutils/os_logger.h"
 #include "utils/Namespace.h"
-#include "android_log.h"
 #include "SharedBuffer.h"
 
 // ---------------------------------------------------------------------------
@@ -31,8 +31,8 @@ SharedBuffer* SharedBuffer::alloc(size_t size)
 {
     // Don't overflow if the combined size of the buffer / header is larger than
     // size_max.
-    ALOG_ALWAYS_FATAL_IF((size >= (SIZE_MAX - sizeof(SharedBuffer))),
-                        "Invalid buffer size %zu", size);
+    OS_FATAL_IF((size >= (SIZE_MAX - sizeof(SharedBuffer))),
+        LOG_TAG, "Invalid buffer size %zu", size);
 
     SharedBuffer* sb = static_cast<SharedBuffer *>(malloc(sizeof(SharedBuffer) + size));
     if (sb) {
@@ -71,8 +71,8 @@ SharedBuffer* SharedBuffer::editResize(size_t newSize) const
         if (buf->mSize == newSize) return buf;
         // Don't overflow if the combined size of the new buffer / header is larger than
         // size_max.
-        ALOG_ALWAYS_FATAL_IF((newSize >= (SIZE_MAX - sizeof(SharedBuffer))),
-                            "Invalid buffer size %zu", newSize);
+        OS_FATAL_IF((newSize >= (SIZE_MAX - sizeof(SharedBuffer))),
+            LOG_TAG, "Invalid buffer size %zu", newSize);
 
         buf = static_cast<SharedBuffer *>(realloc((void *)buf, sizeof(SharedBuffer) + newSize));
         if (buf != NULL) {

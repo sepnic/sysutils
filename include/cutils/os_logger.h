@@ -89,8 +89,15 @@ void os_logger_trace(enum os_logprio prio, const char *tag, const char *func, un
         os_logger_trace(OS_LOG_VERBOSE, tag, __FUNCTION__, __LINE__, OS_LOG_FORMAT(V, format), ##__VA_ARGS__)
 #endif
 
+#if 1
     #define OS_ASSERT(cond, tag, format, ...)\
             if (!(cond)) { OS_LOGF(tag, format, ##__VA_ARGS__); assert(cond); }
+#else
+    #define OS_ASSERT(cond, tag, format, ...) do {} while (0);
+#endif
+
+    #define OS_FATAL_IF(cond, tag, format, ...)\
+            if (cond) { OS_LOGF(tag, format, ##__VA_ARGS__); assert(!(cond)); }
 
 #ifdef __cplusplus
 }

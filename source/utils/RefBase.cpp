@@ -26,7 +26,7 @@
 #include <string>
 #include <mutex>
 
-#include "android_log.h"
+#include "cutils/os_logger.h"
 #include "utils/RefBase.h"
 #include "utils/Namespace.h"
 
@@ -187,11 +187,11 @@ public:
         bool dumpStack = false;
         if (!mRetain && mStrongRefs != NULL) {
             dumpStack = true;
-            ALOGE("Strong references remain:");
+            OS_LOGE(LOG_TAG, "Strong references remain:");
             ref_entry* refs = mStrongRefs;
             while (refs) {
                 char inc = refs->ref >= 0 ? '+' : '-';
-                ALOGD("\t%c ID %p (ref %d):", inc, refs->id, refs->ref);
+                OS_LOGD(LOG_TAG, "\t%c ID %p (ref %d):", inc, refs->id, refs->ref);
 #if DEBUG_REFS_CALLSTACK_ENABLED
                 refs->stack.log(LOG_TAG);
 #endif
@@ -201,11 +201,11 @@ public:
 
         if (!mRetain && mWeakRefs != NULL) {
             dumpStack = true;
-            ALOGE("Weak references remain!");
+            OS_LOGE(LOG_TAG, "Weak references remain!");
             ref_entry* refs = mWeakRefs;
             while (refs) {
                 char inc = refs->ref >= 0 ? '+' : '-';
-                ALOGD("\t%c ID %p (ref %d):", inc, refs->id, refs->ref);
+                OS_LOGD(LOG_TAG, "\t%c ID %p (ref %d):", inc, refs->id, refs->ref);
 #if DEBUG_REFS_CALLSTACK_ENABLED
                 refs->stack.log(LOG_TAG);
 #endif
@@ -213,7 +213,7 @@ public:
             }
         }
         if (dumpStack) {
-            ALOGE("above errors at:");
+            OS_LOGE(LOG_TAG, "above errors at:");
             CallStack stack(LOG_TAG);
         }
     }
@@ -290,9 +290,9 @@ public:
             if (rc >= 0) {
                 write(rc, text.c_str(), text.length());
                 close(rc);
-                ALOGD("STACK TRACE for %p saved in %s", this, name);
+                OS_LOGD(LOG_TAG, "STACK TRACE for %p saved in %s", this, name);
             }
-            else ALOGE("FAILED TO PRINT STACK TRACE for %p in %s: %s", this,
+            else OS_LOGE(LOG_TAG, "FAILED TO PRINT STACK TRACE for %p in %s: %s", this,
                       name, strerror(errno));
         }
     }
@@ -344,14 +344,14 @@ private:
                 ref = *refs;
             }
 
-            ALOGE("RefBase: removing id %p on RefBase %p"
+            OS_LOGE(LOG_TAG, "RefBase: removing id %p on RefBase %p"
                     "(weakref_type %p) that doesn't exist!",
                     id, mBase, this);
 
             ref = head;
             while (ref) {
                 char inc = ref->ref >= 0 ? '+' : '-';
-                ALOGD("\t%c ID %p (ref %d):", inc, ref->id, ref->ref);
+                OS_LOGD(LOG_TAG, "\t%c ID %p (ref %d):", inc, ref->id, ref->ref);
                 ref = ref->next;
             }
 
@@ -411,9 +411,9 @@ void RefBase::incStrong(const void* id) const
     
     refs->addStrongRef(id);
     const int32_t c = refs->mStrong.fetch_add(1, std::memory_order_relaxed);
-    ALOG_ASSERT(c > 0, "incStrong() called on %p after last strong ref", refs);
+    OS_ASSERT(c > 0, LOG_TAG, "incStrong() called on %p after last strong ref", refs);
 #if PRINT_REFS
-    ALOGD("incStrong of %p from %p: cnt=%d\n", this, id, c);
+    OS_LOGD(LOG_TAG, "incStrong of %p from %p: cnt=%d\n", this, id, c);
 #endif
     if (c != INITIAL_STRONG_VALUE)  {
         return;
@@ -422,7 +422,7 @@ void RefBase::incStrong(const void* id) const
     int32_t old = refs->mStrong.fetch_sub(INITIAL_STRONG_VALUE,
             std::memory_order_relaxed);
     // A decStrong() must still happen after us.
-    ALOG_ASSERT(old > INITIAL_STRONG_VALUE, "0x%x too small", old);
+    OS_ASSERT(old > INITIAL_STRONG_VALUE, LOG_TAG, "0x%x too small", old);
     refs->mBase->onFirstRef();
 }
 
@@ -432,9 +432,9 @@ void RefBase::decStrong(const void* id) const
     refs->removeStrongRef(id);
     const int32_t c = refs->mStrong.fetch_sub(1, std::memory_order_release);
 #if PRINT_REFS
-    ALOGD("decStrong of %p from %p: cnt=%d\n", this, id, c);
+    OS_LOGD(LOG_TAG, "decStrong of %p from %p: cnt=%d\n", this, id, c);
 #endif
-    ALOG_ALWAYS_FATAL_IF(BAD_STRONG(c), "decStrong() called on %p too many times",
+    OS_FATAL_IF(BAD_STRONG(c), LOG_TAG, "decStrong() called on %p too many times",
             refs);
     if (c == 1) {
         std::atomic_thread_fence(std::memory_order_acquire);
@@ -463,10 +463,10 @@ void RefBase::forceIncStrong(const void* id) const
     
     refs->addStrongRef(id);
     const int32_t c = refs->mStrong.fetch_add(1, std::memory_order_relaxed);
-    ALOG_ASSERT(c >= 0, "forceIncStrong called on %p after ref count underflow",
+    OS_ASSERT(c >= 0, LOG_TAG, "forceIncStrong called on %p after ref count underflow",
                refs);
 #if PRINT_REFS
-    ALOGD("forceIncStrong of %p from %p: cnt=%d\n", this, id, c);
+    OS_LOGD(LOG_TAG, "forceIncStrong of %p from %p: cnt=%d\n", this, id, c);
 #endif
 
     switch (c) {
@@ -496,7 +496,7 @@ void RefBase::weakref_type::incWeak(const void* id)
     impl->addWeakRef(id);
     const int32_t c __unused = impl->mWeak.fetch_add(1,
             std::memory_order_relaxed);
-    ALOG_ASSERT(c >= 0, "incWeak called on %p after last weak ref", this);
+    OS_ASSERT(c >= 0, LOG_TAG, "incWeak called on %p after last weak ref", this);
 }
 
 
@@ -505,8 +505,7 @@ void RefBase::weakref_type::decWeak(const void* id)
     weakref_impl* const impl = static_cast<weakref_impl*>(this);
     impl->removeWeakRef(id);
     const int32_t c = impl->mWeak.fetch_sub(1, std::memory_order_release);
-    ALOG_ALWAYS_FATAL_IF(BAD_WEAK(c), "decWeak called on %p too many times",
-            this);
+    OS_FATAL_IF(BAD_WEAK(c), LOG_TAG, "decWeak called on %p too many times", this);
     if (c != 1) return;
     atomic_thread_fence(std::memory_order_acquire);
 
@@ -525,10 +524,10 @@ void RefBase::weakref_type::decWeak(const void* id)
             // Thus we no longer do anything here.  We log this case, since it
             // seems to be extremely rare, and should not normally occur. We
             // used to deallocate mBase here, so this may now indicate a leak.
-            ALOGW("RefBase: Object at %p lost last weak reference "
+            OS_LOGW(LOG_TAG, "RefBase: Object at %p lost last weak reference "
                     "before it had a strong reference", impl->mBase);
         } else {
-            // ALOGV("Freeing refs %p of old RefBase %p\n", this, impl->mBase);
+            // OS_LOGV(LOG_TAG, "Freeing refs %p of old RefBase %p\n", this, impl->mBase);
             delete impl;
         }
     } else {
@@ -546,7 +545,7 @@ bool RefBase::weakref_type::attemptIncStrong(const void* id)
     weakref_impl* const impl = static_cast<weakref_impl*>(this);
     int32_t curCount = impl->mStrong.load(std::memory_order_relaxed);
 
-    ALOG_ASSERT(curCount >= 0,
+    OS_ASSERT(curCount >= 0, LOG_TAG,
             "attemptIncStrong called on %p after underflow", this);
 
     while (curCount > 0 && curCount != INITIAL_STRONG_VALUE) {
@@ -620,7 +619,7 @@ bool RefBase::weakref_type::attemptIncStrong(const void* id)
     impl->addStrongRef(id);
 
 #if PRINT_REFS
-    ALOGD("attemptIncStrong of %p from %p: cnt=%d\n", this, id, curCount);
+    OS_LOGD(LOG_TAG, "attemptIncStrong of %p from %p: cnt=%d\n", this, id, curCount);
 #endif
 
     // curCount is the value of mStrong before we incremented it.
@@ -643,8 +642,8 @@ bool RefBase::weakref_type::attemptIncWeak(const void* id)
     weakref_impl* const impl = static_cast<weakref_impl*>(this);
 
     int32_t curCount = impl->mWeak.load(std::memory_order_relaxed);
-    ALOG_ASSERT(curCount >= 0, "attemptIncWeak called on %p after underflow",
-               this);
+    OS_ASSERT(curCount >= 0, LOG_TAG,
+        "attemptIncWeak called on %p after underflow", this);
     while (curCount > 0) {
         if (impl->mWeak.compare_exchange_weak(curCount, curCount+1,
                 std::memory_order_relaxed)) {
@@ -708,7 +707,7 @@ RefBase::~RefBase()
     } else if (mRefs->mStrong.load(std::memory_order_relaxed)
             == INITIAL_STRONG_VALUE) {
         // We never acquired a strong reference on this object.
-        ALOG_ALWAYS_FATAL_IF(mRefs->mWeak.load() != 0,
+        OS_FATAL_IF(mRefs->mWeak.load() != 0, LOG_TAG,
                 "RefBase: Explicit destruction with non-zero weak "
                 "reference count");
         // TODO: Always report if we get here. Currently MediaMetadataRetriever

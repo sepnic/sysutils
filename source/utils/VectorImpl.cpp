@@ -20,9 +20,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "android_log.h"
 #include "safe_iop.h"
 #include "SharedBuffer.h"
+#include "cutils/os_logger.h"
 #include "utils/Namespace.h"
 #include "utils/VectorImpl.h"
 
@@ -58,7 +58,7 @@ VectorImpl::VectorImpl(const VectorImpl& rhs)
 VectorImpl::~VectorImpl()
 {
     if (mCount > 0)
-        ALOGW("[%p] subclasses of VectorImpl must call finish_vector()"
+        OS_LOGW(LOG_TAG, "[%p] subclasses of VectorImpl must call finish_vector()"
             " in their destructor. Leaking %d bytes.",
             this, (int)(mCount*mItemSize));
     // We can't call _do_destroy() here because the vtable is already gone. 
@@ -66,8 +66,8 @@ VectorImpl::~VectorImpl()
 
 VectorImpl& VectorImpl::operator = (const VectorImpl& rhs)
 {
-    ALOG_ALWAYS_FATAL_IF(mItemSize != rhs.mItemSize,
-        "Vector<> have different types (this=%p, rhs=%p)", this, &rhs);
+    OS_FATAL_IF(mItemSize != rhs.mItemSize,
+        LOG_TAG, "Vector<> have different types (this=%p, rhs=%p)", this, &rhs);
     if (this != &rhs) {
         release_storage();
         if (rhs.mCount) {
@@ -94,7 +94,7 @@ void* VectorImpl::editArrayImpl()
             // Fail instead of returning a pointer to storage that's not
             // editable. Otherwise we'd be editing the contents of a buffer
             // for which we're not the only owner, which is undefined behaviour.
-            ALOG_ALWAYS_FATAL_IF(editable == NULL, "Out of memory");
+            OS_FATAL_IF(editable == NULL, LOG_TAG, "Out of memory");
             _do_copy(editable->data(), mStorage, mCount);
             release_storage();
             mStorage = editable->data();
@@ -186,12 +186,12 @@ int VectorImpl::sort(VectorImpl::compar_r_t cmp, void* state)
                     // we're going to have to modify the array...
                     array = editArrayImpl();
                     if (!array) {
-                        ALOGE("Out of memory");
+                        OS_LOGE(LOG_TAG, "Out of memory");
                         return -1;
                     }
                     temp = malloc(mItemSize);
                     if (!temp) {
-                        ALOGE("Out of memory");
+                        OS_LOGE(LOG_TAG, "Out of memory");
                         return -1;
                     }
                     item = reinterpret_cast<char*>(array) + mItemSize*(i);
@@ -263,7 +263,8 @@ ssize_t VectorImpl::replaceAt(size_t index)
 ssize_t VectorImpl::replaceAt(const void* prototype, size_t index)
 {
     if (index >= size()) {
-        ALOGE("[%p] replace: out of range, index=%d, size=%d",
+        OS_LOGE(LOG_TAG,
+            "[%p] replace: out of range, index=%d, size=%d",
             this, (int)index, (int)size());
         return -1;
     }
@@ -271,7 +272,7 @@ ssize_t VectorImpl::replaceAt(const void* prototype, size_t index)
     void* item = editItemLocation(index);
     if (item != prototype) {
         if (item == 0) {
-            ALOGE("Out of memroy");
+            OS_LOGE(LOG_TAG, "Out of memroy");
             return -1;
         }
         _do_destroy(item, 1);
@@ -287,7 +288,8 @@ ssize_t VectorImpl::replaceAt(const void* prototype, size_t index)
 ssize_t VectorImpl::removeItemsAt(size_t index, size_t count)
 {
     if ((index+count) > size()) {
-        ALOGE("[%p] remove: out of range, index=%d, count=%d, size=%d",
+        OS_LOGE(LOG_TAG,
+            "[%p] remove: out of range, index=%d, count=%d, size=%d",
             this, (int)index, (int)count, (int)size());
         return -1;
     }
@@ -338,8 +340,8 @@ ssize_t VectorImpl::setCapacity(size_t new_capacity)
     }
 
     size_t new_allocation_size = 0;
-    ALOG_ALWAYS_FATAL_IF(!safe_mul(&new_allocation_size, new_capacity, mItemSize),
-        "Invalid new_allocation_size");
+    OS_FATAL_IF(!safe_mul(&new_allocation_size, new_capacity, mItemSize),
+        LOG_TAG, "Invalid new_allocation_size");
     SharedBuffer* sb = SharedBuffer::alloc(new_allocation_size);
     if (sb) {
         void* array = sb->data();
@@ -347,7 +349,7 @@ ssize_t VectorImpl::setCapacity(size_t new_capacity)
         release_storage();
         mStorage = const_cast<void*>(array);
     } else {
-        ALOGE("Out of memory");
+        OS_LOGE(LOG_TAG, "Out of memory");
         return -1;
     }
     return new_capacity;
@@ -376,15 +378,15 @@ void VectorImpl::release_storage()
 
 void* VectorImpl::_grow(size_t where, size_t amount)
 {
-//    ALOGV("_grow(this=%p, where=%d, amount=%d) count=%d, capacity=%d",
+//    OS_LOGV(LOG_TAG, "_grow(this=%p, where=%d, amount=%d) count=%d, capacity=%d",
 //        this, (int)where, (int)amount, (int)mCount, (int)capacity());
 
-    ALOG_ASSERT(where <= mCount,
+    OS_ASSERT(where <= mCount, LOG_TAG,
             "[%p] _grow: where=%d, amount=%d, count=%d",
             this, (int)where, (int)amount, (int)mCount); // caller already checked
 
     size_t new_size;
-    ALOG_ALWAYS_FATAL_IF(!safe_add(&new_size, mCount, amount), "new_size overflow");
+    OS_FATAL_IF(!safe_add(&new_size, mCount, amount), LOG_TAG, "new_size overflow");
 
     if (capacity() < new_size) {
         // NOTE: This implementation used to resize vectors as per ((3*x + 1) / 2)
@@ -395,17 +397,17 @@ void* VectorImpl::_grow(size_t where, size_t amount)
         //
         // This approximates the old calculation, using (x + (x/2) + 1) instead.
         size_t new_capacity = 0;
-        ALOG_ALWAYS_FATAL_IF(!safe_add(&new_capacity, new_size, (new_size / 2)),
-                            "new_capacity overflow");
-        ALOG_ALWAYS_FATAL_IF(!safe_add(&new_capacity, new_capacity, static_cast<size_t>(1u)),
-                            "new_capacity overflow");
+        OS_FATAL_IF(!safe_add(&new_capacity, new_size, (new_size / 2)),
+                    LOG_TAG, "new_capacity overflow");
+        OS_FATAL_IF(!safe_add(&new_capacity, new_capacity, static_cast<size_t>(1u)),
+                    LOG_TAG, "new_capacity overflow");
         new_capacity = max(kMinVectorCapacity, new_capacity);
 
         size_t new_alloc_size = 0;
-        ALOG_ALWAYS_FATAL_IF(!safe_mul(&new_alloc_size, new_capacity, mItemSize),
-                            "new_alloc_size overflow");
+        OS_FATAL_IF(!safe_mul(&new_alloc_size, new_capacity, mItemSize),
+                    LOG_TAG, "new_alloc_size overflow");
 
-//        ALOGV("grow vector %p, new_capacity=%d", this, (int)new_capacity);
+//        OS_LOGV(LOG_TAG, "grow vector %p, new_capacity=%d", this, (int)new_capacity);
         if ((mStorage) &&
             (mCount==where) &&
             (mFlags & HAS_TRIVIAL_COPY) &&
@@ -454,15 +456,15 @@ void VectorImpl::_shrink(size_t where, size_t amount)
     if (!mStorage)
         return;
 
-//    ALOGV("_shrink(this=%p, where=%d, amount=%d) count=%d, capacity=%d",
+//    OS_LOGV(LOG_TAG, "_shrink(this=%p, where=%d, amount=%d) count=%d, capacity=%d",
 //        this, (int)where, (int)amount, (int)mCount, (int)capacity());
 
-    ALOG_ASSERT(where + amount <= mCount,
+    OS_ASSERT(where + amount <= mCount, LOG_TAG,
             "[%p] _shrink: where=%d, amount=%d, count=%d",
             this, (int)where, (int)amount, (int)mCount); // caller already checked
 
     size_t new_size;
-    ALOG_ALWAYS_FATAL_IF(!safe_sub(&new_size, mCount, amount), "Invalid new_size");
+    OS_FATAL_IF(!safe_sub(&new_size, mCount, amount), LOG_TAG, "Invalid new_size");
 
     if (new_size < (capacity() / 2)) {
         // NOTE: (new_size * 2) is safe because capacity didn't overflow and
