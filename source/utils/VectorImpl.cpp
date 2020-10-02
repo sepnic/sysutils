@@ -23,7 +23,6 @@
 #include "android_log.h"
 #include "safe_iop.h"
 #include "SharedBuffer.h"
-#include "Errors.h"
 #include "utils/Namespace.h"
 #include "utils/VectorImpl.h"
 
@@ -125,12 +124,12 @@ ssize_t VectorImpl::appendVector(const VectorImpl& vector)
 ssize_t VectorImpl::insertArrayAt(const void* array, size_t index, size_t length)
 {
     if (index > size())
-        return BAD_INDEX;
+        return -1;
     void* where = _grow(index, length);
     if (where) {
         _do_copy(where, array, length);
     }
-    return where ? index : (ssize_t)NO_MEMORY;
+    return where ? index : -1;
 }
 
 ssize_t VectorImpl::appendArray(const void* array, size_t length)
@@ -146,7 +145,7 @@ ssize_t VectorImpl::insertAt(size_t index, size_t numItems)
 ssize_t VectorImpl::insertAt(const void* item, size_t index, size_t numItems)
 {
     if (index > size())
-        return BAD_INDEX;
+        return -1;
     void* where = _grow(index, numItems);
     if (where) {
         if (item) {
@@ -155,7 +154,7 @@ ssize_t VectorImpl::insertAt(const void* item, size_t index, size_t numItems)
             _do_construct(where, numItems);
         }
     }
-    return where ? index : (ssize_t)NO_MEMORY;
+    return where ? index : -1;
 }
 
 static int sortProxy(const void* lhs, const void* rhs, void* func)
@@ -186,9 +185,15 @@ int VectorImpl::sort(VectorImpl::compar_r_t cmp, void* state)
                 if (!temp) {
                     // we're going to have to modify the array...
                     array = editArrayImpl();
-                    if (!array) return NO_MEMORY;
+                    if (!array) {
+                        ALOGE("Out of memory");
+                        return -1;
+                    }
                     temp = malloc(mItemSize);
-                    if (!temp) return NO_MEMORY;
+                    if (!temp) {
+                        ALOGE("Out of memory");
+                        return -1;
+                    }
                     item = reinterpret_cast<char*>(array) + mItemSize*(i);
                     curr = reinterpret_cast<char*>(array) + mItemSize*(i-1);
                 } else {
@@ -221,7 +226,7 @@ int VectorImpl::sort(VectorImpl::compar_r_t cmp, void* state)
             free(temp);
         }
     }
-    return NO_ERROR;
+    return 0;
 }
 
 void VectorImpl::pop()
@@ -257,17 +262,18 @@ ssize_t VectorImpl::replaceAt(size_t index)
 
 ssize_t VectorImpl::replaceAt(const void* prototype, size_t index)
 {
-    ALOG_ASSERT(index<size(),
-        "[%p] replace: index=%d, size=%d", this, (int)index, (int)size());
-
     if (index >= size()) {
-        return BAD_INDEX;
+        ALOGE("[%p] replace: out of range, index=%d, size=%d",
+            this, (int)index, (int)size());
+        return -1;
     }
 
     void* item = editItemLocation(index);
     if (item != prototype) {
-        if (item == 0)
-            return NO_MEMORY;
+        if (item == 0) {
+            ALOGE("Out of memroy");
+            return -1;
+        }
         _do_destroy(item, 1);
         if (prototype == 0) {
             _do_construct(item, 1);
@@ -280,12 +286,11 @@ ssize_t VectorImpl::replaceAt(const void* prototype, size_t index)
 
 ssize_t VectorImpl::removeItemsAt(size_t index, size_t count)
 {
-    ALOG_ASSERT((index+count)<=size(),
-        "[%p] remove: index=%d, count=%d, size=%d",
-               this, (int)index, (int)count, (int)size());
-
-    if ((index+count) > size())
-        return BAD_VALUE;
+    if ((index+count) > size()) {
+        ALOGE("[%p] remove: out of range, index=%d, count=%d, size=%d",
+            this, (int)index, (int)count, (int)size());
+        return -1;
+    }
    _shrink(index, count);
    return index;
 }
@@ -304,10 +309,6 @@ void VectorImpl::clear()
 
 void* VectorImpl::editItemLocation(size_t index)
 {
-    ALOG_ASSERT(index<capacity(),
-        "[%p] editItemLocation: index=%d, capacity=%d, count=%d",
-        this, (int)index, (int)capacity(), (int)mCount);
-
     if (index < capacity()) {
         void* buffer = editArrayImpl();
         if (buffer) {
@@ -319,10 +320,6 @@ void* VectorImpl::editItemLocation(size_t index)
 
 const void* VectorImpl::itemLocation(size_t index) const
 {
-    ALOG_ASSERT(index<capacity(),
-        "[%p] itemLocation: index=%d, capacity=%d, count=%d",
-        this, (int)index, (int)capacity(), (int)mCount);
-
     if (index < capacity()) {
         const  void* buffer = arrayImpl();
         if (buffer) {
@@ -350,13 +347,14 @@ ssize_t VectorImpl::setCapacity(size_t new_capacity)
         release_storage();
         mStorage = const_cast<void*>(array);
     } else {
-        return NO_MEMORY;
+        ALOGE("Out of memory");
+        return -1;
     }
     return new_capacity;
 }
 
 ssize_t VectorImpl::resize(size_t size) {
-    ssize_t result = NO_ERROR;
+    ssize_t result = 0;
     if (size > mCount) {
         result = insertAt(mCount, size - mCount);
     } else if (size < mCount) {
@@ -593,10 +591,10 @@ ssize_t SortedVectorImpl::_indexOrderOf(const void* item, size_t* order) const
 {
     if (order) *order = 0;
     if (isEmpty()) {
-        return NAME_NOT_FOUND;
+        return -1;
     }
     // binary search
-    ssize_t err = NAME_NOT_FOUND;
+    ssize_t err = -1;
     ssize_t l = 0;
     ssize_t h = size()-1;
     ssize_t mid;
@@ -645,13 +643,13 @@ ssize_t SortedVectorImpl::merge(const VectorImpl& vector)
             }
         }
     }
-    return NO_ERROR;
+    return 0;
 }
 
 ssize_t SortedVectorImpl::merge(const SortedVectorImpl& vector)
 {
     // we've merging a sorted vector... nice!
-    ssize_t err = NO_ERROR;
+    ssize_t err = 0;
     if (!vector.isEmpty()) {
         // first take care of the case where the vectors are sorted together
         if (do_compare(vector.itemLocation(vector.size()-1), arrayImpl()) <= 0) {
