@@ -23,11 +23,14 @@ set (LIBS_SRC ${TOP_DIR}/source/cutils/memory_debug.c
               ${TOP_DIR}/source/utils/cJSON.cpp
               ${TOP_DIR}/source/utils/JsonWrapper.cpp
               ${TOP_DIR}/source/utils/RefBase.cpp
+              ${TOP_DIR}/source/utils/SharedBuffer.cpp
+              ${TOP_DIR}/source/utils/safe_iop.c
+              ${TOP_DIR}/source/utils/VectorImpl.cpp
 )
 
 # cflags: OS_LINUX, OS_ANDROID, OS_MACOSX, OS_IOS, OS_FREERTOS
-set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -std=gnu99 -Wall -Werror -DOS_MACOSX")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -DOS_MACOSX")
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -Wall -Werror -DOS_MACOSX")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -Wall -Werror -DOS_MACOSX")
 
 # ldflags
 set(CMAKE_LDFLAGS "${CMAKE_LDFLAGS} -Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed")

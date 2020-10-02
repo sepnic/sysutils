@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#define LOG_TAG "RefBase"
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,10 +26,9 @@
 #include <string>
 #include <mutex>
 
+#include "android_log.h"
 #include "utils/RefBase.h"
 #include "utils/Namespace.h"
-
-#define LOG_TAG "RefBase"
 
 #ifndef __unused
 #define __unused __attribute__((__unused__))
@@ -50,25 +51,6 @@
 // log all reference counting operations
 #define PRINT_REFS                      0
 
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-#include <assert.h>
-#include "cutils/os_logger.h"
-#define ALOGF(...) OS_LOGF(LOG_TAG, ##__VA_ARGS__)
-#define ALOGE(...) OS_LOGE(LOG_TAG, ##__VA_ARGS__)
-#define ALOGW(...) OS_LOGW(LOG_TAG, ##__VA_ARGS__)
-#define ALOGI(...) OS_LOGI(LOG_TAG, ##__VA_ARGS__)
-#define ALOGD(...) OS_LOGD(LOG_TAG, ##__VA_ARGS__)
-#define ALOGV(...) OS_LOGV(LOG_TAG, ##__VA_ARGS__)
-#define ALOG_ALWAYS_FATAL_IF(cond, ...) \
-    do { \
-        if (cond) { \
-            OS_LOGF(LOG_TAG, ##__VA_ARGS__); \
-            assert(false); \
-        } \
-    } while (0)
-#define ALOG_ASSERT(cond, ...) ALOG_ALWAYS_FATAL_IF(!(cond), ##__VA_ARGS__)
 // ---------------------------------------------------------------------------
 
 MSGUTILS_NAMESPACE_BEGIN

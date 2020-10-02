@@ -66,7 +66,7 @@ void *memory_debug_malloc(size_t size, const char *file, const char *func, int l
 void *memory_debug_calloc(size_t n, size_t size, const char *file, const char *func, int line, bool overflow_detect);
 void *memory_debug_realloc(void *ptr, size_t size, const char *file, const char *func, int line, bool overflow_detect);
 void memory_debug_free(void *ptr, const char *file, const char *func, int line, bool overflow_detect);
-void *memory_debug_strdup(void *str, const char *file, const char *func, int line, bool overflow_detect);
+char *memory_debug_strdup(const char *str, const char *file, const char *func, int line, bool overflow_detect);
 void memory_debug_dump(bool overflow_detect);
 
     #define OS_MALLOC(size) \
@@ -82,11 +82,13 @@ void memory_debug_dump(bool overflow_detect);
                 (ptr) = NULL;\
             }\
         } while (0)
-    #define OS_STRDUP(str) memory_debug_strdup((void *)(str), __FILE__, __FUNCTION__, __LINE__, false)
+    #define OS_STRDUP(str) memory_debug_strdup((const char *)(str), __FILE__, __FUNCTION__, __LINE__, false)
     #define OS_STREQUAL(str1, str2) (((str1) && (str2)) ? (strcmp((str1), (str2)) == 0) : false)
     #define OS_MEMORY_DUMP() memory_debug_dump(false)
 
 #else
+char *memory_strdup(const char *str);
+
     #define OS_MALLOC(size) malloc((size_t)(size))
     #define OS_CALLOC(n, size) calloc((size_t)(n), (size_t)(size))
     #define OS_REALLOC(ptr, size) realloc((void *)(ptr), (size_t)(size))
@@ -97,7 +99,7 @@ void memory_debug_dump(bool overflow_detect);
                 (ptr) = NULL;\
             }\
         } while (0)
-    #define OS_STRDUP(str) (str) ? strdup(str) : NULL
+    #define OS_STRDUP(str) memory_strdup((const char *)(str))
     #define OS_STREQUAL(str1, str2) (((str1) && (str2)) ? (strcmp((str1), (str2)) == 0) : false)
     #define OS_MEMORY_DUMP() do {} while (0)
 #endif

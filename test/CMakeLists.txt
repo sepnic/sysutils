@@ -25,11 +25,14 @@ set (LIBS_SRC ${TOP_DIR}/source/cutils/memory_debug.c
               ${TOP_DIR}/source/utils/cJSON.cpp
               ${TOP_DIR}/source/utils/JsonWrapper.cpp
               ${TOP_DIR}/source/utils/RefBase.cpp
+              ${TOP_DIR}/source/utils/SharedBuffer.cpp
+              ${TOP_DIR}/source/utils/safe_iop.c
+              ${TOP_DIR}/source/utils/VectorImpl.cpp
 )
 
 # cflags
-set(CMAKE_C_FLAGS   "-DENABLE_DEBUG -std=gnu99 -Wall -Werror -DOS_MACOSX")
-set(CMAKE_CXX_FLAGS "-DENABLE_DEBUG -std=c++11 -Wall -Werror")
+set(CMAKE_C_FLAGS   "-DENABLE_DEBUG -Wall -Werror -DOS_MACOSX")
+set(CMAKE_CXX_FLAGS "-DENABLE_DEBUG -std=gnu++11 -Wall -Werror")
 
 # ENABLE_MEMORY_LEAK_DETECT
 #set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -DENABLE_MEMORY_LEAK_DETECT -DENABLE_MEMORY_OVERFLOW_DETECT")
@@ -68,3 +71,7 @@ target_link_libraries(Thread msgutils pthread)
 # RefBase test
 add_executable(RefBase ${CMAKE_SOURCE_DIR}/RefBase_main.cpp)
 target_link_libraries(RefBase msgutils pthread)
+
+# Vector test
+add_executable(Vector ${CMAKE_SOURCE_DIR}/Vector_main.cpp)
+target_link_libraries(Vector msgutils pthread)

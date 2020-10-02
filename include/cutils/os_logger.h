@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -87,6 +88,9 @@ void os_logger_trace(enum os_logprio prio, const char *tag, const char *func, un
     #define OS_LOGV(tag, format, ...) \
         os_logger_trace(OS_LOG_VERBOSE, tag, __FUNCTION__, __LINE__, OS_LOG_FORMAT(V, format), ##__VA_ARGS__)
 #endif
+
+    #define OS_ASSERT(cond, tag, format, ...)\
+            if (!(cond)) { OS_LOGF(tag, format, ##__VA_ARGS__); assert(cond); }
 
 #ifdef __cplusplus
 }

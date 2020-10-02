@@ -61,8 +61,9 @@ void *memory_debug_malloc(size_t size, const char *file, const char *func, int l
 void *memory_debug_calloc(size_t n, size_t size, const char *file, const char *func, int line, bool overflow_detect);
 void *memory_debug_realloc(void *ptr, size_t size, const char *file, const char *func, int line, bool overflow_detect);
 void memory_debug_free(void *ptr, const char *file, const char *func, int line, bool overflow_detect);
-void *memory_debug_strdup(void *str, const char *file, const char *func, int line, bool overflow_detect);
+char *memory_debug_strdup(const char *str, const char *file, const char *func, int line, bool overflow_detect);
 void memory_debug_dump(bool overflow_detect);
+char *memory_strdup(const char *str);
 
 static char *file_name(const char *filepath)
 {
@@ -358,7 +359,7 @@ void memory_debug_free(void *ptr, const char *file, const char *func, int line, 
         free(ptr);
 }
 
-void *memory_debug_strdup(void *str, const char *file, const char *func, int line, bool overflow_detect)
+char *memory_debug_strdup(const char *str, const char *file, const char *func, int line, bool overflow_detect)
 {
     char *ptr;
     size_t len;
@@ -403,4 +404,19 @@ void memory_debug_dump(bool overflow_detect)
         OS_LOGW(LOG_TAG, "-------------------- MEMORY DEBUG --------------------");
         OS_LOGW(LOG_TAG, "<<");
     }
+}
+
+char *memory_strdup(const char *str)
+{
+    if (str == NULL)
+        return NULL;
+
+    size_t len = strlen(str);
+    char *ptr = (char *)malloc(len + 1);
+    if (ptr != NULL) {
+        memcpy(ptr, str, len);
+        ptr[len] = '\0';
+    }
+
+    return ptr;
 }
