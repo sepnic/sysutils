@@ -4,7 +4,6 @@
 #include "cutils/os_memory.h"
 #include "cutils/os_logger.h"
 #include "cutils/os_thread.h"
-#include "utils/os_class.h"
 #include "utils/Namespace.h"
 #include "utils/Thread.h"
 

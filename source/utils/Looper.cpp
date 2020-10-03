@@ -24,7 +24,7 @@
 #include "cutils/os_thread.h"
 #include "cutils/os_time.h"
 #include "cutils/os_logger.h"
-#include "utils/os_class.h"
+#include "cutils/os_memory.h"
 #include "utils/Namespace.h"
 #include "utils/Looper.h"
 

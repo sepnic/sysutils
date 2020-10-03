@@ -17,7 +17,6 @@ set (LIBS_SRC ${TOP_DIR}/source/cutils/memory_debug.c
               ${TOP_DIR}/osal/os_thread.c
               ${TOP_DIR}/osal/os_time.c
               ${TOP_DIR}/osal/os_timer.c
-              ${TOP_DIR}/source/utils/class_debug.cpp
               ${TOP_DIR}/source/utils/Looper.cpp
               ${TOP_DIR}/source/utils/Thread.cpp
               ${TOP_DIR}/source/utils/cJSON.cpp

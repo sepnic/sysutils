@@ -30,6 +30,8 @@
 
 #define LOG_TAG "memdebug"
 
+// ---------------------------------------------------------------------------
+
 #define MEMORY_BOUNDARY_SIZE    8
 #define MEMORY_BOUNDARY_FLAG    '*'
 
@@ -54,16 +56,16 @@ struct mem_info {
     os_mutex_t mutex;
 };
 
-OS_MUTEX_DECLARE(g_info_mutex);
-static struct mem_info *g_info = NULL;
+OS_MUTEX_DECLARE(g_meminfo_mutex);
+static struct mem_info *g_meminfo = NULL;
 
 void *memory_debug_malloc(size_t size, const char *file, const char *func, int line, bool overflow_detect);
 void *memory_debug_calloc(size_t n, size_t size, const char *file, const char *func, int line, bool overflow_detect);
 void *memory_debug_realloc(void *ptr, size_t size, const char *file, const char *func, int line, bool overflow_detect);
 void memory_debug_free(void *ptr, const char *file, const char *func, int line, bool overflow_detect);
 char *memory_debug_strdup(const char *str, const char *file, const char *func, int line, bool overflow_detect);
-void memory_debug_dump(bool overflow_detect);
 char *memory_strdup(const char *str);
+void memory_debug_dump(bool overflow_detect);
 
 static char *file_name(const char *filepath)
 {
@@ -152,46 +154,46 @@ static void memory_boundary_verify(struct mem_node *node)
 
 static struct mem_info *memory_debug_init()
 {
-    if (g_info == NULL) {
-        if (g_info_mutex != NULL)
-            OS_THREAD_MUTEX_LOCK(g_info_mutex);
+    if (g_meminfo == NULL) {
+        if (g_meminfo_mutex != NULL)
+            OS_THREAD_MUTEX_LOCK(g_meminfo_mutex);
 
-        if (g_info == NULL) {
-            g_info = calloc(1, sizeof(struct mem_info));
-            if (g_info == NULL) {
+        if (g_meminfo == NULL) {
+            g_meminfo = calloc(1, sizeof(struct mem_info));
+            if (g_meminfo == NULL) {
                 OS_LOGE(LOG_TAG, "Failed to alloc mem_info, abort memory debug");
-                if (g_info_mutex != NULL)
-                    OS_THREAD_MUTEX_UNLOCK(g_info_mutex);
+                if (g_meminfo_mutex != NULL)
+                    OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
                 return NULL;
             }
 
-            g_info->mutex = OS_THREAD_MUTEX_CREATE();
-            if (g_info->mutex == NULL) {
+            g_meminfo->mutex = OS_THREAD_MUTEX_CREATE();
+            if (g_meminfo->mutex == NULL) {
                 OS_LOGE(LOG_TAG, "Failed to alloc mem_mutex, abort memory debug");
                 goto error;
             }
 
-            g_info->malloc_count = 0;
-            g_info->free_count = 0;
-            g_info->max_used = 0;
-            list_init(&g_info->list);
+            g_meminfo->malloc_count = 0;
+            g_meminfo->free_count = 0;
+            g_meminfo->max_used = 0;
+            list_init(&g_meminfo->list);
         }
 
-        if (g_info_mutex != NULL)
-            OS_THREAD_MUTEX_UNLOCK(g_info_mutex);
+        if (g_meminfo_mutex != NULL)
+            OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
     }
 
-    return g_info;
+    return g_meminfo;
 
 error:
-    if (g_info->mutex != NULL)
-        OS_THREAD_MUTEX_DESTROY(g_info->mutex);
+    if (g_meminfo->mutex != NULL)
+        OS_THREAD_MUTEX_DESTROY(g_meminfo->mutex);
 
-    free(g_info);
-    g_info = NULL;
+    free(g_meminfo);
+    g_meminfo = NULL;
 
-    if (g_info_mutex != NULL)
-        OS_THREAD_MUTEX_UNLOCK(g_info_mutex);
+    if (g_meminfo_mutex != NULL)
+        OS_THREAD_MUTEX_UNLOCK(g_meminfo_mutex);
     return NULL;
 }
 
@@ -377,6 +379,21 @@ char *memory_debug_strdup(const char *str, const char *file, const char *func, i
     return ptr;
 }
 
+char *memory_strdup(const char *str)
+{
+    if (str == NULL)
+        return NULL;
+
+    size_t len = strlen(str);
+    char *ptr = (char *)malloc(len + 1);
+    if (ptr != NULL) {
+        memcpy(ptr, str, len);
+        ptr[len] = '\0';
+    }
+
+    return ptr;
+}
+
 void memory_debug_dump(bool overflow_detect)
 {
     struct mem_info *info  = memory_debug_init();
@@ -406,17 +423,159 @@ void memory_debug_dump(bool overflow_detect)
     }
 }
 
-char *memory_strdup(const char *str)
-{
-    if (str == NULL)
-        return NULL;
+// ---------------------------------------------------------------------------
 
-    size_t len = strlen(str);
-    char *ptr = (char *)malloc(len + 1);
-    if (ptr != NULL) {
-        memcpy(ptr, str, len);
-        ptr[len] = '\0';
+struct class_node {
+    void *ptr;
+    const char *name;
+    const char *file;
+    const char *func;
+    int line;
+    struct os_realtime when;
+    struct listnode listnode;
+};
+
+struct class_info {
+    struct listnode list;
+
+    long new_cnt;
+    long delete_cnt;
+
+    os_mutex_t mutex;
+};
+
+OS_MUTEX_DECLARE(g_clzinfo_mutex);
+static struct class_info *g_clzinfo = NULL;
+
+static void class_node_print(struct class_node *node, const char *info)
+{
+    OS_LOGW(LOG_TAG, "> %s: ptr=[%p], class=[%s], created by [%s:%s:%d], at [%04d%02d%02d-%02d%02d%02d:%03d]",
+           info, node->ptr, node->name, file_name(node->file), node->func, node->line,
+           node->when.year, node->when.mon, node->when.day,
+           node->when.hour, node->when.min, node->when.sec, node->when.msec);
+}
+
+static struct class_info *class_debug_init()
+{
+    if (g_clzinfo == NULL) {
+        if (g_clzinfo_mutex != NULL)
+            OS_THREAD_MUTEX_LOCK(g_clzinfo_mutex);
+
+        if (g_clzinfo == NULL) {
+            g_clzinfo = (struct class_info *)OS_CALLOC(1, sizeof(struct class_info));
+            if (g_clzinfo == NULL) {
+                OS_LOGE(LOG_TAG, "Failed to alloc class_info, abort class debug");
+                if (g_clzinfo_mutex != NULL)
+                    OS_THREAD_MUTEX_UNLOCK(g_clzinfo_mutex);
+                return NULL;
+            }
+
+            g_clzinfo->mutex = OS_THREAD_MUTEX_CREATE();
+            if (g_clzinfo->mutex == NULL) {
+                OS_LOGE(LOG_TAG, "Failed to alloc class_mutex, abort class debug");
+                goto error;
+            }
+
+            g_clzinfo->new_cnt = 0;
+            g_clzinfo->delete_cnt = 0;
+            list_init(&g_clzinfo->list);
+        }
+
+        if (g_clzinfo_mutex != NULL)
+            OS_THREAD_MUTEX_UNLOCK(g_clzinfo_mutex);
     }
 
-    return ptr;
+    return g_clzinfo;
+
+error:
+    if (g_clzinfo->mutex != NULL)
+        OS_THREAD_MUTEX_DESTROY(g_clzinfo->mutex);
+
+    OS_FREE(g_clzinfo);
+    g_clzinfo = NULL;
+
+    if (g_clzinfo_mutex != NULL)
+        OS_THREAD_MUTEX_UNLOCK(g_clzinfo_mutex);
+    return NULL;
 }
+
+void class_debug_new(void *ptr, const char *name, const char *file, const char *func, int line)
+{
+    struct class_info *info = class_debug_init();
+    if (info != NULL) {
+        struct class_node *node = (struct class_node *)OS_MALLOC(sizeof(struct class_node));
+        if (node != NULL) {
+            node->ptr = ptr;
+            node->name = name;
+            node->file = file;
+            node->func = func;
+            node->line = line;
+            OS_TIMESTAMP_TO_LOCAL(&node->when);
+
+            //class_node_print(node, "new");
+
+            OS_THREAD_MUTEX_LOCK(info->mutex);
+            list_add_tail(&info->list, &node->listnode);
+            info->new_cnt++;
+            OS_THREAD_MUTEX_UNLOCK(info->mutex);
+        }
+    }
+}
+
+void class_debug_delete(void *ptr, const char *file, const char *func, int line)
+{
+    struct class_info *info = class_debug_init();
+    if (info != NULL) {
+        struct class_node *node;
+        struct listnode *item;
+        bool found = false;
+
+        OS_THREAD_MUTEX_LOCK(info->mutex);
+
+        list_for_each_reverse(item, &info->list) {
+            node = node_to_item(item, struct class_node, listnode);
+            if (node->ptr == ptr) {
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            //class_node_print(node, "delete");
+            info->delete_cnt++;
+            list_remove(item);
+            OS_FREE(node);
+        }
+        else {
+            OS_LOGF(LOG_TAG, "%s:%s:%d: failed to find ptr[%p] in list", file_name(file), func, line, ptr);
+        }
+
+        OS_THREAD_MUTEX_UNLOCK(info->mutex);
+    }
+}
+
+void class_debug_dump()
+{
+    struct class_info *info  = class_debug_init();
+    if (info != NULL) {
+        OS_LOGW(LOG_TAG, ">>");
+        OS_LOGW(LOG_TAG, "++++++++++++++++++++ CLASS DEBUG ++++++++++++++++++++");
+
+        OS_THREAD_MUTEX_LOCK(info->mutex);
+
+        struct listnode *item;
+        list_for_each(item, &info->list) {
+            struct class_node * node = node_to_item(item, struct class_node, listnode);
+            class_node_print(node, "Dump");
+        }
+
+        OS_LOGW(LOG_TAG, "Summary: new [%ld] blocks, delete [%ld] blocks", info->new_cnt, info->delete_cnt);
+
+        OS_THREAD_MUTEX_UNLOCK(info->mutex);
+
+        OS_LOGW(LOG_TAG, "-------------------- CLASS DEBUG --------------------");
+        OS_LOGW(LOG_TAG, "<<");
+    }
+}
+
+// ---------------------------------------------------------------------------
