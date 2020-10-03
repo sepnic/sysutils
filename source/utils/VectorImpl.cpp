@@ -26,6 +26,10 @@
 #include "utils/Namespace.h"
 #include "utils/VectorImpl.h"
 
+// Define DISABLE_SAFE_IOP if -std=gnu++11 not supported, note that typeof()
+// is GNU extension
+//#define DISABLE_SAFE_IOP
+
 /*****************************************************************************/
 
 
@@ -340,8 +344,12 @@ ssize_t VectorImpl::setCapacity(size_t new_capacity)
     }
 
     size_t new_allocation_size = 0;
+#if !defined(DISABLE_SAFE_IOP)
     OS_FATAL_IF(!safe_mul(&new_allocation_size, new_capacity, mItemSize),
         LOG_TAG, "Invalid new_allocation_size");
+#else
+    new_allocation_size = new_capacity * mItemSize;
+#endif
     SharedBuffer* sb = SharedBuffer::alloc(new_allocation_size);
     if (sb) {
         void* array = sb->data();
@@ -386,7 +394,11 @@ void* VectorImpl::_grow(size_t where, size_t amount)
             this, (int)where, (int)amount, (int)mCount); // caller already checked
 
     size_t new_size;
+#if !defined(DISABLE_SAFE_IOP)
     OS_FATAL_IF(!safe_add(&new_size, mCount, amount), LOG_TAG, "new_size overflow");
+#else
+    new_size = mCount + amount;
+#endif
 
     if (capacity() < new_size) {
         // NOTE: This implementation used to resize vectors as per ((3*x + 1) / 2)
@@ -397,15 +409,23 @@ void* VectorImpl::_grow(size_t where, size_t amount)
         //
         // This approximates the old calculation, using (x + (x/2) + 1) instead.
         size_t new_capacity = 0;
+#if !defined(DISABLE_SAFE_IOP)
         OS_FATAL_IF(!safe_add(&new_capacity, new_size, (new_size / 2)),
                     LOG_TAG, "new_capacity overflow");
         OS_FATAL_IF(!safe_add(&new_capacity, new_capacity, static_cast<size_t>(1u)),
                     LOG_TAG, "new_capacity overflow");
+#else
+        new_capacity = new_size + (new_size/2) + 1;
+#endif
         new_capacity = max(kMinVectorCapacity, new_capacity);
 
         size_t new_alloc_size = 0;
+#if !defined(DISABLE_SAFE_IOP)
         OS_FATAL_IF(!safe_mul(&new_alloc_size, new_capacity, mItemSize),
                     LOG_TAG, "new_alloc_size overflow");
+#else
+        new_alloc_size = new_capacity * mItemSize;
+#endif
 
 //        OS_LOGV(LOG_TAG, "grow vector %p, new_capacity=%d", this, (int)new_capacity);
         if ((mStorage) &&
@@ -464,7 +484,11 @@ void VectorImpl::_shrink(size_t where, size_t amount)
             this, (int)where, (int)amount, (int)mCount); // caller already checked
 
     size_t new_size;
+#if !defined(DISABLE_SAFE_IOP)
     OS_FATAL_IF(!safe_sub(&new_size, mCount, amount), LOG_TAG, "Invalid new_size");
+#else
+    new_size = mCount - amount;
+#endif
 
     if (new_size < (capacity() / 2)) {
         // NOTE: (new_size * 2) is safe because capacity didn't overflow and
