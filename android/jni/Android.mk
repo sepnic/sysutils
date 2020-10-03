@@ -27,7 +27,8 @@ LOCAL_SRC_FILES := \
     ${TOP_DIR}/source/utils/Unicode.cpp \
     ${TOP_DIR}/source/utils/Static.cpp \
     ${TOP_DIR}/source/utils/String8.cpp \
-    ${TOP_DIR}/source/utils/String16.cpp
+    ${TOP_DIR}/source/utils/String16.cpp \
+    ${TOP_DIR}/source/utils/StringUtils.cpp
 
 LOCAL_C_INCLUDES += ${TOP_DIR}/include
 
