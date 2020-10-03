@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/*
+ * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
+ */
+
 #include "utils/Namespace.h"
 
 // All static variables go here, to control initialization and

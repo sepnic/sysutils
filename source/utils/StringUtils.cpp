@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <string>

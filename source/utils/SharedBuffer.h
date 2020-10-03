@@ -15,7 +15,7 @@
  */
 
 /*
- * DEPRECATED.  DO NOT USE FOR NEW CODE.
+ * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
  */
 
 #ifndef MSGUTILS_ANDROID_SHARED_BUFFER_H

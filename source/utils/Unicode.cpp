@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+/*
+ * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
+ */
 #define LOG_TAG "unicode"
 
 #include <limits.h>

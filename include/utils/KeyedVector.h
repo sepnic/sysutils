@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
+ */
+
 #ifndef MSGUTILS_ANDROID_KEYED_VECTOR_H
 #define MSGUTILS_ANDROID_KEYED_VECTOR_H
 

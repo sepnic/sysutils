@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/*
+ * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
+ */
 #define LOG_TAG "String8"
 
 #include <stdint.h>
