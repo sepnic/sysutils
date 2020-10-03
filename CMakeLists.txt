@@ -26,6 +26,10 @@ set (LIBS_SRC ${TOP_DIR}/source/cutils/memory_debug.c
               ${TOP_DIR}/source/utils/SharedBuffer.cpp
               ${TOP_DIR}/source/utils/safe_iop.c
               ${TOP_DIR}/source/utils/VectorImpl.cpp
+              ${TOP_DIR}/source/utils/Unicode.cpp
+              ${TOP_DIR}/source/utils/Static.cpp
+              ${TOP_DIR}/source/utils/String8.cpp
+              ${TOP_DIR}/source/utils/String16.cpp
 )
 
 # cflags: OS_LINUX, OS_ANDROID, OS_MACOSX, OS_IOS, OS_FREERTOS
