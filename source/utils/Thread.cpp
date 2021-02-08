@@ -21,7 +21,7 @@
 
 #define TAG "ThreadBase"
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 Thread::Thread()
     :   mThread(NULL),
@@ -171,4 +171,4 @@ bool Thread::exitPending()
     return mExitPending;
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END

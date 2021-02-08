@@ -18,8 +18,8 @@
  * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
  */
 
-#ifndef MSGUTILS_ANDROID_UNICODE_H
-#define MSGUTILS_ANDROID_UNICODE_H
+#ifndef SYSUTILS_ANDROID_UNICODE_H
+#define SYSUTILS_ANDROID_UNICODE_H
 
 #include <sys/types.h>
 #include <stdint.h>

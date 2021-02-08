@@ -18,8 +18,8 @@
  * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
  */
 
-#ifndef MSGUTILS_ANDROID_STRING8_H
-#define MSGUTILS_ANDROID_STRING8_H
+#ifndef SYSUTILS_ANDROID_STRING8_H
+#define SYSUTILS_ANDROID_STRING8_H
 
 #include <string> // for std::string
 #include <string.h> // for strcmp
@@ -31,7 +31,7 @@
 
 // ---------------------------------------------------------------------------
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 class String16;
 
@@ -399,8 +399,8 @@ inline String8::operator const char*() const
     return mString;
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
 // ---------------------------------------------------------------------------
 
-#endif // MSGUTILS_ANDROID_STRING8_H
+#endif // SYSUTILS_ANDROID_STRING8_H

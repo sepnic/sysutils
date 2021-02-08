@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MSGUTILS_OS_THREAD_H__
-#define __MSGUTILS_OS_THREAD_H__
+#ifndef __SYSUTILS_OS_THREAD_H__
+#define __SYSUTILS_OS_THREAD_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -98,4 +98,4 @@ void OS_THREAD_COND_DESTROY(os_cond_t cond);
 }
 #endif
 
-#endif /* __MSGUTILS_OS_THREAD_H__ */
+#endif /* __SYSUTILS_OS_THREAD_H__ */

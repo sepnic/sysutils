@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MSGUTILS_OS_MEMORY_H__
-#define __MSGUTILS_OS_MEMORY_H__
+#ifndef __SYSUTILS_OS_MEMORY_H__
+#define __SYSUTILS_OS_MEMORY_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -165,4 +165,4 @@ char *memory_strdup(const char *str);
 
 // ---------------------------------------------------------------------------
 
-#endif /* __MSGUTILS_OS_MEMORY_H__ */
+#endif /* __SYSUTILS_OS_MEMORY_H__ */

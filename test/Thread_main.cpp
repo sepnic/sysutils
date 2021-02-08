@@ -9,7 +9,7 @@
 
 #define LOG_TAG "ThreadTest"
 
-MSGUTILS_NAMESPACE_USING
+SYSUTILS_NAMESPACE_USING
 
 class ThreadTest : public Thread {
 public:

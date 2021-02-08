@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef __MSGUTILS_NAMESPACE_H__
-#define __MSGUTILS_NAMESPACE_H__
+#ifndef __SYSUTILS_NAMESPACE_H__
+#define __SYSUTILS_NAMESPACE_H__
 
 #define NAMESPACE_BEGIN(name) namespace name {
 #define NAMESPACE_END()       }
 #define NAMESPACE_USING(name) using namespace name;
 
-#define MSGUTILS_NAMESPACE_BEGIN NAMESPACE_BEGIN(msgutils)
-#define MSGUTILS_NAMESPACE_END   NAMESPACE_END()
-#define MSGUTILS_NAMESPACE_USING NAMESPACE_USING(msgutils)
+#define SYSUTILS_NAMESPACE_BEGIN NAMESPACE_BEGIN(sysutils)
+#define SYSUTILS_NAMESPACE_END   NAMESPACE_END()
+#define SYSUTILS_NAMESPACE_USING NAMESPACE_USING(sysutils)
 
-#endif /* __MSGUTILS_NAMESPACE_H__ */
+#endif /* __SYSUTILS_NAMESPACE_H__ */

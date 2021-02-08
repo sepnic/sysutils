@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MSGUTILS_MSGLOOPER_H__
-#define __MSGUTILS_MSGLOOPER_H__
+#ifndef __SYSUTILS_MSGLOOPER_H__
+#define __SYSUTILS_MSGLOOPER_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -91,4 +91,4 @@ int mlooper_remove_message_if(mlooper_t looper, message_match_cb match_cb);
 }
 #endif
 
-#endif /* __MSGUTILS_MSGLOOPER_H__ */
+#endif /* __SYSUTILS_MSGLOOPER_H__ */

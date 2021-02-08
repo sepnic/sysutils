@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MSGUTILS_MSGQUEUE_H__
-#define __MSGUTILS_MSGQUEUE_H__
+#ifndef __SYSUTILS_MSGQUEUE_H__
+#define __SYSUTILS_MSGQUEUE_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -122,4 +122,4 @@ mqueue_t mqueueset_select_queue(mqueueset_t set, unsigned int timeout_ms);
 }
 #endif
 
-#endif /* __MSGUTILS_MSGQUEUE_H__ */
+#endif /* __SYSUTILS_MSGQUEUE_H__ */

@@ -9,7 +9,7 @@
 
 #define LOG_TAG "LooperTest"
 
-MSGUTILS_NAMESPACE_USING
+SYSUTILS_NAMESPACE_USING
 
 class LooperTest : public HandlerCallback {
 public:

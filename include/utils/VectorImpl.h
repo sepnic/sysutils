@@ -18,8 +18,8 @@
  * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
  */
 
-#ifndef MSGUTILS_ANDROID_VECTOR_IMPL_H
-#define MSGUTILS_ANDROID_VECTOR_IMPL_H
+#ifndef SYSUTILS_ANDROID_VECTOR_IMPL_H
+#define SYSUTILS_ANDROID_VECTOR_IMPL_H
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -29,7 +29,7 @@
 // No user serviceable parts in here...
 // ---------------------------------------------------------------------------
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 /*!
  * Implementation of the guts of the vector<> class
@@ -178,9 +178,9 @@ private:
             ssize_t         replaceAt(const void* item, size_t index);
 };
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
 
 // ---------------------------------------------------------------------------
 
-#endif // MSGUTILS_ANDROID_VECTOR_IMPL_H
+#endif // SYSUTILS_ANDROID_VECTOR_IMPL_H

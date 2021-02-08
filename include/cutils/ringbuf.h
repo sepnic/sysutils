@@ -26,8 +26,8 @@
  * Copyright (c) 2019-2020 LUOYUN <sysu.zqlong@gmail.com>
  */
 
-#ifndef __MSGUTILS_RINGBUF_H__
-#define __MSGUTILS_RINGBUF_H__
+#ifndef __SYSUTILS_RINGBUF_H__
+#define __SYSUTILS_RINGBUF_H__
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -197,4 +197,4 @@ bool rb_reach_threshold(ringbuf_handle_t rb);
 }
 #endif
 
-#endif // __MSGUTILS_RINGBUF_H__
+#endif // __SYSUTILS_RINGBUF_H__

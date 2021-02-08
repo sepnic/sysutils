@@ -18,8 +18,8 @@
  * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
  */
 
-#ifndef MSGUTILS_ANDROID_VECTOR_H
-#define MSGUTILS_ANDROID_VECTOR_H
+#ifndef SYSUTILS_ANDROID_VECTOR_H
+#define SYSUTILS_ANDROID_VECTOR_H
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -32,7 +32,7 @@
 
 // ---------------------------------------------------------------------------
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 template <typename TYPE>
 class SortedVector;
@@ -418,9 +418,9 @@ void Vector<TYPE>::do_move_backward(void* dest, const void* from, size_t num) co
     move_backward_type( reinterpret_cast<TYPE*>(dest), reinterpret_cast<const TYPE*>(from), num );
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
 
 // ---------------------------------------------------------------------------
 
-#endif // MSGUTILS_ANDROID_VECTOR_H
+#endif // SYSUTILS_ANDROID_VECTOR_H

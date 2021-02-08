@@ -18,8 +18,8 @@
  * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
  */
 
-#ifndef MSGUTILS_ANDROID_KEYED_VECTOR_H
-#define MSGUTILS_ANDROID_KEYED_VECTOR_H
+#ifndef SYSUTILS_ANDROID_KEYED_VECTOR_H
+#define SYSUTILS_ANDROID_KEYED_VECTOR_H
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -31,7 +31,7 @@
 
 // ---------------------------------------------------------------------------
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 template <typename KEY, typename VALUE>
 class KeyedVector
@@ -214,9 +214,9 @@ const VALUE& DefaultKeyedVector<KEY,VALUE>::valueFor(const KEY& key) const {
     return i >= 0 ? KeyedVector<KEY,VALUE>::valueAt(i) : mDefault;
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
 
 // ---------------------------------------------------------------------------
 
-#endif // MSGUTILS_ANDROID_KEYED_VECTOR_H
+#endif // SYSUTILS_ANDROID_KEYED_VECTOR_H

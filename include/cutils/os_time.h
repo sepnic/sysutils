@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MSGUTILS_OS_TIME_H__
-#define __MSGUTILS_OS_TIME_H__
+#ifndef __SYSUTILS_OS_TIME_H__
+#define __SYSUTILS_OS_TIME_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,4 +49,4 @@ unsigned long long OS_REALTIME_USEC();
 }
 #endif
 
-#endif /* __MSGUTILS_OS_TIME_H__ */
+#endif /* __SYSUTILS_OS_TIME_H__ */

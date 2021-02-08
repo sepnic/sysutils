@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MSGUTILS_THREAD_BASE_H__
-#define __MSGUTILS_THREAD_BASE_H__
+#ifndef __SYSUTILS_THREAD_BASE_H__
+#define __SYSUTILS_THREAD_BASE_H__
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -24,7 +24,7 @@
 #include "Mutex.h"
 #include "Namespace.h"
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 class Thread
 {
@@ -83,6 +83,6 @@ private:
     volatile bool           mRunning;
 };
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
-#endif /* __MSGUTILS_THREAD_BASE_H__ */
+#endif /* __SYSUTILS_THREAD_BASE_H__ */

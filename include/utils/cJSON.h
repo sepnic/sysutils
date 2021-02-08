@@ -20,12 +20,12 @@
   THE SOFTWARE.
 */
 
-#ifndef __MSGUTILS_CJSON_H__
-#define __MSGUTILS_CJSON_H__
+#ifndef __SYSUTILS_CJSON_H__
+#define __SYSUTILS_CJSON_H__
 
 #include "Namespace.h"
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 #if !defined(__WINDOWS__) && (defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32))
 #define __WINDOWS__
@@ -285,6 +285,6 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
 CJSON_PUBLIC(void *) cJSON_malloc(size_t size);
 CJSON_PUBLIC(void) cJSON_free(void *object);
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
-#endif // __MSGUTILS_CJSON_H__
+#endif // __SYSUTILS_CJSON_H__

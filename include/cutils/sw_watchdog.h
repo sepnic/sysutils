@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MSGUTILS_SW_WATCHDOG_H__
-#define __MSGUTILS_SW_WATCHDOG_H__
+#ifndef __SYSUTILS_SW_WATCHDOG_H__
+#define __SYSUTILS_SW_WATCHDOG_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,4 +40,4 @@ void swwatchdog_destroy(swwatch_t node);
 }
 #endif
 
-#endif /* __MSGUTILS_SW_WATCHDOG_H__ */
+#endif /* __SYSUTILS_SW_WATCHDOG_H__ */

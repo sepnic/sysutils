@@ -36,6 +36,6 @@ LOCAL_CPPFLAGS += -Wall -Werror -DOS_ANDROID -std=gnu++11
 
 LOCAL_LDLIBS := -llog
 
-LOCAL_MODULE := libmsgutils
+LOCAL_MODULE := libsysutils
 
 include $(BUILD_SHARED_LIBRARY)

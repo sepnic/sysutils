@@ -36,7 +36,7 @@
 /*****************************************************************************/
 
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 // ----------------------------------------------------------------------------
 
@@ -704,5 +704,5 @@ ssize_t SortedVectorImpl::remove(const void* item)
 
 /*****************************************************************************/
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 

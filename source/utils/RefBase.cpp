@@ -57,7 +57,7 @@
 
 // ---------------------------------------------------------------------------
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 // Observations, invariants, etc:
 
@@ -774,4 +774,4 @@ void RefBase::renameRefId(RefBase* ref,
 
 VirtualLightRefBase::~VirtualLightRefBase() {}
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END

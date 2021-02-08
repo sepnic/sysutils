@@ -18,8 +18,8 @@
  * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
  */
 
-#ifndef MSGUTILS_ANDROID_STRONG_POINTER_H
-#define MSGUTILS_ANDROID_STRONG_POINTER_H
+#ifndef SYSUTILS_ANDROID_STRONG_POINTER_H
+#define SYSUTILS_ANDROID_STRONG_POINTER_H
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -28,7 +28,7 @@
 #include "Namespace.h"
 
 // ---------------------------------------------------------------------------
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 template<typename T> class wp;
 
@@ -242,8 +242,8 @@ void sp<T>::set_pointer(T* ptr) {
     m_ptr = ptr;
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
 // ---------------------------------------------------------------------------
 
-#endif // MSGUTILS_ANDROID_STRONG_POINTER_H
+#endif // SYSUTILS_ANDROID_STRONG_POINTER_H

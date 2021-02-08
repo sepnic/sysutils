@@ -30,7 +30,7 @@
 
 #include "SharedBuffer.h"
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 static SharedBuffer* gEmptyStringBuf = NULL;
 static char16_t* gEmptyString = NULL;
@@ -438,4 +438,4 @@ bool String16::remove(size_t len, size_t begin)
     return false;
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END

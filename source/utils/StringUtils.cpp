@@ -26,7 +26,7 @@
 #include "utils/Namespace.h"
 #include "utils/StringUtils.h"
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 #define CHECK_NE(a, b) \
   if ((a) == (b)) abort();
@@ -119,4 +119,4 @@ bool StringUtils::EqualsIgnoreCase(const std::string& lhs, const std::string& rh
   return strcasecmp(lhs.c_str(), rhs.c_str()) == 0;
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END

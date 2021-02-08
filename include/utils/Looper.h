@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MSGUTILS_LOOPER_H__
-#define __MSGUTILS_LOOPER_H__
+#ifndef __SYSUTILS_LOOPER_H__
+#define __SYSUTILS_LOOPER_H__
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -25,7 +25,7 @@
 #include "Mutex.h"
 #include "Namespace.h"
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 /**
  * +---------+
@@ -208,6 +208,6 @@ private:
     static void *threadEntry(void *arg);
 };
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
-#endif /* __MSGUTILS_LOOPER_H__ */
+#endif /* __SYSUTILS_LOOPER_H__ */

@@ -10,7 +10,7 @@
 
 #define LOG_TAG "VectorTest"
 
-MSGUTILS_NAMESPACE_USING
+SYSUTILS_NAMESPACE_USING
 
 int main()
 {

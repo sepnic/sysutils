@@ -23,7 +23,7 @@
 
 #define TAG "Looper"
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 static const int kCacheMsgMaxCount = 50;
 std::list<Message *> kCacheMsgList;
@@ -532,4 +532,4 @@ Looper *HandlerThread::getLooper()
     return mLooper;
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END

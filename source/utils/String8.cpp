@@ -37,7 +37,7 @@
 
 // ---------------------------------------------------------------------------
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 #if defined(_WIN32)
 #define OS_PATH_SEPARATOR '\\'
@@ -690,4 +690,4 @@ String8& String8::convertToResPath()
     return *this;
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END

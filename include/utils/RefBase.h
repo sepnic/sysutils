@@ -170,8 +170,8 @@
 // to THE SAME sp<> or wp<>.  In effect, their thread-safety properties are
 // exactly like those of T*, NOT atomic<T*>.
 
-#ifndef MSGUTILS_ANDROID_REF_BASE_H
-#define MSGUTILS_ANDROID_REF_BASE_H
+#ifndef SYSUTILS_ANDROID_REF_BASE_H
+#define SYSUTILS_ANDROID_REF_BASE_H
 
 #include <atomic>
 
@@ -185,7 +185,7 @@
 #include "Namespace.h"
 
 // ---------------------------------------------------------------------------
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 // ---------------------------------------------------------------------------
 
@@ -716,8 +716,8 @@ void move_backward_type(wp<TYPE>* d, wp<TYPE> const* s, size_t n) {
     ReferenceMover::move_references(d, s, n);
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
 // ---------------------------------------------------------------------------
 
-#endif // MSGUTILS_ANDROID_REF_BASE_H
+#endif // SYSUTILS_ANDROID_REF_BASE_H

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef __MSGUTILS_MUTEX_H__
-#define __MSGUTILS_MUTEX_H__
+#ifndef __SYSUTILS_MUTEX_H__
+#define __SYSUTILS_MUTEX_H__
 
 #include <stdbool.h>
 #include "cutils/os_thread.h"
 #include "Namespace.h"
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 class Mutex {
 public:
@@ -60,6 +60,6 @@ private:
     os_cond_t  mCond;
 };
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
-#endif /* __MSGUTILS_MUTEX_H__ */
+#endif /* __SYSUTILS_MUTEX_H__ */

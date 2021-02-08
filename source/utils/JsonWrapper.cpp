@@ -24,7 +24,7 @@
 #include "utils/cJSON.h"
 #include "utils/JsonWrapper.h"
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 JsonWrapper::JsonWrapper()
     : m_root(nullptr)
@@ -788,4 +788,4 @@ void JsonWrapper::doMerge(cJSON* root1, cJSON* root2)
     }
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END

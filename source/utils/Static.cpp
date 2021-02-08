@@ -23,7 +23,7 @@
 // All static variables go here, to control initialization and
 // destruction order in the library.
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 // For String8.cpp
 extern void initialize_string8();
@@ -33,23 +33,23 @@ extern void terminate_string8();
 extern void initialize_string16();
 extern void terminate_string16();
 
-class MsgUtilsFirstStatics
+class SysUtilsFirstStatics
 {
 public:
-    MsgUtilsFirstStatics()
+    SysUtilsFirstStatics()
     {
         initialize_string8();
         initialize_string16();
     }
     
-    ~MsgUtilsFirstStatics()
+    ~SysUtilsFirstStatics()
     {
         terminate_string16();
         terminate_string8();
     }
 };
 
-static MsgUtilsFirstStatics gFirstStatics;
+static SysUtilsFirstStatics gFirstStatics;
 int gDarwinCantLoadAllObjects = 1;
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END

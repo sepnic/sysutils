@@ -29,7 +29,7 @@
 
 // ---------------------------------------------------------------------------
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 SharedBuffer* SharedBuffer::alloc(size_t size)
 {
@@ -129,4 +129,4 @@ int32_t SharedBuffer::release(uint32_t flags) const
     return prev;
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END

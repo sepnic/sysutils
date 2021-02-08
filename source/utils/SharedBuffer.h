@@ -18,8 +18,8 @@
  * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
  */
 
-#ifndef MSGUTILS_ANDROID_SHARED_BUFFER_H
-#define MSGUTILS_ANDROID_SHARED_BUFFER_H
+#ifndef SYSUTILS_ANDROID_SHARED_BUFFER_H
+#define SYSUTILS_ANDROID_SHARED_BUFFER_H
 
 #include <atomic>
 #include <stdint.h>
@@ -29,7 +29,7 @@
 
 // ---------------------------------------------------------------------------
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 class SharedBuffer
 {
@@ -141,8 +141,8 @@ bool SharedBuffer::onlyOwner() const {
     return (mRefs.load(std::memory_order_acquire) == 1);
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
 // ---------------------------------------------------------------------------
 
-#endif // MSGUTILS_ANDROID_VECTOR_H
+#endif // SYSUTILS_ANDROID_VECTOR_H

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef __MSGUTILS_JSON_WRAPPER_H__
-#define __MSGUTILS_JSON_WRAPPER_H__
+#ifndef __SYSUTILS_JSON_WRAPPER_H__
+#define __SYSUTILS_JSON_WRAPPER_H__
 
 #include <stdio.h>
 #include <stdbool.h>
 #include <string>
 #include "Namespace.h"
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 struct cJSON;
 
@@ -142,6 +142,6 @@ private:
     bool m_owner;
 };
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
-#endif // __MSGUTILS_JSON_WRAPPER_H__
+#endif // __SYSUTILS_JSON_WRAPPER_H__

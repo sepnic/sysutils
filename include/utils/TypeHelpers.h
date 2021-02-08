@@ -18,8 +18,8 @@
  * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
  */
 
-#ifndef MSGUTILS_ANDROID_TYPE_HELPERS_H
-#define MSGUTILS_ANDROID_TYPE_HELPERS_H
+#ifndef SYSUTILS_ANDROID_TYPE_HELPERS_H
+#define SYSUTILS_ANDROID_TYPE_HELPERS_H
 
 #include <new>
 #include <type_traits>
@@ -32,7 +32,7 @@
 
 // ---------------------------------------------------------------------------
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 /*
  * Types traits
@@ -335,8 +335,8 @@ template <typename T> inline hash_t hash_type(T* const & value) {
     return hash_type(uintptr_t(value));
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
 // ---------------------------------------------------------------------------
 
-#endif // MSGUTILS_ANDROID_TYPE_HELPERS_H
+#endif // SYSUTILS_ANDROID_TYPE_HELPERS_H

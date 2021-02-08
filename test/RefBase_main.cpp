@@ -3,7 +3,7 @@
 #include "utils/Namespace.h"
 #include "utils/RefBase.h"
 
-MSGUTILS_NAMESPACE_USING
+SYSUTILS_NAMESPACE_USING
 
 class A : public RefBase
 {

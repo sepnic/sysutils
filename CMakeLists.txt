@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4.1)
-project(msgutils)
+project(sysutils)
 
 set(TOP_DIR "${CMAKE_SOURCE_DIR}")
 
@@ -54,6 +54,6 @@ set(CMAKE_LDFLAGS "${CMAKE_LDFLAGS} -Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed
 # ENABLE_CLASS_LEAK_DETECT
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_CLASS_LEAK_DETECT")
 
-# msgutils lib
-add_library(msgutils   SHARED ${LIBS_SRC})
-add_library(msgutils_s STATIC ${LIBS_SRC})
+# sysutils lib
+add_library(sysutils   SHARED ${LIBS_SRC})
+add_library(sysutils_s STATIC ${LIBS_SRC})

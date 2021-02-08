@@ -18,15 +18,15 @@
  * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
  */
 
-#ifndef MSGUTILS_ANDROID_STRING_UTILS_H
-#define MSGUTILS_ANDROID_STRING_UTILS_H
+#ifndef SYSUTILS_ANDROID_STRING_UTILS_H
+#define SYSUTILS_ANDROID_STRING_UTILS_H
 
 #include <sstream>
 #include <string>
 #include <vector>
 #include "Namespace.h"
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 class StringUtils {
 public:
@@ -74,6 +74,6 @@ extern template std::string StringUtils::Join(const std::vector<const char*>&, c
 extern template std::string StringUtils::Join(const std::vector<std::string>&, const std::string&);
 extern template std::string StringUtils::Join(const std::vector<const char*>&, const std::string&);
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
-#endif  // MSGUTILS_ANDROID_STRING_UTILS_H
+#endif  // SYSUTILS_ANDROID_STRING_UTILS_H

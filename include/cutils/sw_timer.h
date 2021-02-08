@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __MSGUTILS_SW_TIMER_H__
-#define __MSGUTILS_SW_TIMER_H__
+#ifndef __SYSUTILS_SW_TIMER_H__
+#define __SYSUTILS_SW_TIMER_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,4 +47,4 @@ void swtimer_destroy(swtimer_t timer);
 }
 #endif
 
-#endif /* __MSGUTILS_SW_TIMER_H__ */
+#endif /* __SYSUTILS_SW_TIMER_H__ */

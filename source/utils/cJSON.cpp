@@ -59,7 +59,7 @@
 #include "utils/Namespace.h"
 #include "utils/cJSON.h"
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 /* define our own boolean type */
 #ifdef true
@@ -3076,4 +3076,4 @@ CJSON_PUBLIC(void) cJSON_free(void *object)
     global_hooks.deallocate(object);
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(msgutils_test)
+project(sysutils_test)
 
 set(CMAKE_SYSTEM_NAME MACOSX)
 
@@ -52,30 +52,30 @@ set(CMAKE_CXX_FLAGS "-DENABLE_DEBUG -std=gnu++11 -Wall -Werror")
 # ldflags
 set(CMAKE_LDFLAGS "${CMAKE_LDFLAGS} -Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed")
 
-# msgutils lib
-add_library(msgutils   SHARED ${LIBS_SRC})
-add_library(msgutils_s STATIC ${LIBS_SRC})
+# sysutils lib
+add_library(sysutils   SHARED ${LIBS_SRC})
+add_library(sysutils_s STATIC ${LIBS_SRC})
 
 # msglooper test
 add_executable(msglooper ${CMAKE_SOURCE_DIR}/msglooper_main.c)
-target_link_libraries(msglooper msgutils pthread)
+target_link_libraries(msglooper sysutils pthread)
 
 # msgqueue test
 add_executable(msgqueue ${CMAKE_SOURCE_DIR}/msgqueue_main.c)
-target_link_libraries(msgqueue msgutils pthread)
+target_link_libraries(msgqueue sysutils pthread)
 
 # Looper test
 add_executable(Looper ${CMAKE_SOURCE_DIR}/Looper_main.cpp)
-target_link_libraries(Looper msgutils pthread)
+target_link_libraries(Looper sysutils pthread)
 
 # Thread test
 add_executable(Thread ${CMAKE_SOURCE_DIR}/Thread_main.cpp)
-target_link_libraries(Thread msgutils pthread)
+target_link_libraries(Thread sysutils pthread)
 
 # RefBase test
 add_executable(RefBase ${CMAKE_SOURCE_DIR}/RefBase_main.cpp)
-target_link_libraries(RefBase msgutils pthread)
+target_link_libraries(RefBase sysutils pthread)
 
 # Vector test
 add_executable(Vector ${CMAKE_SOURCE_DIR}/Vector_main.cpp)
-target_link_libraries(Vector msgutils pthread)
+target_link_libraries(Vector sysutils pthread)

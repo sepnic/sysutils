@@ -18,8 +18,8 @@
  * Copyright (c) 2020 luoyun <sysu.zqlong@gmail.com>
  */
 
-#ifndef MSGUTILS_ANDROID_SORTED_VECTOR_H
-#define MSGUTILS_ANDROID_SORTED_VECTOR_H
+#ifndef SYSUTILS_ANDROID_SORTED_VECTOR_H
+#define SYSUTILS_ANDROID_SORTED_VECTOR_H
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -32,7 +32,7 @@
 
 // ---------------------------------------------------------------------------
 
-MSGUTILS_NAMESPACE_BEGIN
+SYSUTILS_NAMESPACE_BEGIN
 
 template <class TYPE>
 class SortedVector : private SortedVectorImpl
@@ -274,9 +274,9 @@ int SortedVector<TYPE>::do_compare(const void* lhs, const void* rhs) const {
     return compare_type( *reinterpret_cast<const TYPE*>(lhs), *reinterpret_cast<const TYPE*>(rhs) );
 }
 
-MSGUTILS_NAMESPACE_END
+SYSUTILS_NAMESPACE_END
 
 
 // ---------------------------------------------------------------------------
 
-#endif // MSGUTILS_ANDROID_SORTED_VECTOR_H
+#endif // SYSUTILS_ANDROID_SORTED_VECTOR_H
