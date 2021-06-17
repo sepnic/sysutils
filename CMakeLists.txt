@@ -30,6 +30,10 @@ set (LIBS_SRC ${TOP_DIR}/source/cutils/memory_debug.c
               ${TOP_DIR}/source/utils/String8.cpp
               ${TOP_DIR}/source/utils/String16.cpp
               ${TOP_DIR}/source/utils/StringUtils.cpp
+              ${TOP_DIR}/source/cipher/sha2.c
+              ${TOP_DIR}/source/cipher/hmac_sha2.c
+              ${TOP_DIR}/source/cipher/md5.c
+              ${TOP_DIR}/source/cipher/base64.cpp
 )
 
 # cflags: OS_LINUX, OS_ANDROID, OS_MACOSX, OS_IOS, OS_FREERTOS

@@ -27,7 +27,11 @@ LOCAL_SRC_FILES := \
     ${TOP_DIR}/source/utils/Static.cpp \
     ${TOP_DIR}/source/utils/String8.cpp \
     ${TOP_DIR}/source/utils/String16.cpp \
-    ${TOP_DIR}/source/utils/StringUtils.cpp
+    ${TOP_DIR}/source/utils/StringUtils.cpp \
+    ${TOP_DIR}/source/cipher/sha2.c \
+    ${TOP_DIR}/source/cipher/hmac_sha2.c \
+    ${TOP_DIR}/source/cipher/md5.c \
+    ${TOP_DIR}/source/cipher/base64.cpp
 
 LOCAL_C_INCLUDES += ${TOP_DIR}/include
 
