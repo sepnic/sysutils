@@ -15,7 +15,7 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "safe_iop.h"
+#include "SafeIop.h"
 
 /* Read off the type if the first value matches a type prefix
  * and consume characters if successful.

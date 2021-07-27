@@ -21,7 +21,7 @@ LOCAL_SRC_FILES := \
     ${TOP_DIR}/source/utils/JsonWrapper.cpp \
     ${TOP_DIR}/source/utils/RefBase.cpp \
     ${TOP_DIR}/source/utils/SharedBuffer.cpp \
-    ${TOP_DIR}/source/utils/safe_iop.c \
+    ${TOP_DIR}/source/utils/SafeIop.cpp \
     ${TOP_DIR}/source/utils/VectorImpl.cpp \
     ${TOP_DIR}/source/utils/Unicode.cpp \
     ${TOP_DIR}/source/utils/Static.cpp \
@@ -36,7 +36,7 @@ LOCAL_SRC_FILES := \
 LOCAL_C_INCLUDES += ${TOP_DIR}/include
 
 LOCAL_CFLAGS += -Wall -Werror -DOS_ANDROID
-LOCAL_CPPFLAGS += -Wall -Werror -DOS_ANDROID -std=gnu++11
+LOCAL_CPPFLAGS += -Wall -Werror -DOS_ANDROID -std=c++11
 
 LOCAL_LDLIBS := -llog
 

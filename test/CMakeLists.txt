@@ -9,34 +9,35 @@ set(TOP_DIR "${CMAKE_SOURCE_DIR}/..")
 include_directories(${TOP_DIR}/include)
 
 # source files
-set (LIBS_SRC ${TOP_DIR}/source/cutils/memory_debug.c
-              ${TOP_DIR}/source/cutils/msglooper.c
-              ${TOP_DIR}/source/cutils/msgqueue.c
-              ${TOP_DIR}/source/cutils/ringbuf.c
-              ${TOP_DIR}/source/cutils/sw_timer.c
-              ${TOP_DIR}/source/cutils/sw_watchdog.c
-              ${TOP_DIR}/osal/os_logger.c
-              ${TOP_DIR}/osal/os_thread.c
-              ${TOP_DIR}/osal/os_time.c
-              ${TOP_DIR}/osal/os_timer.c
-              ${TOP_DIR}/source/utils/Looper.cpp
-              ${TOP_DIR}/source/utils/Thread.cpp
-              ${TOP_DIR}/source/utils/cJSON.cpp
-              ${TOP_DIR}/source/utils/JsonWrapper.cpp
-              ${TOP_DIR}/source/utils/RefBase.cpp
-              ${TOP_DIR}/source/utils/SharedBuffer.cpp
-              ${TOP_DIR}/source/utils/safe_iop.c
-              ${TOP_DIR}/source/utils/VectorImpl.cpp
-              ${TOP_DIR}/source/utils/Unicode.cpp
-              ${TOP_DIR}/source/utils/Static.cpp
-              ${TOP_DIR}/source/utils/String8.cpp
-              ${TOP_DIR}/source/utils/String16.cpp
-              ${TOP_DIR}/source/utils/StringUtils.cpp
+set (LIBS_SRC
+    ${TOP_DIR}/source/cutils/memory_debug.c
+    ${TOP_DIR}/source/cutils/msglooper.c
+    ${TOP_DIR}/source/cutils/msgqueue.c
+    ${TOP_DIR}/source/cutils/ringbuf.c
+    ${TOP_DIR}/source/cutils/sw_timer.c
+    ${TOP_DIR}/source/cutils/sw_watchdog.c
+    ${TOP_DIR}/osal/os_logger.c
+    ${TOP_DIR}/osal/os_thread.c
+    ${TOP_DIR}/osal/os_time.c
+    ${TOP_DIR}/osal/os_timer.c
+    ${TOP_DIR}/source/utils/Looper.cpp
+    ${TOP_DIR}/source/utils/Thread.cpp
+    ${TOP_DIR}/source/utils/cJSON.cpp
+    ${TOP_DIR}/source/utils/JsonWrapper.cpp
+    ${TOP_DIR}/source/utils/RefBase.cpp
+    ${TOP_DIR}/source/utils/SharedBuffer.cpp
+    ${TOP_DIR}/source/utils/SafeIop.cpp
+    ${TOP_DIR}/source/utils/VectorImpl.cpp
+    ${TOP_DIR}/source/utils/Unicode.cpp
+    ${TOP_DIR}/source/utils/Static.cpp
+    ${TOP_DIR}/source/utils/String8.cpp
+    ${TOP_DIR}/source/utils/String16.cpp
+    ${TOP_DIR}/source/utils/StringUtils.cpp
 )
 
 # cflags
 set(CMAKE_C_FLAGS   "-DENABLE_DEBUG -Wall -Werror -DOS_MACOSX")
-set(CMAKE_CXX_FLAGS "-DENABLE_DEBUG -std=gnu++11 -Wall -Werror")
+set(CMAKE_CXX_FLAGS "-DENABLE_DEBUG -std=c++11 -Wall -Werror")
 
 # ENABLE_MEMORY_LEAK_DETECT
 #set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -DENABLE_MEMORY_LEAK_DETECT -DENABLE_MEMORY_OVERFLOW_DETECT")
@@ -48,9 +49,6 @@ set(CMAKE_CXX_FLAGS "-DENABLE_DEBUG -std=gnu++11 -Wall -Werror")
 
 # ENABLE_CLASS_LEAK_DETECT
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_CLASS_LEAK_DETECT")
-
-# ldflags
-set(CMAKE_LDFLAGS "${CMAKE_LDFLAGS} -Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed")
 
 # sysutils lib
 add_library(sysutils   SHARED ${LIBS_SRC})

@@ -38,13 +38,34 @@ public:
     } 
 };
 
+void nothing1(sp<A> &a)
+{
+    printf("nothing1::A::getStrongCount()=%d\n", a->getStrongCount());
+    sp<A> aa = a;
+    printf("nothing1::A::getStrongCount()=%d\n", a->getStrongCount());
+}
+
+void nothing2(sp<A> a)
+{
+    printf("nothing2::A::getStrongCount()=%d\n", a->getStrongCount());
+    sp<A> aa = a;
+    printf("nothing2::A::getStrongCount()=%d\n", a->getStrongCount());
+}
+
 int main()
 {
-    sp<A> spObj = new A;
+    sp<A> spObjA = new A;
+    printf("main::A::getStrongCount()=%d\n", spObjA->getStrongCount());
 
-    wp<B> wpObj = new B;
-    sp<B> spObj2 = wpObj.promote();
-    spObj2->show();
+    nothing1(spObjA);
+    printf("main::A::getStrongCount()=%d\n", spObjA->getStrongCount());
+
+    nothing2(spObjA);
+    printf("main::A::getStrongCount()=%d\n", spObjA->getStrongCount());
+
+    wp<B> wpObjB = new B;
+    sp<B> spObjB2 = wpObjB.promote();
+    spObjB2->show();
 
     return 0;
 }
