@@ -65,8 +65,10 @@ struct message {
 };
 
 struct message *message_obtain(int what, int arg1, int arg2, void *data);
-struct message *message_obtain2(int what, int arg1, int arg2, void *data, unsigned long timeout_ms,
-                                message_handle_cb handle_cb, message_free_cb free_cb, message_timeout_cb timeout_cb);
+struct message *message_obtain_copy_data(int what, int arg1, int arg2, void *data, unsigned int data_size);
+void message_set_handle_cb(struct message *msg, message_handle_cb handle_cb);
+void message_set_free_cb(struct message *msg, message_free_cb free_cb);
+void message_set_timeout_cb(struct message *msg, message_timeout_cb timeout_cb, unsigned long timeout_ms);
 
 mlooper_t mlooper_create(struct os_threadattr *attr, message_handle_cb handle_cb, message_free_cb free_cb);
 void mlooper_destroy(mlooper_t looper);

@@ -55,6 +55,8 @@ struct message_node {
     unsigned long long when;
     unsigned long long timeout;
     struct listnode listnode;
+
+    char reserve[0];
 };
 
 static void mlooper_free_msgnode(mlooper_t looper, struct message_node *node)
@@ -475,22 +477,41 @@ struct message *message_obtain(int what, int arg1, int arg2, void *data)
     return msg;
 }
 
-struct message *message_obtain2(int what, int arg1, int arg2, void *data, unsigned long timeout_ms,
-                                message_handle_cb handle_cb, message_free_cb free_cb, message_timeout_cb timeout_cb)
+struct message *message_obtain_copy_data(int what, int arg1, int arg2, void *data, unsigned int data_size)
 {
-    struct message *msg = OS_CALLOC(1, sizeof(struct message_node));
-    if (msg == NULL) {
+    unsigned int size = data_size + sizeof(struct message_node) + sizeof(long long);
+    struct message_node *node = OS_CALLOC(1, size);
+    if (node == NULL) {
         OS_LOGE(LOG_TAG, "Failed to allocate message");
         return NULL;
     }
 
+    struct message *msg = (struct message *)node;
     msg->what = what;
     msg->arg1 = arg1;
     msg->arg2 = arg2;
-    msg->data = data;
-    msg->timeout_ms = timeout_ms;
-    msg->handle_cb = handle_cb;
-    msg->free_cb = free_cb;
-    msg->timeout_cb = timeout_cb;
+    if (data != NULL && data_size > 0) {
+        memcpy(node->reserve, data, data_size);
+        msg->data = node->reserve;
+    }
+    else {
+        msg->data = data;
+    }
     return msg;
+}
+
+void message_set_handle_cb(struct message *msg, message_handle_cb handle_cb)
+{
+    msg->handle_cb = handle_cb;
+}
+
+void message_set_free_cb(struct message *msg, message_free_cb free_cb)
+{
+    msg->free_cb = free_cb;
+}
+
+void message_set_timeout_cb(struct message *msg, message_timeout_cb timeout_cb, unsigned long timeout_ms)
+{
+    msg->timeout_cb = timeout_cb;
+    msg->timeout_ms = timeout_ms;
 }
