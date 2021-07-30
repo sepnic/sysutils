@@ -261,9 +261,10 @@ int mlooper_post_message_delay(mlooper_handle looper, struct message *msg, unsig
     node->when = now + msec*1000;
     if (msg->timeout_ms > 0) {
         if (msg->timeout_ms <= msec) {
-            OS_LOGW(LOG_TAG, "[%s]: Invalid timeout: timeout_ms <= delay_ms: what=[%d]",
+            OS_LOGE(LOG_TAG, "[%s]: Invalid timeout_ms(timeout_ms <= delay_ms), discard message: what=[%d]",
                     looper->thread_name, msg->what);
-            node->timeout = 0;
+            mlooper_free_msgnode(looper, node);
+            return -1;
         } else {
             node->timeout = now + msg->timeout_ms * 1000;
         }
