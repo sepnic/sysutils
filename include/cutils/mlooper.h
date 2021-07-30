@@ -62,12 +62,12 @@ struct message {
     message_cb timeout_cb;
 };
 struct message *message_obtain(int what, int arg1, int arg2, void *data);
-// message_obtain_alloc_buffer:
-//   Obtain a message and allocate a piece of buffer whose address is msg->data,
+// message_obtain_buffer_obtain:
+//   Obtain a message and obtain a piece of buffer that points to msg->data,
 //   user can access this buffer before message free.
 //   Note that user can't free msg->data, buffer will be clear automatically
 //   when message free.
-struct message *message_obtain_alloc_buffer(int what, int arg1, int arg2, unsigned int size);
+struct message *message_obtain_buffer_obtain(int what, int arg1, int arg2, unsigned int size);
 void message_set_handle_cb(struct message *msg, message_cb handle_cb);
 void message_set_free_cb(struct message *msg, message_cb free_cb);
 void message_set_timeout_cb(struct message *msg, message_cb timeout_cb, unsigned long timeout_ms);

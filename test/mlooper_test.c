@@ -76,7 +76,7 @@ int main()
     }
 
     {
-        msg = message_obtain_alloc_buffer(0, 0, 0, sizeof(struct priv_data));
+        msg = message_obtain_buffer_obtain(0, 0, 0, sizeof(struct priv_data));
         struct priv_data *priv = (struct priv_data *)msg->data;
         priv->str = OS_STRDUP("mlooper_post_message_front");
         message_set_handle_cb(msg, msg_handle2);

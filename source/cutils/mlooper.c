@@ -181,7 +181,8 @@ mlooper_handle mlooper_create(struct os_thread_attr *attr, message_cb handle_cb,
     looper->thread_attr.name = looper->thread_name;
     if (attr != NULL) {
         looper->thread_attr.priority = attr->priority;
-        looper->thread_attr.stacksize = attr->stacksize;
+        looper->thread_attr.stacksize =
+            attr->stacksize > 0 ? attr->stacksize : os_thread_default_stacksize();
         looper->thread_attr.joinable = true; // force joinalbe, wait exit when mlooper_stop
     } else {
         looper->thread_attr.priority = os_thread_default_priority();
@@ -264,7 +265,7 @@ int mlooper_post_message_delay(mlooper_handle looper, struct message *msg, unsig
     node->owner_thread = os_thread_self();
     if (msg->timeout_ms > 0) {
         if (msg->timeout_ms <= msec) {
-            OS_LOGE(LOG_TAG, "[%s]: Invalid timeout_ms(timeout_ms <= delay_ms), discard message: what=[%d]",
+            OS_LOGE(LOG_TAG, "[%s]: timeout_ms <= delay_ms, discard message: what=[%d]",
                     looper->thread_name, msg->what);
             mlooper_free_msgnode(looper, node);
             return -1;
@@ -373,7 +374,7 @@ void mlooper_stop(mlooper_handle looper)
 {
     if (looper->thread_id == os_thread_self()) {
         OS_LOGW(LOG_TAG,
-                "Thread (%p:%s): don't call mlooper_stop() from this Thread object's thread. Maybe deadlock!",
+                "Thread (%p:%s): don't call mlooper_stop() from this thread. Maybe deadlock!",
                 looper->thread_id, looper->thread_name);
     }
 
@@ -415,7 +416,7 @@ struct message *message_obtain(int what, int arg1, int arg2, void *data)
     return msg;
 }
 
-struct message *message_obtain_alloc_buffer(int what, int arg1, int arg2, unsigned int size)
+struct message *message_obtain_buffer_obtain(int what, int arg1, int arg2, unsigned int size)
 {
     unsigned int total = sizeof(struct message_node) + size + sizeof(long);
     struct message_node *node = OS_CALLOC(1, total);
