@@ -33,11 +33,14 @@ typedef void * os_cond;
 struct os_thread_attr {
     const char *name;
     int priority;
-    unsigned int stacksize;
+    unsigned long stacksize;
     bool joinable;
 };
 
 os_thread os_thread_create(struct os_thread_attr *attr, void *(*cb)(void *arg), void *arg);
+os_thread os_thread_self();
+int os_thread_default_priority();
+unsigned long os_thread_default_stacksize();
 int os_thread_join(os_thread thread, void **retval);
 int os_thread_detach(os_thread thread);
 

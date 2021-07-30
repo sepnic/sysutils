@@ -11,6 +11,9 @@ LOCAL_SRC_FILES := \
     ${TOP_DIR}/osal/unix/os_time.c \
     ${TOP_DIR}/osal/unix/os_timer.c \
     ${TOP_DIR}/source/cutils/memdbg.c \
+    ${TOP_DIR}/source/cutils/mlooper.c \
+    ${TOP_DIR}/source/cutils/mqueue.c \
+    ${TOP_DIR}/source/cutils/ringbuf.c \
     ${TOP_DIR}/source/cutils/swtimer.c \
 
 LOCAL_C_INCLUDES += ${TOP_DIR}/include

@@ -14,6 +14,9 @@ set (LIBS_SRC
     ${TOP_DIR}/osal/unix/os_time.c
     ${TOP_DIR}/osal/unix/os_timer.c
     ${TOP_DIR}/source/cutils/memdbg.c
+    ${TOP_DIR}/source/cutils/mlooper.c
+    ${TOP_DIR}/source/cutils/mqueue.c
+    ${TOP_DIR}/source/cutils/ringbuf.c
     ${TOP_DIR}/source/cutils/swtimer.c
 )
 
@@ -34,3 +37,11 @@ target_link_libraries(timer_test sysutils pthread)
 # memdbg test
 add_executable(memdbg_test ${CMAKE_SOURCE_DIR}/memdbg_test.c)
 target_link_libraries(memdbg_test sysutils pthread)
+
+# mqueue test
+add_executable(mqueue_test ${CMAKE_SOURCE_DIR}/mqueue_test.c)
+target_link_libraries(mqueue_test sysutils pthread)
+
+# mlooper test
+add_executable(mlooper_test ${CMAKE_SOURCE_DIR}/mlooper_test.c)
+target_link_libraries(mlooper_test sysutils pthread)
