@@ -55,7 +55,9 @@ int os_thread_default_priority()
     struct sched_param param;
     int sched_priority = DEFAULT_THREAD_PRIORITY;
     pthread_attr_init(&attr);
-    if (pthread_attr_getschedparam(&attr, &param) == 0)
+    if (pthread_attr_getschedparam(&attr, &param) != 0)
+        sched_priority = DEFAULT_THREAD_PRIORITY;
+    else
         sched_priority = param.sched_priority;
     pthread_attr_destroy(&attr);
     return sched_priority;
@@ -159,6 +161,11 @@ int os_cond_timedwait(os_cond cond, os_mutex mutex, unsigned long usec)
 int os_cond_signal(os_cond cond)
 {
     return pthread_cond_signal((pthread_cond_t *)cond);
+}
+
+int os_cond_broadcast(os_cond cond)
+{
+    return pthread_cond_broadcast((pthread_cond_t *)cond);
 }
 
 void os_cond_destroy(os_cond cond)

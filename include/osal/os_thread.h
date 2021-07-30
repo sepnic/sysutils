@@ -54,6 +54,7 @@ os_cond os_cond_create();
 int os_cond_wait(os_cond cond, os_mutex mutex);
 int os_cond_timedwait(os_cond cond, os_mutex mutex, unsigned long usec);
 int os_cond_signal(os_cond cond);
+int os_cond_broadcast(os_cond cond);
 void os_cond_destroy(os_cond cond);
 
 void os_thread_sleep_usec(unsigned long usec);

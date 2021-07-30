@@ -17,7 +17,41 @@
 #include <string.h>
 #include "osal/os_timer.h"
 
-#if defined(OS_LINUX) || defined(OS_ANDROID)
+#if defined(OS_UNIX) || defined(OS_APPLE) || defined(OS_RTOS)
+#include "cutils/swtimer.h"
+
+os_timer os_timer_create(struct os_timer_attr *attr, void (*cb)())
+{
+    struct swtimer_attr stattr;
+    swtimer_handle timer;
+    stattr.name = attr->name;
+    stattr.period_ms = attr->period_ms;
+    stattr.reload = attr->reload;
+    timer = swtimer_create(&stattr, cb);
+    return (os_timer)timer;
+}
+
+int os_timer_start(os_timer timer)
+{
+    return swtimer_start((swtimer_handle)timer);
+}
+
+int os_timer_stop(os_timer timer)
+{
+    return swtimer_stop((swtimer_handle)timer);
+}
+
+bool os_timer_is_active(os_timer timer)
+{
+    return swtimer_is_active((swtimer_handle)timer);
+}
+
+void os_timer_destroy(os_timer timer)
+{
+    swtimer_destroy((swtimer_handle)timer);
+}
+
+#elif defined(OS_LINUX) || defined(OS_ANDROID)
 #include <unistd.h>
 #include <time.h>
 #include <signal.h>
@@ -117,41 +151,6 @@ void os_timer_destroy(os_timer timer)
 
     timer_delete(handle->id);
     free(handle);
-}
-
-#elif defined(OS_UNIX) || defined(OS_APPLE) || defined(OS_RTOS)
-
-#include "cutils/swtimer.h"
-
-os_timer os_timer_create(struct os_timer_attr *attr, void (*cb)())
-{
-    struct swtimer_attr stattr;
-    swtimer_handle timer;
-    stattr.name = attr->name;
-    stattr.period_ms = attr->period_ms;
-    stattr.reload = attr->reload;
-    timer = swtimer_create(&stattr, cb);
-    return (os_timer)timer;
-}
-
-int os_timer_start(os_timer timer)
-{
-    return swtimer_start((swtimer_handle)timer);
-}
-
-int os_timer_stop(os_timer timer)
-{
-    return swtimer_stop((swtimer_handle)timer);
-}
-
-bool os_timer_is_active(os_timer timer)
-{
-    return swtimer_is_active((swtimer_handle)timer);
-}
-
-void os_timer_destroy(os_timer timer)
-{
-    swtimer_destroy((swtimer_handle)timer);
 }
 
 #endif
