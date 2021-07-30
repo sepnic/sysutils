@@ -85,7 +85,8 @@ static void *mlooper_thread_entry(void *arg)
     struct listnode *front = NULL;
     unsigned long long now;
 
-    OS_LOGD(LOG_TAG, "[%s]: Entry looper thread: thread_id=[%p]", looper->thread_name, looper->thread_id);
+    OS_LOGD(LOG_TAG, "[%s]: Entry looper thread: thread_id=[%p]",
+            looper->thread_name, looper->thread_id);
 
     while (1) {
         {
@@ -120,7 +121,8 @@ static void *mlooper_thread_entry(void *arg)
 
         if (msg != NULL) {
             if (node->timeout > 0 && node->timeout < now) {
-                OS_LOGE(LOG_TAG, "[%s]: Timeout, discard message: what=[%d]", looper->thread_name, msg->what);
+                OS_LOGE(LOG_TAG, "[%s]: Timeout, discard message: what=[%d]",
+                        looper->thread_name, msg->what);
                 if (msg->timeout_cb != NULL)
                     msg->timeout_cb(msg);
             } else {
@@ -129,7 +131,8 @@ static void *mlooper_thread_entry(void *arg)
                 else if (looper->msg_handle != NULL)
                     looper->msg_handle(msg);
                 else
-                    OS_LOGW(LOG_TAG, "[%s]: No message handler: what=[%d]", looper->thread_name, msg->what);
+                    OS_LOGW(LOG_TAG, "[%s]: No message handler: what=[%d]",
+                            looper->thread_name, msg->what);
             }
             mlooper_free_msgnode(looper, node);
         }
@@ -137,7 +140,8 @@ static void *mlooper_thread_entry(void *arg)
 
     mlooper_clear_msglist(looper);
 
-    OS_LOGD(LOG_TAG, "[%s]: Leave looper thread: thread_id=[%p]", looper->thread_name, looper->thread_id);
+    OS_LOGD(LOG_TAG, "[%s]: Leave looper thread: thread_id=[%p]",
+            looper->thread_name, looper->thread_id);
     return NULL;
 }
 
@@ -256,8 +260,9 @@ int mlooper_post_message_delay(mlooper_handle looper, struct message *msg, unsig
 
     node->when = now + msec*1000;
     if (msg->timeout_ms > 0) {
-        if (msg->timeout_ms < msec) {
-            OS_LOGW(LOG_TAG, "[%s]: Invalid timeout: timeout_ms < delay_ms", looper->thread_name);
+        if (msg->timeout_ms <= msec) {
+            OS_LOGW(LOG_TAG, "[%s]: Invalid timeout: timeout_ms <= delay_ms: what=[%d]",
+                    looper->thread_name, msg->what);
             node->timeout = 0;
         } else {
             node->timeout = now + msg->timeout_ms * 1000;
@@ -404,10 +409,10 @@ struct message *message_obtain(int what, int arg1, int arg2, void *data)
     return msg;
 }
 
-struct message *message_obtain_copy_data(int what, int arg1, int arg2, void *data, unsigned int data_size)
+struct message *message_obtain_alloc_buffer(int what, int arg1, int arg2, unsigned int size)
 {
-    unsigned int size = data_size + sizeof(struct message_node) + sizeof(long);
-    struct message_node *node = OS_CALLOC(1, size);
+    unsigned int total = sizeof(struct message_node) + size + sizeof(long);
+    struct message_node *node = OS_CALLOC(1, total);
     if (node == NULL) {
         OS_LOGE(LOG_TAG, "Failed to allocate message");
         return NULL;
@@ -416,12 +421,7 @@ struct message *message_obtain_copy_data(int what, int arg1, int arg2, void *dat
     msg->what = what;
     msg->arg1 = arg1;
     msg->arg2 = arg2;
-    if (data != NULL && data_size > 0) {
-        memcpy(node->reserve, data, data_size);
-        msg->data = node->reserve;
-    } else {
-        msg->data = data;
-    }
+    msg->data = node->reserve;
     return msg;
 }
 
