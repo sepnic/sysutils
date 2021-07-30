@@ -46,6 +46,7 @@ struct message_node {
     struct message msg;
     unsigned long long when;
     unsigned long long timeout;
+    os_thread owner_thread;
     struct listnode listnode;
     char reserve[0];
 };
@@ -231,6 +232,7 @@ int mlooper_post_message_front(mlooper_handle looper, struct message *msg)
     struct message_node *front;
 
     node->when = now;
+    node->owner_thread = os_thread_self();
     if (msg->timeout_ms > 0)
         node->timeout = now + msg->timeout_ms * 1000;
 
@@ -259,6 +261,7 @@ int mlooper_post_message_delay(mlooper_handle looper, struct message *msg, unsig
     struct listnode *item;
 
     node->when = now + msec*1000;
+    node->owner_thread = os_thread_self();
     if (msg->timeout_ms > 0) {
         if (msg->timeout_ms <= msec) {
             OS_LOGE(LOG_TAG, "[%s]: Invalid timeout_ms(timeout_ms <= delay_ms), discard message: what=[%d]",
@@ -297,12 +300,13 @@ int mlooper_remove_message(mlooper_handle looper, int what)
 {
     struct message_node *node = NULL;
     struct listnode *item, *tmp;
+    os_thread caller = os_thread_self();
 
     os_mutex_lock(looper->msg_mutex);
 
     list_for_each_safe(item, tmp, &looper->msg_list) {
         node = listnode_to_item(item, struct message_node, listnode);
-        if (node->msg.what == what) {
+        if (node->msg.what == what && caller == node->owner_thread) {
             list_remove(item);
             mlooper_free_msgnode(looper, node);
             looper->msg_count--;
@@ -317,12 +321,13 @@ int mlooper_remove_message_if(mlooper_handle looper, bool (*match_cb)(struct mes
 {
     struct message_node *node = NULL;
     struct listnode *item, *tmp;
+    os_thread caller = os_thread_self();
 
     os_mutex_lock(looper->msg_mutex);
 
     list_for_each_safe(item, tmp, &looper->msg_list) {
         node = listnode_to_item(item, struct message_node, listnode);
-        if (match_cb(&node->msg)) {
+        if (match_cb(&node->msg) && caller == node->owner_thread) {
             list_remove(item);
             mlooper_free_msgnode(looper, node);
             looper->msg_count--;
@@ -356,8 +361,8 @@ void mlooper_dump(mlooper_handle looper)
         list_for_each(item, &looper->msg_list) {
             node = listnode_to_item(item, struct message_node, listnode);
             i++;
-            OS_LOGI(LOG_TAG, "   > [%d]: what=[%d], arg1=[%d], arg2=[%d], when=[%llu]",
-                    i, node->msg.what, node->msg.arg1, node->msg.arg2, node->when);
+            OS_LOGI(LOG_TAG, "   > [%d]: owner=[%p], what=[%d], arg1=[%d], arg2=[%d], when=[%llu]",
+                    i, node->owner_thread, node->msg.what, node->msg.arg1, node->msg.arg2, node->when);
         }
     }
 

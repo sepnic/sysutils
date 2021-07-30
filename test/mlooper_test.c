@@ -15,6 +15,7 @@ static void msg_handle(struct message *arg)
 {
     struct message *msg = arg;
     OS_LOGD(LOG_TAG, "--> Handle message: what=[%d], str=[%s]", msg->what, msg->data);
+    //sleep(1); // delay to make message:1000 timeout
 }
 
 static void msg_free(struct message *msg)
@@ -62,7 +63,7 @@ int main()
         str = OS_STRDUP("mlooper_post_message_delay");
         // timeout 2s
         msg = message_obtain(1000, 0, 0, (void *)str);
-        message_set_timeout_cb(msg, msg_timeout, 2000);
+        message_set_timeout_cb(msg, msg_timeout, 2001);
         mlooper_post_message_delay(looper, msg, 2000); // delay 2s
     }
 
@@ -89,7 +90,7 @@ int main()
     //mlooper_remove_message(looper, 1000);
     //mlooper_dump(looper);
 
-    os_thread_sleep_msec(3000);
+    os_thread_sleep_msec(5000);
     mlooper_destroy(looper);
     return 0;
 }
