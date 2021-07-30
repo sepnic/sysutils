@@ -5,6 +5,7 @@ cmake_install.cmake
 
 *.patch
 *.diff
+*.bak
 
 *.so
 *.a
@@ -12,3 +13,4 @@ cmake_install.cmake
 
 out/
 obj/
+libs/
