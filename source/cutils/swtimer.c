@@ -98,34 +98,41 @@ swtimer_handle swtimer_create(struct swtimer_attr *attr, void (*cb)())
     timer->thread_mutex = os_mutex_create();
     if (timer->thread_mutex == NULL) {
         OS_LOGE(LOG_TAG, "Failed to create thread_mutex");
-        goto error;
+        goto fail_create;
     }
 
     timer->thread_cond = os_cond_create();
     if (timer->thread_cond == NULL) {
         OS_LOGE(LOG_TAG, "Failed to create thread_cond");
-        goto error;
+        goto fail_create;
     }
 
     if (attr == NULL || cb == NULL) {
         OS_LOGE(LOG_TAG, "Invalid timer attr or callback");
-        goto error;
+        goto fail_create;
     }
 
-    timer->thread_name = OS_STRDUP(attr->name);
+    timer->thread_name = attr->name ? OS_STRDUP(attr->name) : OS_STRDUP("swtimer");
     timer->thread_cb = cb;
     timer->thread_exit = false;
     timer->period_ms = attr->period_ms;
     timer->reload = attr->reload;
     timer->started = false;
-    timer->thread_id = os_thread_create(NULL, swtimer_thread_entry, timer);
+
+    struct os_thread_attr thread_attr = {
+        .name = timer->thread_name,
+        .priority = OS_THREAD_PRIO_REALTIME,
+        .stacksize = os_thread_default_stacksize(),
+        .joinable = true,
+    };
+    timer->thread_id = os_thread_create(&thread_attr, swtimer_thread_entry, timer);
     if (timer->thread_id == NULL) {
         OS_LOGE(LOG_TAG, "[%s]: Failed to run thread timer", timer->thread_name);
-        goto error;
+        goto fail_create;
     }
     return timer;
 
-error:
+fail_create:
     if (timer->thread_cond != NULL)
         os_cond_destroy(timer->thread_cond);
     if (timer->thread_mutex != NULL)

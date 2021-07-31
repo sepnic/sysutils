@@ -51,7 +51,7 @@ int main()
     const char *str;
 
     attr.name = "msglooper_test";
-    attr.priority = os_thread_default_priority();
+    attr.priority = OS_THREAD_PRIO_NORMAL;
     attr.stacksize = 1024;
     looper = mlooper_create(&attr, msg_handle, msg_free);
 

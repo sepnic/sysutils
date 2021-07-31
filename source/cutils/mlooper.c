@@ -189,7 +189,7 @@ mlooper_handle mlooper_create(struct os_thread_attr *attr, message_cb handle_cb,
             attr->stacksize > 0 ? attr->stacksize : os_thread_default_stacksize();
         looper->thread_attr.joinable = true; // force joinalbe, wait exit when mlooper_stop
     } else {
-        looper->thread_attr.priority = os_thread_default_priority();
+        looper->thread_attr.priority = OS_THREAD_PRIO_NORMAL;
         looper->thread_attr.stacksize = os_thread_default_stacksize();
         looper->thread_attr.joinable = true;
     }

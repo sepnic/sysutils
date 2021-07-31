@@ -22,6 +22,21 @@
 #define DEFAULT_THREAD_PRIORITY   (31)      // default priority for unix-like system
 #define DEFAULT_THREAD_STACKSIZE  (32*1024) // 32KB
 
+static int os_thread_sched_priority(enum os_thread_prio prio_type)
+{
+    // todo: translate prio_type to sched_priority if OS_RTOS
+    pthread_attr_t attr;
+    struct sched_param param;
+    int sched_priority = DEFAULT_THREAD_PRIORITY;
+    pthread_attr_init(&attr);
+    if (pthread_attr_getschedparam(&attr, &param) != 0)
+        sched_priority = DEFAULT_THREAD_PRIORITY;
+    else
+        sched_priority = param.sched_priority;
+    pthread_attr_destroy(&attr);
+    return sched_priority;
+}
+
 os_thread os_thread_create(struct os_thread_attr *attr, void *(*cb)(void *arg), void *arg)
 {
     pthread_attr_t tattr;
@@ -32,7 +47,7 @@ os_thread os_thread_create(struct os_thread_attr *attr, void *(*cb)(void *arg), 
     pthread_attr_setdetachstate(&tattr, detachstate);
     if (attr != NULL) {
         struct sched_param tsched;
-        tsched.sched_priority = attr->priority;
+        tsched.sched_priority = os_thread_sched_priority(attr->priority);
         pthread_attr_setschedparam(&tattr, &tsched);
         pthread_attr_setstacksize(&tattr, attr->stacksize);
     }
@@ -47,20 +62,6 @@ os_thread os_thread_create(struct os_thread_attr *attr, void *(*cb)(void *arg), 
 os_thread os_thread_self()
 {
     return (os_thread)pthread_self();
-}
-
-int os_thread_default_priority()
-{
-    pthread_attr_t attr;
-    struct sched_param param;
-    int sched_priority = DEFAULT_THREAD_PRIORITY;
-    pthread_attr_init(&attr);
-    if (pthread_attr_getschedparam(&attr, &param) != 0)
-        sched_priority = DEFAULT_THREAD_PRIORITY;
-    else
-        sched_priority = param.sched_priority;
-    pthread_attr_destroy(&attr);
-    return sched_priority;
 }
 
 unsigned long os_thread_default_stacksize()

@@ -30,16 +30,23 @@ typedef void * os_thread;
 typedef void * os_mutex;
 typedef void * os_cond;
 
+enum os_thread_prio {
+    OS_THREAD_PRIO_REALTIME,
+    OS_THREAD_PRIO_HIGH,
+    OS_THREAD_PRIO_NORMAL,
+    OS_THREAD_PRIO_LOW,
+    OS_THREAD_PRIO_IDLE,
+};
+
 struct os_thread_attr {
     const char *name;
-    int priority;
+    enum os_thread_prio priority;
     unsigned long stacksize;
     bool joinable;
 };
 
 os_thread os_thread_create(struct os_thread_attr *attr, void *(*cb)(void *arg), void *arg);
 os_thread os_thread_self();
-int os_thread_default_priority();
 unsigned long os_thread_default_stacksize();
 int os_thread_join(os_thread thread, void **retval);
 int os_thread_detach(os_thread thread);
