@@ -24,7 +24,14 @@ extern "C" {
 #endif
 
 #if defined(OS_ANDROID)
-    #define OS_LOG_CORLOR_FORMAT(letter, format) format
+    #include <android/log.h>
+    #define OS_LOGF(tag, format, ...) __android_log_print(ANDROID_LOG_FATAL, tag, format, ##__VA_ARGS__)
+    #define OS_LOGE(tag, format, ...) __android_log_print(ANDROID_LOG_ERROR, tag, format, ##__VA_ARGS__)
+    #define OS_LOGW(tag, format, ...) __android_log_print(ANDROID_LOG_WARN, tag, format, ##__VA_ARGS__)
+    #define OS_LOGI(tag, format, ...) __android_log_print(ANDROID_LOG_INFO, tag, format, ##__VA_ARGS__)
+    #define OS_LOGD(tag, format, ...) __android_log_print(ANDROID_LOG_DEBUG, tag, format, ##__VA_ARGS__)
+    #define OS_LOGV(tag, format, ...) __android_log_print(ANDROID_LOG_VERBOSE, tag, format, ##__VA_ARGS__)
+
 #else
     #define OS_LOG_BLACK         "\033[0;30m"
     #define OS_LOG_RED           "\033[0;31m"
@@ -42,20 +49,20 @@ extern "C" {
     #define OS_LOG_COLOR_D       OS_LOG_BLUE
     #define OS_LOG_COLOR_V       OS_LOG_GRAY
     #define OS_LOG_CORLOR_FORMAT(letter, format)  OS_LOG_COLOR_ ## letter format OS_LOG_COLOR_RESET
-#endif
 
-#define OS_LOGF(tag, format, ...) \
-    os_fatal(tag, OS_LOG_CORLOR_FORMAT(F, format), ##__VA_ARGS__)
-#define OS_LOGE(tag, format, ...) \
-    os_error(tag, OS_LOG_CORLOR_FORMAT(E, format), ##__VA_ARGS__)
-#define OS_LOGW(tag, format, ...) \
-    os_warning(tag, OS_LOG_CORLOR_FORMAT(W, format), ##__VA_ARGS__)
-#define OS_LOGI(tag, format, ...) \
-    os_info(tag, OS_LOG_CORLOR_FORMAT(I, format), ##__VA_ARGS__)
-#define OS_LOGD(tag, format, ...) \
-    os_debug(tag, OS_LOG_CORLOR_FORMAT(D, format), ##__VA_ARGS__)
-#define OS_LOGV(tag, format, ...) \
-    os_verbose(tag, OS_LOG_CORLOR_FORMAT(V, format), ##__VA_ARGS__)
+    #define OS_LOGF(tag, format, ...) \
+        os_fatal(tag, OS_LOG_CORLOR_FORMAT(F, format), ##__VA_ARGS__)
+    #define OS_LOGE(tag, format, ...) \
+        os_error(tag, OS_LOG_CORLOR_FORMAT(E, format), ##__VA_ARGS__)
+    #define OS_LOGW(tag, format, ...) \
+        os_warning(tag, OS_LOG_CORLOR_FORMAT(W, format), ##__VA_ARGS__)
+    #define OS_LOGI(tag, format, ...) \
+        os_info(tag, OS_LOG_CORLOR_FORMAT(I, format), ##__VA_ARGS__)
+    #define OS_LOGD(tag, format, ...) \
+        os_debug(tag, OS_LOG_CORLOR_FORMAT(D, format), ##__VA_ARGS__)
+    #define OS_LOGV(tag, format, ...) \
+        os_verbose(tag, OS_LOG_CORLOR_FORMAT(V, format), ##__VA_ARGS__)
+#endif
 
 #ifdef __cplusplus
 }

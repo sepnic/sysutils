@@ -19,6 +19,7 @@ LOCAL_SRC_FILES := \
 LOCAL_C_INCLUDES += ${TOP_DIR}/include
 
 LOCAL_CFLAGS += -Wall -Werror -DOS_ANDROID
+LOCAL_CPPFLAGS += -Wall -Werror -DOS_ANDROID -std=c++11
 
 LOCAL_LDLIBS := -llog
 
