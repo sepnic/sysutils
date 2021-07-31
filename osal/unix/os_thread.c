@@ -22,7 +22,7 @@
 #define DEFAULT_THREAD_PRIORITY   (31)      // default priority for unix-like system
 #define DEFAULT_THREAD_STACKSIZE  (32*1024) // 32KB
 
-static int os_thread_sched_priority(enum os_thread_prio prio_type)
+int os_thread_sched_priority(enum os_thread_prio prio_type)
 {
     // todo: translate prio_type to sched_priority if OS_RTOS
     pthread_attr_t attr;
@@ -45,12 +45,14 @@ os_thread os_thread_create(struct os_thread_attr *attr, void *(*cb)(void *arg), 
         detachstate = PTHREAD_CREATE_DETACHED;
     pthread_attr_init(&tattr);
     pthread_attr_setdetachstate(&tattr, detachstate);
+#if defined(OS_RTOS)
     if (attr != NULL) {
         struct sched_param tsched;
         tsched.sched_priority = os_thread_sched_priority(attr->priority);
         pthread_attr_setschedparam(&tattr, &tsched);
         pthread_attr_setstacksize(&tattr, attr->stacksize);
     }
+#endif
     pthread_t tid;
     int ret = pthread_create(&tid, &tattr, cb, arg);
     pthread_attr_destroy(&tattr);
