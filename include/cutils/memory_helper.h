@@ -33,6 +33,13 @@ extern "C" {
     #define OS_FREE(ptr) do { if (ptr) { os_free((void *)(ptr)); (ptr) = NULL; } } while (0)
     #define OS_STRDUP(str) os_strdup((const char *)(str))
     #define OS_MEMORY_DUMP() do {} while (0)
+
+    #define OS_NEW(ptr, Class, ...)        ptr = new Class(__VA_ARGS__)
+    #define OS_DELETE(ptr) do { if (ptr) { delete ptr; (ptr) = NULL; } } while (0)
+    #define OS_NEW_ARRAY(ptr, Class, size) ptr = new Class[size]
+    #define OS_DELETE_ARRAY(ptr) do { if (ptr) { delete [] ptr; (ptr) = NULL; } } while (0)
+    #define OS_CLASS_DUMP() do {} while (0)
+
 #else
     void *memdbg_malloc(unsigned int size, const char *file, const char *func, int line);
     void *memdbg_calloc(unsigned int n, unsigned int size, const char *file, const char *func, int line);
@@ -40,7 +47,6 @@ extern "C" {
     void memdbg_free(void *ptr, const char *file, const char *func, int line);
     char *memdbg_strdup(const char *str, const char *file, const char *func, int line);
     void memdbg_dump_info();
-
     #define OS_MALLOC(size) \
         memdbg_malloc((unsigned int)(size), __FILE__, __FUNCTION__, __LINE__)
     #define OS_CALLOC(n, size) \
@@ -53,6 +59,38 @@ extern "C" {
         memdbg_strdup((const char *)(str), __FILE__, __FUNCTION__, __LINE__)
     #define OS_MEMORY_DUMP() \
         memdbg_dump_info()
+
+    void clzdbg_new(void *ptr, const char *name, const char *file, const char *func, int line);
+    void clzdbg_delete(void *ptr, const char *file, const char *func, int line);
+    void clzdbg_dump();
+    #define OS_NEW(ptr, Class, ...) \
+        do {\
+            ptr = new Class(__VA_ARGS__);\
+            clzdbg_new((void *)ptr, #Class, __FILE__, __FUNCTION__, __LINE__);\
+        } while (0)
+    #define OS_DELETE(ptr) \
+        do {\
+            if (ptr) {\
+                clzdbg_delete((void *)ptr, __FILE__, __FUNCTION__, __LINE__);\
+                delete ptr;\
+                (ptr) = NULL;\
+            }\
+        } while (0)
+    #define OS_NEW_ARRAY(ptr, Class, size) \
+        do {\
+            ptr = new Class[size] \
+            clzdbg_new((void *)ptr, #Class, __FILE__, __FUNCTION__, __LINE__);\
+        } while (0)
+    #define OS_DELETE_ARRAY(ptr) \
+        do {\
+            if (ptr) {\
+                clzdbg_delete((void *)ptr, __FILE__, __FUNCTION__, __LINE__);\
+                delete [] ptr;\
+                (ptr) = NULL;\
+            }\
+        } while (0)
+    #define OS_CLASS_DUMP() \
+        clzdbg_dump()
 #endif
 
 #ifdef __cplusplus

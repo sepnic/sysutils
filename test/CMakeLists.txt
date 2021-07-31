@@ -25,6 +25,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -DOS_APPLE")
 
 # MEMORY_LEAK_DETECT, MEMORY_OVERFLOW_DETECT
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMEMORY_LEAK_DETECT -DMEMORY_OVERFLOW_DETECT")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMEMORY_LEAK_DETECT -DMEMORY_OVERFLOW_DETECT")
 
 # sysutils lib
 add_library(sysutils   SHARED ${LIBS_SRC})
@@ -35,7 +36,7 @@ add_executable(timer_test ${CMAKE_SOURCE_DIR}/timer_test.c)
 target_link_libraries(timer_test sysutils pthread)
 
 # memdbg test
-add_executable(memdbg_test ${CMAKE_SOURCE_DIR}/memdbg_test.c)
+add_executable(memdbg_test ${CMAKE_SOURCE_DIR}/memdbg_test.cpp)
 target_link_libraries(memdbg_test sysutils pthread)
 
 # mqueue test

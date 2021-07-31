@@ -161,19 +161,19 @@ mlooper_handle mlooper_create(struct os_thread_attr *attr, message_cb handle_cb,
     looper->msg_mutex = os_mutex_create();
     if (looper->msg_mutex == NULL) {
         OS_LOGE(LOG_TAG, "Failed to create msg_mutex");
-        goto error;
+        goto fail_create;
     }
 
     looper->msg_cond = os_cond_create();
     if (looper->msg_cond == NULL) {
         OS_LOGE(LOG_TAG, "Failed to create msg_cond");
-        goto error;
+        goto fail_create;
     }
 
     looper->thread_mutex = os_mutex_create();
     if (looper->thread_mutex == NULL) {
         OS_LOGE(LOG_TAG, "Failed to create thread_mutex");
-        goto error;
+        goto fail_create;
     }
 
     list_init(&looper->msg_list);
@@ -195,7 +195,7 @@ mlooper_handle mlooper_create(struct os_thread_attr *attr, message_cb handle_cb,
     }
     return looper;
 
-error:
+fail_create:
     if (looper->thread_mutex != NULL)
         os_mutex_destroy(looper->thread_mutex);
     if (looper->msg_cond != NULL)

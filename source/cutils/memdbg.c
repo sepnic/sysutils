@@ -32,6 +32,7 @@
 struct memnode {
     void *ptr;
     unsigned int size;
+    const char *name;
     const char *file;
     const char *func;
     int line;
@@ -336,6 +337,120 @@ void memdbg_dump_info()
         os_mutex_unlock(list->mutex);
 
         OS_LOGW(LOG_TAG, "-------------------- MEMORY DUMP --------------------");
+        OS_LOGW(LOG_TAG, "<<");
+    }
+}
+
+// ---------------------------------------------------------------------------
+
+static struct memlist *g_clzlist = NULL;
+
+static void clznode_print(struct memnode *node, const char *info)
+{
+    OS_LOGW(LOG_TAG, "> %s: ptr=[%p], name=[%s], "
+           "created by [%s:%s:%d], at [%04d%02d%02d-%02d%02d%02d:%03d]",
+           info, node->ptr, node->name,
+           file_name(node->file), node->func, node->line,
+           node->when.year, node->when.mon, node->when.day,
+           node->when.hour, node->when.min, node->when.sec, node->when.msec);
+}
+
+static struct memlist *clzlist_init()
+{
+    if (g_clzlist == NULL) {
+        struct memlist *clzlist = os_calloc(1, sizeof(struct memlist));
+        if (clzlist == NULL) {
+            OS_LOGE(LOG_TAG, "Failed to alloc clzlist, abort class debug");
+            return NULL;
+        }
+
+        clzlist->mutex = os_mutex_create();
+        if (clzlist->mutex == NULL) {
+            OS_LOGE(LOG_TAG, "Failed to alloc mem_mutex, abort class debug");
+            os_free(clzlist);
+            return NULL;
+        }
+
+        clzlist->malloc_count = 0;
+        clzlist->free_count = 0;
+        list_init(&clzlist->list);
+
+        g_clzlist = clzlist;
+    }
+    return g_clzlist;
+}
+
+void clzdbg_new(void *ptr, const char *name, const char *file, const char *func, int line)
+{
+    struct memlist *list = clzlist_init();
+    if (list != NULL) {
+        struct memnode *node = (struct memnode *)OS_MALLOC(sizeof(struct memnode));
+        if (node != NULL) {
+            node->ptr = ptr;
+            node->name = name;
+            node->file = file;
+            node->func = func;
+            node->line = line;
+            os_realtime_to_walltime(&node->when);
+
+            //clznode_print(node, "new");
+
+            os_mutex_lock(list->mutex);
+            list_add_tail(&list->list, &node->listnode);
+            list->malloc_count++;
+            os_mutex_unlock(list->mutex);
+        }
+    }
+}
+
+void clzdbg_delete(void *ptr, const char *file, const char *func, int line)
+{
+    struct memlist *list = clzlist_init();
+    if (list != NULL) {
+        struct memnode *node;
+        struct listnode *item;
+        bool found = false;
+
+        os_mutex_lock(list->mutex);
+
+        list_for_each_reverse(item, &list->list) {
+            node = listnode_to_item(item, struct memnode, listnode);
+            if (node->ptr == ptr) {
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            //clznode_print(node, "delete");
+            list->free_count++;
+            list_remove(item);
+            OS_FREE(node);
+        } else {
+            OS_LOGF(LOG_TAG, "%s:%s:%d: failed to find ptr[%p] in list", file_name(file), func, line, ptr);
+        }
+
+        os_mutex_unlock(list->mutex);
+    }
+}
+
+void clzdbg_dump()
+{
+    struct memlist *list = clzlist_init();
+    if (list != NULL) {
+        OS_LOGW(LOG_TAG, ">>");
+        OS_LOGW(LOG_TAG, "++++++++++++++++++++ CLASS DEBUG ++++++++++++++++++++");
+
+        os_mutex_lock(list->mutex);
+        struct listnode *item;
+        list_for_each(item, &list->list) {
+            struct memnode * node = listnode_to_item(item, struct memnode, listnode);
+            clznode_print(node, "Dump");
+        }
+        OS_LOGW(LOG_TAG, "Summary: new [%ld] objects, delete [%ld] objects", list->malloc_count, list->free_count);
+        os_mutex_unlock(list->mutex);
+
+        OS_LOGW(LOG_TAG, "-------------------- CLASS DEBUG --------------------");
         OS_LOGW(LOG_TAG, "<<");
     }
 }
