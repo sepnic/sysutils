@@ -78,7 +78,7 @@ void mlooper_destroy(mlooper_handle looper);
 int mlooper_start(mlooper_handle looper);
 void mlooper_stop(mlooper_handle looper);
 
-int mlooper_message_count(mlooper_handle looper);
+unsigned int mlooper_message_count(mlooper_handle looper);
 void mlooper_dump(mlooper_handle looper);
 
 int mlooper_post_message(mlooper_handle looper, struct message *msg);

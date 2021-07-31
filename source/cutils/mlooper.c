@@ -26,7 +26,7 @@
 
 struct mlooper {
     struct listnode msg_list;
-    int msg_count;
+    unsigned int msg_count;
     message_cb msg_handle;
     message_cb msg_free;
     os_mutex msg_mutex;
@@ -48,6 +48,10 @@ struct message_node {
     unsigned long long timeout;
     os_thread owner_thread;
     struct listnode listnode;
+    // @reserve must be the last member of message_node, as user of this structure
+    // will cast a buffer to node->reserve pointer in contexts where it's known
+    // msg->data references node->reserve
+    // Refer to message_obtain_buffer_obtain() for detail
     char reserve[0];
 };
 
@@ -339,7 +343,7 @@ int mlooper_remove_message_if(mlooper_handle looper, bool (*match_cb)(struct mes
     return 0;
 }
 
-int mlooper_message_count(mlooper_handle looper)
+unsigned int mlooper_message_count(mlooper_handle looper)
 {
     return looper->msg_count;
 }
@@ -355,7 +359,7 @@ void mlooper_dump(mlooper_handle looper)
     OS_LOGI(LOG_TAG, "Dump looper thread:");
     OS_LOGI(LOG_TAG, " > thread_name=[%s]", looper->thread_name);
     OS_LOGI(LOG_TAG, " > thread_exit=[%s]", looper->thread_exit ? "true" : "false");
-    OS_LOGI(LOG_TAG, " > message_count=[%d]", looper->msg_count);
+    OS_LOGI(LOG_TAG, " > message_count=[%u]", looper->msg_count);
 
     if (looper->msg_count != 0) {
         OS_LOGI(LOG_TAG, " > message list info:");
@@ -418,7 +422,9 @@ struct message *message_obtain(int what, int arg1, int arg2, void *data)
 
 struct message *message_obtain_buffer_obtain(int what, int arg1, int arg2, unsigned int size)
 {
-    unsigned int total = sizeof(struct message_node) + size + sizeof(long);
+    unsigned int total = sizeof(struct message_node);
+    if (size > 0)
+        total += (size + sizeof(long long));
     struct message_node *node = OS_CALLOC(1, total);
     if (node == NULL) {
         OS_LOGE(LOG_TAG, "Failed to allocate message");
@@ -428,7 +434,7 @@ struct message *message_obtain_buffer_obtain(int what, int arg1, int arg2, unsig
     msg->what = what;
     msg->arg1 = arg1;
     msg->arg2 = arg2;
-    msg->data = node->reserve;
+    msg->data = size > 0 ? node->reserve : NULL;
     return msg;
 }
 
