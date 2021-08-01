@@ -22,14 +22,13 @@
  *
  */
 
-/*
- * Copyright (c) 2019-2020 LUOYUN <sysu.zqlong@gmail.com>
- */
+/* Copyright (c) 2019-2021 Qinglong<sysu.zqlong@gmail.com> */
 
 #ifndef __SYSUTILS_RINGBUF_H__
 #define __SYSUTILS_RINGBUF_H__
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -42,37 +41,37 @@ extern "C" {
 #define RB_ABORT        (-3)
 #define RB_TIMEOUT      (-4)
 
-typedef struct ringbuf *ringbuf_handle_t;
+typedef struct ringbuf *ringbuf_handle;
 
 /**
  * @brief      Create ringbuffer
  *
  * @param[in]  size   Size of ringbuffer
  *
- * @return     ringbuf_handle_t
+ * @return     ringbuf_handle
  */
-ringbuf_handle_t rb_create(int size);
+ringbuf_handle rb_create(int size);
 
 /**
- * @brief      Cleanup and free all memory created by ringbuf_handle_t
+ * @brief      Cleanup and free all memory created by ringbuf_handle
  *
  * @param[in]  rb    The Ringbuffer handle
  */
-void rb_destroy(ringbuf_handle_t rb);
+void rb_destroy(ringbuf_handle rb);
 
 /**
  * @brief      Abort waiting until there is space for reading or writing of the ringbuffer
  *
  * @param[in]  rb    The Ringbuffer handle
  */
-void rb_abort(ringbuf_handle_t rb);
+void rb_abort(ringbuf_handle rb);
 
 /**
  * @brief      Reset ringbuffer, clear all values as initial state
  *
  * @param[in]  rb    The Ringbuffer handle
  */
-void rb_reset(ringbuf_handle_t rb);
+void rb_reset(ringbuf_handle rb);
 
 /**
  * @brief      Get total bytes available of Ringbuffer
@@ -81,7 +80,7 @@ void rb_reset(ringbuf_handle_t rb);
  *
  * @return     total bytes available
  */
-int rb_bytes_available(ringbuf_handle_t rb);
+int rb_bytes_available(ringbuf_handle rb);
 
 /**
  * @brief      Get the number of bytes that have filled the ringbuffer
@@ -90,7 +89,7 @@ int rb_bytes_available(ringbuf_handle_t rb);
  *
  * @return     The number of bytes that have filled the ringbuffer
  */
-int rb_bytes_filled(ringbuf_handle_t rb);
+int rb_bytes_filled(ringbuf_handle rb);
 
 /**
  * @brief      Get total size of Ringbuffer (in bytes)
@@ -99,7 +98,7 @@ int rb_bytes_filled(ringbuf_handle_t rb);
  *
  * @return     total size of Ringbuffer
  */
-int rb_get_size(ringbuf_handle_t rb);
+int rb_get_size(ringbuf_handle rb);
 
 /**
  * @brief      Read from Ringbuffer to `buf` with len and wait `timeout_ms` milliseconds until enough bytes to read
@@ -112,7 +111,7 @@ int rb_get_size(ringbuf_handle_t rb);
  *
  * @return     Number of bytes read
  */
-int rb_read(ringbuf_handle_t rb, char *buf, int len, unsigned int timeout_ms);
+int rb_read(ringbuf_handle rb, char *buf, int len, unsigned int timeout_ms);
 
 /**
  * @brief      Write to Ringbuffer from `buf` with `len` and wait `timeout_ms` milliseconds until enough space to write
@@ -125,7 +124,7 @@ int rb_read(ringbuf_handle_t rb, char *buf, int len, unsigned int timeout_ms);
  *
  * @return     Number of bytes written
  */
-int rb_write(ringbuf_handle_t rb, char *buf, int len, unsigned int timeout_ms);
+int rb_write(ringbuf_handle rb, char *buf, int len, unsigned int timeout_ms);
 
 /**
  * @brief      Read chunk from Ringbuffer to `buf` with len.
@@ -137,7 +136,7 @@ int rb_write(ringbuf_handle_t rb, char *buf, int len, unsigned int timeout_ms);
  *
  * @return     Number of bytes read
  */
-int rb_read_chunk(ringbuf_handle_t rb, char *buf, int size, unsigned int timeout_ms);
+int rb_read_chunk(ringbuf_handle rb, char *buf, int size, unsigned int timeout_ms);
 
 /**
  * @brief      Write chunk to Ringbuffer from `buf` with `len`
@@ -149,49 +148,49 @@ int rb_read_chunk(ringbuf_handle_t rb, char *buf, int size, unsigned int timeout
  *
  * @return     Number of bytes written
  */
-int rb_write_chunk(ringbuf_handle_t rb, char *buf, int size, unsigned int timeout_ms);
+int rb_write_chunk(ringbuf_handle rb, char *buf, int size, unsigned int timeout_ms);
 
 /**
  * @brief      Set status of writing to ringbuffer is done
  *
  * @param[in]  rb    The Ringbuffer handle
  */
-void rb_done_write(ringbuf_handle_t rb);
+void rb_done_write(ringbuf_handle rb);
 
 /**
  * @brief      Set status of reading to ringbuffer is done
  *
  * @param[in]  rb    The Ringbuffer handle
  */
-void rb_done_read(ringbuf_handle_t rb);
+void rb_done_read(ringbuf_handle rb);
 
 /**
  * @brief      Unblock from rb_read
  *
  * @param[in]  rb    The Ringbuffer handle
  */
-void rb_unblock_reader(ringbuf_handle_t rb);
+void rb_unblock_reader(ringbuf_handle rb);
 
 /**
  * @brief      Set reader threshold
  *
  * @param[in]  rb    The Ringbuffer handle
  */
-void rb_set_threshold(ringbuf_handle_t rb, int threshold);
+void rb_set_threshold(ringbuf_handle rb, int threshold);
 
 /**
  * @brief      Get reader threshold
  *
  * @param[in]  rb    The Ringbuffer handle
  */
-int rb_get_threshold(ringbuf_handle_t rb);
+int rb_get_threshold(ringbuf_handle rb);
 
 /**
  * @brief      Check whether reader reach threshold
  *
  * @param[in]  rb    The Ringbuffer handle
  */
-bool rb_reach_threshold(ringbuf_handle_t rb);
+bool rb_reach_threshold(ringbuf_handle rb);
 
 #ifdef __cplusplus
 }
