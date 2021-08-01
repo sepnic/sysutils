@@ -85,8 +85,17 @@ int mlooper_post_message(mlooper_handle looper, struct message *msg);
 int mlooper_post_message_front(mlooper_handle looper, struct message *msg);
 int mlooper_post_message_delay(mlooper_handle looper, struct message *msg, unsigned long msec);
 
+// mlooper_remove_self_message:
+//   Will check owner thread of the message, can't remove if not matched
+int mlooper_remove_self_message(mlooper_handle looper, int what);
+int mlooper_remove_self_message_if(mlooper_handle looper, bool (*match_cb)(struct message *msg));
+int mlooper_clear_self_message(mlooper_handle looper);
+
+// mlooper_remove_message:
+//   Remove the message if msg->what matched, won't check message owner
 int mlooper_remove_message(mlooper_handle looper, int what);
 int mlooper_remove_message_if(mlooper_handle looper, bool (*match_cb)(struct message *msg));
+int mlooper_clear_message(mlooper_handle looper);
 
 #ifdef __cplusplus
 }

@@ -301,23 +301,77 @@ int mlooper_post_message_delay(mlooper_handle looper, struct message *msg, unsig
     return 0;
 }
 
-int mlooper_remove_message(mlooper_handle looper, int what)
+int mlooper_remove_self_message(mlooper_handle looper, int what)
 {
     struct message_node *node = NULL;
     struct listnode *item, *tmp;
-    os_thread caller = os_thread_self();
+    os_thread self = os_thread_self();
 
     os_mutex_lock(looper->msg_mutex);
-
     list_for_each_safe(item, tmp, &looper->msg_list) {
         node = listnode_to_item(item, struct message_node, listnode);
-        if (node->msg.what == what && caller == node->owner_thread) {
+        if (node->msg.what == what && self == node->owner_thread) {
             list_remove(item);
             mlooper_free_msgnode(looper, node);
             looper->msg_count--;
         }
     }
+    os_mutex_unlock(looper->msg_mutex);
+    return 0;
+}
 
+int mlooper_remove_self_message_if(mlooper_handle looper, bool (*match_cb)(struct message *msg))
+{
+    struct message_node *node = NULL;
+    struct listnode *item, *tmp;
+    os_thread self = os_thread_self();
+
+    os_mutex_lock(looper->msg_mutex);
+    list_for_each_safe(item, tmp, &looper->msg_list) {
+        node = listnode_to_item(item, struct message_node, listnode);
+        if (match_cb(&node->msg) && self == node->owner_thread) {
+            list_remove(item);
+            mlooper_free_msgnode(looper, node);
+            looper->msg_count--;
+        }
+    }
+    os_mutex_unlock(looper->msg_mutex);
+    return 0;
+}
+
+int mlooper_clear_self_message(mlooper_handle looper)
+{
+    struct message_node *node = NULL;
+    struct listnode *item, *tmp;
+    os_thread self = os_thread_self();
+
+    os_mutex_lock(looper->msg_mutex);
+    list_for_each_safe(item, tmp, &looper->msg_list) {
+        node = listnode_to_item(item, struct message_node, listnode);
+        if (self == node->owner_thread) {
+            list_remove(item);
+            mlooper_free_msgnode(looper, node);
+            looper->msg_count--;
+        }
+    }
+    os_mutex_unlock(looper->msg_mutex);
+    return 0;
+}
+
+int mlooper_remove_message(mlooper_handle looper, int what)
+{
+    struct message_node *node = NULL;
+    struct listnode *item, *tmp;
+
+    os_mutex_lock(looper->msg_mutex);
+    list_for_each_safe(item, tmp, &looper->msg_list) {
+        node = listnode_to_item(item, struct message_node, listnode);
+        if (node->msg.what == what) {
+            list_remove(item);
+            mlooper_free_msgnode(looper, node);
+            looper->msg_count--;
+        }
+    }
     os_mutex_unlock(looper->msg_mutex);
     return 0;
 }
@@ -326,20 +380,23 @@ int mlooper_remove_message_if(mlooper_handle looper, bool (*match_cb)(struct mes
 {
     struct message_node *node = NULL;
     struct listnode *item, *tmp;
-    os_thread caller = os_thread_self();
 
     os_mutex_lock(looper->msg_mutex);
-
     list_for_each_safe(item, tmp, &looper->msg_list) {
         node = listnode_to_item(item, struct message_node, listnode);
-        if (match_cb(&node->msg) && caller == node->owner_thread) {
+        if (match_cb(&node->msg)) {
             list_remove(item);
             mlooper_free_msgnode(looper, node);
             looper->msg_count--;
         }
     }
-
     os_mutex_unlock(looper->msg_mutex);
+    return 0;
+}
+
+int mlooper_clear_message(mlooper_handle looper)
+{
+    mlooper_clear_msglist(looper);
     return 0;
 }
 
