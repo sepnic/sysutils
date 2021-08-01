@@ -18,6 +18,10 @@ set (LIBS_SRC
     ${TOP_DIR}/source/cutils/mqueue.c
     ${TOP_DIR}/source/cutils/ringbuf.c
     ${TOP_DIR}/source/cutils/swtimer.c
+    ${TOP_DIR}/source/cipher/sha2.c
+    ${TOP_DIR}/source/cipher/hmac_sha2.c
+    ${TOP_DIR}/source/cipher/md5.c
+    ${TOP_DIR}/source/cipher/base64.cpp
 )
 
 # cflags: OS_LINUX, OS_ANDROID, OS_APPLE, OS_RTOS
