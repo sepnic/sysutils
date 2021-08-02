@@ -1,9 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include "osal/os_thread.h"
-#include "cutils/memory_helper.h"
-#include "cutils/log_helper.h"
 #include "utils/UtilsCommon.h"
 #include "utils/Thread.h"
 

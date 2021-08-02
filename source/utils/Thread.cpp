@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include "osal/os_thread.h"
-#include "cutils/log_helper.h"
 #include "utils/UtilsCommon.h"
 #include "utils/Thread.h"
 
@@ -61,8 +59,8 @@ bool Thread::run(const char *name, enum os_thread_prio priority, unsigned int st
         .joinable = false,
     };
     mThread = os_thread_create(&attr, _threadLoop, this);
-    if (mThread != NULL) {
-        mRunning = true;
+    if (mThread == NULL) {
+        mRunning = false;
     }
 
     return mRunning;
@@ -91,8 +89,7 @@ void *Thread::_threadLoop(void *user)
                 // threadLoop at least once.
                 ret = self->threadLoop();
             }
-        }
-        else {
+        } else {
             ret = self->threadLoop();
         }
 

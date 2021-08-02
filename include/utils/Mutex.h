@@ -17,7 +17,6 @@
 #ifndef __SYSUTILS_MUTEX_H__
 #define __SYSUTILS_MUTEX_H__
 
-#include "osal/os_thread.h"
 #include "UtilsCommon.h"
 
 SYSUTILS_NAMESPACE_BEGIN

@@ -28,7 +28,6 @@
 #include <string>
 #include <mutex>
 
-#include "cutils/log_helper.h"
 #include "utils/RefBase.h"
 #include "utils/UtilsCommon.h"
 

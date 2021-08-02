@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string>
-#include "osal/os_thread.h"
 #include "Mutex.h"
 #include "UtilsCommon.h"
 

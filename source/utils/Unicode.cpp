@@ -21,7 +21,6 @@
 #include <limits.h>
 #include <stddef.h>
 
-#include "cutils/log_helper.h"
 #include "utils/UtilsCommon.h"
 #include "utils/Unicode.h"
 

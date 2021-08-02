@@ -24,7 +24,6 @@
 
 #include "SafeIop.h"
 #include "SharedBuffer.h"
-#include "cutils/log_helper.h"
 #include "utils/UtilsCommon.h"
 #include "utils/VectorImpl.h"
 

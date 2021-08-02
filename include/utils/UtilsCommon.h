@@ -18,6 +18,10 @@
 #define __SYSUTILS_CPP_UTILS_COMMON_H__
 
 #include <assert.h>
+#include "osal/os_common.h"
+#include "osal/os_thread.h"
+#include "osal/os_time.h"
+#include "osal/os_timer.h"
 #include "cutils/memory_helper.h"
 #include "cutils/log_helper.h"
 

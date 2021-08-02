@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-#include "osal/os_thread.h"
-#include "osal/os_time.h"
-#include "cutils/memory_helper.h"
-#include "cutils/log_helper.h"
 #include "utils/UtilsCommon.h"
 #include "utils/Looper.h"
 
@@ -25,8 +21,8 @@
 
 SYSUTILS_NAMESPACE_BEGIN
 
-static const int kCacheMsgMaxCount = 50;
-std::list<Message *> kCacheMsgList;
+static const int kCacheMsgMaxCount = 64;
+static std::list<Message *> kCacheMsgList;
 static Mutex kCacheMsgMutex;
 
 Message *Message::obtain(int what)
@@ -153,8 +149,7 @@ void Looper::loop()
                 OS_LOGV(TAG, "[%s]: mMsgMutex(what=%d, when=%llu) condWait(%llu), wakeup",
                         mLooperName.c_str(),  msg->what, msg->when, wait);
                 msg = NULL;
-            }
-            else {
+            } else {
                 mMsgList.pop_front();
             }
         }
@@ -277,8 +272,7 @@ void Looper::removeMessage(int what, HandlerCallback *handlerCallback)
         if ((*it)->what == what && (*it)->handlerCallback == handlerCallback) {
             (*it)->recycle();
             it = mMsgList.erase(it);
-        }
-        else {
+        } else {
             it++;
         }
     }
@@ -292,8 +286,7 @@ void Looper::removeMessage(HandlerCallback *handlerCallback)
         if ((*it)->handlerCallback == handlerCallback) {
             (*it)->recycle();
             it = mMsgList.erase(it);
-        }
-        else {
+        } else {
             it++;
         }
     }

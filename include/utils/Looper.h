@@ -21,7 +21,6 @@
 #include <stdbool.h>
 #include <string>
 #include <list>
-#include "osal/os_thread.h"
 #include "Mutex.h"
 #include "UtilsCommon.h"
 

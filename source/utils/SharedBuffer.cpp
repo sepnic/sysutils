@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cutils/log_helper.h"
 #include "utils/UtilsCommon.h"
 #include "SharedBuffer.h"
 

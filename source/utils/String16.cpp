@@ -22,7 +22,6 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#include "cutils/log_helper.h"
 #include "utils/String16.h"
 #include "utils/Unicode.h"
 #include "utils/UtilsCommon.h"
