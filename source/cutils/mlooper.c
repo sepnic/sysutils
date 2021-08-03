@@ -47,6 +47,7 @@ struct message_node {
     unsigned long long when;
     unsigned long long timeout;
     os_thread owner_thread;
+    bool has_handled;
     struct listnode listnode;
     // @reserve must be the last member of message_node, as user of this structure
     // will cast a buffer to node->reserve pointer in contexts where it's known
@@ -58,8 +59,13 @@ struct message_node {
 static void mlooper_free_msgnode(mlooper_handle looper, struct message_node *node)
 {
     struct message *msg = &node->msg;
-    if (msg->free_cb != NULL)
-        msg->free_cb(msg);
+    if (!node->has_handled) {
+        OS_LOGW(LOG_TAG, "[%s]: Discarded message: what=[%d]", looper->thread_name, msg->what);
+        if (msg->on_discard != NULL)
+            msg->on_discard(msg);
+    }
+    if (msg->on_free != NULL)
+        msg->on_free(msg);
     else if (looper->msg_free != NULL)
         looper->msg_free(msg);
     OS_FREE(node);
@@ -112,9 +118,11 @@ static void *mlooper_thread_entry(void *arg)
             now = os_monotonic_usec();
             if (node->when > now) {
                 unsigned long wait = node->when - now;
-                OS_LOGV(LOG_TAG, "[%s]: Waiting message: what=[%d], wait=[%lums]",
+                OS_LOGV(LOG_TAG, "[%s]: Message: what=[%d], wait=[%lums], waiting",
                         looper->thread_name, msg->what, wait/1000);
                 os_cond_timedwait(looper->msg_cond, looper->msg_mutex, wait);
+                OS_LOGV(LOG_TAG, "[%s]: Message: what=[%d], wait=[%lums], wakeup",
+                        looper->thread_name, msg->what, wait/1000);
                 msg = NULL;
             } else {
                 list_remove(front);
@@ -128,16 +136,19 @@ static void *mlooper_thread_entry(void *arg)
             if (node->timeout > 0 && node->timeout < now) {
                 OS_LOGE(LOG_TAG, "[%s]: Timeout, discard message: what=[%d]",
                         looper->thread_name, msg->what);
-                if (msg->timeout_cb != NULL)
-                    msg->timeout_cb(msg);
+                if (msg->on_timeout != NULL)
+                    msg->on_timeout(msg);
             } else {
-                if (msg->handle_cb != NULL)
-                    msg->handle_cb(msg);
-                else if (looper->msg_handle != NULL)
+                if (msg->on_handle != NULL) {
+                    msg->on_handle(msg);
+                    node->has_handled = true;
+                } else if (looper->msg_handle != NULL) {
                     looper->msg_handle(msg);
-                else
+                    node->has_handled = true;
+                } else {
                     OS_LOGW(LOG_TAG, "[%s]: No message handler: what=[%d]",
                             looper->thread_name, msg->what);
+                }
             }
             mlooper_free_msgnode(looper, node);
         }
@@ -150,7 +161,7 @@ static void *mlooper_thread_entry(void *arg)
     return NULL;
 }
 
-mlooper_handle mlooper_create(struct os_thread_attr *attr, message_cb handle_cb, message_cb free_cb)
+mlooper_handle mlooper_create(struct os_thread_attr *attr, message_cb on_handle, message_cb on_free)
 {
     struct mlooper *looper = OS_CALLOC(1, sizeof(struct mlooper));
     if (looper == NULL) {
@@ -178,8 +189,8 @@ mlooper_handle mlooper_create(struct os_thread_attr *attr, message_cb handle_cb,
 
     list_init(&looper->msg_list);
     looper->msg_count = 0;
-    looper->msg_handle = handle_cb;
-    looper->msg_free = free_cb;
+    looper->msg_handle = on_handle;
+    looper->msg_free = on_free;
     looper->thread_name = (attr && attr->name) ? OS_STRDUP(attr->name) : OS_STRDUP("mlooper");
     looper->thread_exit = true;
     looper->thread_attr.name = looper->thread_name;
@@ -320,7 +331,7 @@ int mlooper_remove_self_message(mlooper_handle looper, int what)
     return 0;
 }
 
-int mlooper_remove_self_message_if(mlooper_handle looper, bool (*match_cb)(struct message *msg))
+int mlooper_remove_self_message_if(mlooper_handle looper, bool (*on_match)(struct message *msg))
 {
     struct message_node *node = NULL;
     struct listnode *item, *tmp;
@@ -329,7 +340,7 @@ int mlooper_remove_self_message_if(mlooper_handle looper, bool (*match_cb)(struc
     os_mutex_lock(looper->msg_mutex);
     list_for_each_safe(item, tmp, &looper->msg_list) {
         node = listnode_to_item(item, struct message_node, listnode);
-        if (match_cb(&node->msg) && self == node->owner_thread) {
+        if (on_match(&node->msg) && self == node->owner_thread) {
             list_remove(item);
             mlooper_free_msgnode(looper, node);
             looper->msg_count--;
@@ -376,7 +387,7 @@ int mlooper_remove_message(mlooper_handle looper, int what)
     return 0;
 }
 
-int mlooper_remove_message_if(mlooper_handle looper, bool (*match_cb)(struct message *msg))
+int mlooper_remove_message_if(mlooper_handle looper, bool (*on_match)(struct message *msg))
 {
     struct message_node *node = NULL;
     struct listnode *item, *tmp;
@@ -384,7 +395,7 @@ int mlooper_remove_message_if(mlooper_handle looper, bool (*match_cb)(struct mes
     os_mutex_lock(looper->msg_mutex);
     list_for_each_safe(item, tmp, &looper->msg_list) {
         node = listnode_to_item(item, struct message_node, listnode);
-        if (match_cb(&node->msg)) {
+        if (on_match(&node->msg)) {
             list_remove(item);
             mlooper_free_msgnode(looper, node);
             looper->msg_count--;
@@ -495,18 +506,23 @@ struct message *message_obtain_buffer_obtain(int what, int arg1, int arg2, unsig
     return msg;
 }
 
-void message_set_handle_cb(struct message *msg, message_cb handle_cb)
+void message_set_handle_cb(struct message *msg, message_cb on_handle)
 {
-    msg->handle_cb = handle_cb;
+    msg->on_handle = on_handle;
 }
 
-void message_set_free_cb(struct message *msg, message_cb free_cb)
+void message_set_free_cb(struct message *msg, message_cb on_free)
 {
-    msg->free_cb = free_cb;
+    msg->on_free = on_free;
 }
 
-void message_set_timeout_cb(struct message *msg, message_cb timeout_cb, unsigned long timeout_ms)
+void message_set_discard_cb(struct message *msg, message_cb on_discard)
 {
-    msg->timeout_cb = timeout_cb;
+    msg->on_discard = on_discard;
+}
+
+void message_set_timeout_cb(struct message *msg, message_cb on_timeout, unsigned long timeout_ms)
+{
+    msg->on_timeout = on_timeout;
     msg->timeout_ms = timeout_ms;
 }

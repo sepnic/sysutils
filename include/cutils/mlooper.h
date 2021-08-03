@@ -57,9 +57,10 @@ struct message {
     void *data;
     unsigned long timeout_ms; // 0: means never timeout
 
-    message_cb handle_cb;
-    message_cb free_cb;
-    message_cb timeout_cb;
+    message_cb on_handle;
+    message_cb on_free;
+    message_cb on_discard;
+    message_cb on_timeout;
 };
 struct message *message_obtain(int what, int arg1, int arg2, void *data);
 // message_obtain_buffer_obtain:
@@ -68,11 +69,12 @@ struct message *message_obtain(int what, int arg1, int arg2, void *data);
 //   Note that user can't free msg->data, buffer will be clear automatically
 //   when message free.
 struct message *message_obtain_buffer_obtain(int what, int arg1, int arg2, unsigned int size);
-void message_set_handle_cb(struct message *msg, message_cb handle_cb);
-void message_set_free_cb(struct message *msg, message_cb free_cb);
-void message_set_timeout_cb(struct message *msg, message_cb timeout_cb, unsigned long timeout_ms);
+void message_set_handle_cb(struct message *msg, message_cb on_handle);
+void message_set_free_cb(struct message *msg, message_cb on_free);
+void message_set_discard_cb(struct message *msg, message_cb on_discard);
+void message_set_timeout_cb(struct message *msg, message_cb on_timeout, unsigned long timeout_ms);
 
-mlooper_handle mlooper_create(struct os_thread_attr *attr, message_cb handle_cb, message_cb free_cb);
+mlooper_handle mlooper_create(struct os_thread_attr *attr, message_cb on_handle, message_cb on_free);
 void mlooper_destroy(mlooper_handle looper);
 
 int mlooper_start(mlooper_handle looper);
@@ -88,13 +90,13 @@ int mlooper_post_message_delay(mlooper_handle looper, struct message *msg, unsig
 // mlooper_remove_self_message:
 //   Will check owner thread of the message, can't remove if not matched
 int mlooper_remove_self_message(mlooper_handle looper, int what);
-int mlooper_remove_self_message_if(mlooper_handle looper, bool (*match_cb)(struct message *msg));
+int mlooper_remove_self_message_if(mlooper_handle looper, bool (*on_match)(struct message *msg));
 int mlooper_clear_self_message(mlooper_handle looper);
 
 // mlooper_remove_message:
 //   Remove the message if msg->what matched, won't check message owner
 int mlooper_remove_message(mlooper_handle looper, int what);
-int mlooper_remove_message_if(mlooper_handle looper, bool (*match_cb)(struct message *msg));
+int mlooper_remove_message_if(mlooper_handle looper, bool (*on_match)(struct message *msg));
 int mlooper_clear_message(mlooper_handle looper);
 
 #ifdef __cplusplus
