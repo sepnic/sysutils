@@ -30,6 +30,15 @@ typedef struct mlooper *mlooper_handle;
 struct message;
 typedef void (*message_cb)(struct message *msg);
 
+enum message_state {
+    MESSAGE_STATE_UNKNOWN = -1,
+    MESSAGE_STATE_PENDING,
+    MESSAGE_STATE_HANDLING,
+    MESSAGE_STATE_HANDLED,
+    MESSAGE_STATE_TIMEOUT,
+    MESSAGE_STATE_DISCARDED,
+};
+
 /** 
  *  Please use message_obtain() to allocate message.
  *  Note that message as first member of structure message_node, we will
@@ -56,6 +65,7 @@ struct message {
     int arg2;
     void *data;
     unsigned long timeout_ms; // 0: means never timeout
+    enum message_state state;
 
     message_cb on_handle;
     message_cb on_free;

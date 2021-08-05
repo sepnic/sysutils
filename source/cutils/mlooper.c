@@ -47,7 +47,6 @@ struct message_node {
     unsigned long long when;
     unsigned long long timeout;
     os_thread owner_thread;
-    bool has_handled;
     struct listnode listnode;
     // @reserve must be the last member of message_node, as user of this structure
     // will cast a buffer to node->reserve pointer in contexts where it's known
@@ -59,8 +58,9 @@ struct message_node {
 static void mlooper_free_msgnode(mlooper_handle looper, struct message_node *node)
 {
     struct message *msg = &node->msg;
-    if (!node->has_handled) {
-        OS_LOGW(LOG_TAG, "[%s]: Discarded message: what=[%d]", looper->thread_name, msg->what);
+    if (msg->state != MESSAGE_STATE_HANDLED) {
+        OS_LOGW(LOG_TAG, "[%s]: Discarded message: what=[%d], state=[%d]",
+                looper->thread_name, msg->what, msg->state);
         if (msg->on_discard != NULL)
             msg->on_discard(msg);
     }
@@ -81,6 +81,7 @@ static void mlooper_clear_msglist(mlooper_handle looper)
     list_for_each_safe(item, tmp, &looper->msg_list) {
         node = listnode_to_item(item, struct message_node, listnode);
         list_remove(item);
+        node->msg.state = MESSAGE_STATE_DISCARDED;
         mlooper_free_msgnode(looper, node);
     }
     looper->msg_count = 0;
@@ -136,18 +137,22 @@ static void *mlooper_thread_entry(void *arg)
             if (node->timeout > 0 && node->timeout < now) {
                 OS_LOGE(LOG_TAG, "[%s]: Timeout, discard message: what=[%d]",
                         looper->thread_name, msg->what);
+                msg->state = MESSAGE_STATE_TIMEOUT;
                 if (msg->on_timeout != NULL)
                     msg->on_timeout(msg);
             } else {
                 if (msg->on_handle != NULL) {
+                    msg->state = MESSAGE_STATE_HANDLING;
                     msg->on_handle(msg);
-                    node->has_handled = true;
+                    msg->state = MESSAGE_STATE_HANDLED;
                 } else if (looper->msg_handle != NULL) {
+                    msg->state = MESSAGE_STATE_HANDLING;
                     looper->msg_handle(msg);
-                    node->has_handled = true;
+                    msg->state = MESSAGE_STATE_HANDLED;
                 } else {
                     OS_LOGW(LOG_TAG, "[%s]: No message handler: what=[%d]",
                             looper->thread_name, msg->what);
+                    msg->state = MESSAGE_STATE_DISCARDED;
                 }
             }
             mlooper_free_msgnode(looper, node);
@@ -249,6 +254,7 @@ int mlooper_post_message_front(mlooper_handle looper, struct message *msg)
 
     node->when = now;
     node->owner_thread = os_thread_self();
+    msg->state = MESSAGE_STATE_PENDING;
     if (msg->timeout_ms > 0)
         node->timeout = now + msg->timeout_ms * 1000;
 
@@ -278,10 +284,12 @@ int mlooper_post_message_delay(mlooper_handle looper, struct message *msg, unsig
 
     node->when = now + msec*1000;
     node->owner_thread = os_thread_self();
+    msg->state = MESSAGE_STATE_PENDING;
     if (msg->timeout_ms > 0) {
         if (msg->timeout_ms <= msec) {
             OS_LOGE(LOG_TAG, "[%s]: timeout_ms <= delay_ms, discard message: what=[%d]",
                     looper->thread_name, msg->what);
+            msg->state = MESSAGE_STATE_DISCARDED;
             mlooper_free_msgnode(looper, node);
             return -1;
         } else {
@@ -323,6 +331,7 @@ int mlooper_remove_self_message(mlooper_handle looper, int what)
         node = listnode_to_item(item, struct message_node, listnode);
         if (node->msg.what == what && self == node->owner_thread) {
             list_remove(item);
+            node->msg.state = MESSAGE_STATE_DISCARDED;
             mlooper_free_msgnode(looper, node);
             looper->msg_count--;
         }
@@ -342,6 +351,7 @@ int mlooper_remove_self_message_if(mlooper_handle looper, bool (*on_match)(struc
         node = listnode_to_item(item, struct message_node, listnode);
         if (on_match(&node->msg) && self == node->owner_thread) {
             list_remove(item);
+            node->msg.state = MESSAGE_STATE_DISCARDED;
             mlooper_free_msgnode(looper, node);
             looper->msg_count--;
         }
@@ -361,6 +371,7 @@ int mlooper_clear_self_message(mlooper_handle looper)
         node = listnode_to_item(item, struct message_node, listnode);
         if (self == node->owner_thread) {
             list_remove(item);
+            node->msg.state = MESSAGE_STATE_DISCARDED;
             mlooper_free_msgnode(looper, node);
             looper->msg_count--;
         }
@@ -379,6 +390,7 @@ int mlooper_remove_message(mlooper_handle looper, int what)
         node = listnode_to_item(item, struct message_node, listnode);
         if (node->msg.what == what) {
             list_remove(item);
+            node->msg.state = MESSAGE_STATE_DISCARDED;
             mlooper_free_msgnode(looper, node);
             looper->msg_count--;
         }
@@ -397,6 +409,7 @@ int mlooper_remove_message_if(mlooper_handle looper, bool (*on_match)(struct mes
         node = listnode_to_item(item, struct message_node, listnode);
         if (on_match(&node->msg)) {
             list_remove(item);
+            node->msg.state = MESSAGE_STATE_DISCARDED;
             mlooper_free_msgnode(looper, node);
             looper->msg_count--;
         }
@@ -485,6 +498,7 @@ struct message *message_obtain(int what, int arg1, int arg2, void *data)
     msg->arg1 = arg1;
     msg->arg2 = arg2;
     msg->data = data;
+    msg->state = MESSAGE_STATE_UNKNOWN;
     return msg;
 }
 
@@ -503,6 +517,7 @@ struct message *message_obtain_buffer_obtain(int what, int arg1, int arg2, unsig
     msg->arg1 = arg1;
     msg->arg2 = arg2;
     msg->data = size > 0 ? node->reserve : NULL;
+    msg->state = MESSAGE_STATE_UNKNOWN;
     return msg;
 }
 
