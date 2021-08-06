@@ -17,14 +17,24 @@
 #ifndef __SYSUTILS_BASE64_H_
 #define __SYSUTILS_BASE64_H_
 
-#include <string>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 
-size_t Base64EncodeExpectedLength(size_t len);
-bool Base64Encode(const std::string& input, std::string* output);
-bool Base64Encode(const std::string& input, char* output, size_t* len);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-size_t Base64DecodeExpectedLength(size_t len);
-bool Base64Decode(const std::string& input, std::string* output);
-bool Base64Decode(const std::string& input, char* output, size_t* len);
+#define BASE64_ENCODE_EXPECTED_OUTLEN(inlen) ((unsigned int)((((inlen) + 2) / 3) * 4 + 1))
+#define BASE64_DECODE_EXPECTED_OUTLEN(inlen) ((unsigned int)(((inlen) / 4) * 3))
+
+/** out is null-terminated encode string. */
+bool base64_encode(const unsigned char *in, unsigned int inlen, char *out, unsigned int *outlen);
+
+bool base64_decode(const char *in, unsigned int inlen, unsigned char *out, unsigned int *outlen);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __SYSUTILS_BASE64_H_

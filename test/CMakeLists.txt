@@ -21,7 +21,7 @@ set (LIBS_SRC
     ${TOP_DIR}/source/cipher/sha2.c
     ${TOP_DIR}/source/cipher/hmac_sha2.c
     ${TOP_DIR}/source/cipher/md5.c
-    ${TOP_DIR}/source/cipher/base64.cpp
+    ${TOP_DIR}/source/cipher/base64.c
 )
 
 # cflags: OS_LINUX, OS_ANDROID, OS_APPLE, OS_RTOS
