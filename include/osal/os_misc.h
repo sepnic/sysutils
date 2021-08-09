@@ -14,28 +14,21 @@
  * limitations under the License.
  */
 
-#ifndef __SYSUTILS_BASE64_H_
-#define __SYSUTILS_BASE64_H_
+#ifndef __SYSUTILS_OS_MISC_H__
+#define __SYSUTILS_OS_MISC_H__
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
+#include "os_common.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define BASE64_ENCODE_EXPECTED_OUTLEN(inlen) ((unsigned int)((((inlen) + 2) / 3) * 4 + 1))
-#define BASE64_DECODE_EXPECTED_OUTLEN(inlen) ((unsigned int)(((inlen) / 4) * 3 + 1))
-
-/** out is null-terminated encode string. */
-bool base64_encode(const unsigned char *in, unsigned int inlen, char *out, unsigned int *outlen);
-
-/** out is null-terminated decode string. */
-bool base64_decode(const char *in, unsigned int inlen, unsigned char *out, unsigned int *outlen);
+int os_random(void *buffer, unsigned int size);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // __SYSUTILS_BASE64_H_
+#endif /* __SYSUTILS_OS_MISC_H__ */
