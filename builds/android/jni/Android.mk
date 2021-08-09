@@ -10,6 +10,7 @@ LOCAL_SRC_FILES := \
     ${TOP_DIR}/osal/unix/os_thread.c \
     ${TOP_DIR}/osal/unix/os_time.c \
     ${TOP_DIR}/osal/unix/os_timer.c \
+    ${TOP_DIR}/osal/unix/os_misc.c \
     ${TOP_DIR}/source/cutils/memdbg.c \
     ${TOP_DIR}/source/cutils/mlooper.c \
     ${TOP_DIR}/source/cutils/mqueue.c \

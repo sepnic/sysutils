@@ -152,6 +152,7 @@ bool base64_decode(const char *in, unsigned int inlen, unsigned char *out, unsig
         }
     }
 
+    out[j] = 0;
     *outlen = j;
     return true;
 }
