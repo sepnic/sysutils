@@ -18,36 +18,14 @@
 
 /** Copyright (C) 2018-2021 Qinglong <sysu.zqlong@gmail.com> */
 
-#ifndef __HTTPCLIENT_H__
-#define __HTTPCLIENT_H__
+#ifndef __SYSUTILS_HTTPCLIENT_H__
+#define __SYSUTILS_HTTPCLIENT_H__
 
 #include <stdio.h>
-#include <stdint.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
-#if defined(OS_RTOS)
-#include "lwip/sockets.h"
-#include "lwip/netdb.h"
-#include "lwip/tcp.h"
-#include "lwip/err.h"
-#else
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#endif
-
-#define ENABLE_HTTPCLIENT_MBEDTLS
-
-#ifdef ENABLE_HTTPCLIENT_MBEDTLS
-#include "mbedtls/debug.h"
-#include "mbedtls/net.h"
-#include "mbedtls/ssl.h"
-#include "mbedtls/certs.h"
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
-#endif
+// IMPORTANT NOTE: Set C_FLAGS with -DENABLE_HTTPCLIENT_MBEDTLS to enable https!!!
 
 #ifdef __cplusplus
 extern "C" {
@@ -112,7 +90,7 @@ typedef struct {
     char *auth_password;            /**< Password for basic authentication. */
     bool is_http;                   /**< Http connection? if 1, http; if 0, https. */
     int redirect_times;
-#ifdef ENABLE_HTTPCLIENT_MBEDTLS
+//#ifdef ENABLE_HTTPCLIENT_MBEDTLS
     const char *server_cert;        /**< Server certification. */
     const char *client_cert;        /**< Client certification. */
     const char *client_pk;          /**< Client private key. */
@@ -120,7 +98,7 @@ typedef struct {
     int client_cert_len;            /**< Client certification lenght, client_cert buffer size. */
     int client_pk_len;              /**< Client private key lenght, client_pk buffer size. */
     void *ssl;                      /**< Ssl content. */
-#endif
+//#endif
 } httpclient_t;
 
 /** @brief   This structure defines the HTTP data structure.  */
@@ -138,20 +116,6 @@ typedef struct {
     char *response_buf;          /**< Buffer to store the response body data. */
     char *header_buf;            /**< Buffer to store the response head data. */
 } httpclient_data_t;
-
-#ifdef ENABLE_HTTPCLIENT_MBEDTLS
-typedef struct {
-    mbedtls_ssl_context ssl_ctx;        /* mbedtls ssl context */
-    mbedtls_net_context net_ctx;        /* Fill in socket id */
-    mbedtls_ssl_config ssl_conf;        /* SSL configuration */
-    mbedtls_entropy_context entropy;
-    mbedtls_ctr_drbg_context ctr_drbg;
-    mbedtls_x509_crt_profile profile;
-    mbedtls_x509_crt cacert;
-    mbedtls_x509_crt clicert;
-    mbedtls_pk_context pkey;
-} httpclient_ssl_t;
-#endif
 
 /**
  * @}
@@ -338,4 +302,4 @@ void httpclient_set_custom_header(httpclient_t *client, char *header);
 }
 #endif
 
-#endif /* __HTTPCLIENT_H__ */
+#endif /* __SYSUTILS_HTTPCLIENT_H__ */

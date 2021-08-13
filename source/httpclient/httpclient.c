@@ -18,13 +18,29 @@
 
 /** Copyright (C) 2018-2021 Qinglong <sysu.zqlong@gmail.com> */
 
+#include <stdint.h>
 #include <string.h>
 #include "osal/os_thread.h"
 #include "cutils/memory_helper.h"
 #include "cutils/log_helper.h"
 #include "httpclient/httpclient.h"
 
+#if defined(OS_RTOS)
+#include "lwip/sockets.h"
+#include "lwip/netdb.h"
+#include "lwip/tcp.h"
+#include "lwip/err.h"
+#else
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#endif
+
 #define TAG "httpclient"
+
+//#define ENABLE_HTTPCLIENT_MBEDTLS
 
 //#define ENABLE_HTTPCLIENT_DEBUG
 
@@ -51,6 +67,27 @@
 #define HTTPCLIENT_MAX_URL_LEN     512
 #define HTTPCLIENT_REDIRECT_MAX    5
 #define HTTPCLIENT_TIMEOUT_SEC     3
+
+#ifdef ENABLE_HTTPCLIENT_MBEDTLS
+#include "mbedtls/debug.h"
+#include "mbedtls/net.h"
+#include "mbedtls/ssl.h"
+#include "mbedtls/certs.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+
+typedef struct {
+    mbedtls_ssl_context ssl_ctx;        /* mbedtls ssl context */
+    mbedtls_net_context net_ctx;        /* Fill in socket id */
+    mbedtls_ssl_config ssl_conf;        /* SSL configuration */
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_x509_crt_profile profile;
+    mbedtls_x509_crt cacert;
+    mbedtls_x509_crt clicert;
+    mbedtls_pk_context pkey;
+} httpclient_ssl_t;
+#endif
 
 #if defined(MBEDTLS_DEBUG_C)
 #define MBEDTLS_DEBUG_LEVEL        2
