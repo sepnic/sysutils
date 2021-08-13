@@ -33,6 +33,7 @@ LOCAL_SRC_FILES := \
     ${TOP_DIR}/source/cipher/hmac_sha2.c \
     ${TOP_DIR}/source/cipher/md5.c \
     ${TOP_DIR}/source/cipher/base64.c \
+#    ${TOP_DIR}/source/httpclient/httpclient.c \
 
 LOCAL_C_INCLUDES += ${TOP_DIR}/include
 

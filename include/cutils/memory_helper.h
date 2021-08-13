@@ -19,14 +19,14 @@
 
 #include "osal/os_memory.h"
 
-//#define MEMORY_LEAK_DETECT
-//#define MEMORY_OVERFLOW_DETECT
+//#define ENABLE_MEMORY_LEAK_DETECT
+//#define ENABLE_MEMORY_OVERFLOW_DETECT
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if !defined(MEMORY_LEAK_DETECT) && !defined(MEMORY_OVERFLOW_DETECT)
+#if !defined(ENABLE_MEMORY_LEAK_DETECT) && !defined(ENABLE_MEMORY_OVERFLOW_DETECT)
     #define OS_MALLOC(size) os_malloc((unsigned int)(size))
     #define OS_CALLOC(n, size) os_calloc((unsigned int)(n), (unsigned int)(size))
     #define OS_REALLOC(ptr, size) os_realloc((void *)(ptr), (unsigned int)(size))
