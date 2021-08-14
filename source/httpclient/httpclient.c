@@ -42,16 +42,18 @@
 
 //#define ENABLE_HTTPCLIENT_MBEDTLS
 
-//#define ENABLE_HTTPCLIENT_DEBUG
+//#define ENABLE_HTTPCLIENT_DEBUG_VERBOSE
 
-#ifdef ENABLE_HTTPCLIENT_DEBUG
-#define DBG(fmt, arg...)     OS_LOGD(TAG, fmt, ##arg)
-#define WARN(fmt, arg...)    OS_LOGW(TAG, fmt, ##arg)
-#define ERR(fmt, arg...)     OS_LOGE(TAG, fmt, ##arg)
+#ifdef ENABLE_HTTPCLIENT_DEBUG_VERBOSE
+#define VERBOSE(fmt, arg...) OS_LOGV(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
+#define DBG(fmt, arg...)     OS_LOGD(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
+#define WARN(fmt, arg...)    OS_LOGW(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
+#define ERR(fmt, arg...)     OS_LOGE(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
 #else
-#define DBG(fmt, arg...)
-#define WARN(fmt, arg...)    OS_LOGW(TAG, fmt, ##arg)
-#define ERR(fmt, arg...)     OS_LOGE(TAG, fmt, ##arg)
+#define VERBOSE(fmt, arg...)
+#define DBG(fmt, arg...)     OS_LOGD(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
+#define WARN(fmt, arg...)    OS_LOGW(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
+#define ERR(fmt, arg...)     OS_LOGE(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
 #endif
 
 #define MIN(x,y) (((x)<(y))?(x):(y))
@@ -90,12 +92,20 @@ typedef struct {
 #endif
 
 #if defined(MBEDTLS_DEBUG_C)
-#define MBEDTLS_DEBUG_LEVEL        2
+/* Debug levels
+ *  - 0 No debug
+ *  - 1 Error
+ *  - 2 State change
+ *  - 3 Informational
+ *  - 4 Verbose
+*/
+#define MBEDTLS_DEBUG_LEVEL        1
 #endif
 
 static void httpclient_base64enc(char *out, const char *in)
 {
-    const char code[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=" ;
+    const char code[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=" ;
     int i = 0, x = 0, l = 0;
 
     for (; *in; in++) {
@@ -130,14 +140,14 @@ static int httpclient_conn(httpclient_t *client, char *host)
 
     snprintf(port, sizeof(port), "%d", client->remote_port) ;
     if (getaddrinfo(host, port , &hints, &addr_list) != 0) {
-        ERR("getaddrinfo != 0, return HTTPCLIENT_UNRESOLVED_DNS");
+        ERR("getaddrinfo failed");
         return HTTPCLIENT_UNRESOLVED_DNS;
     }
 
     /* Try the sockaddrs until a connection succeeds */
     ret = HTTPCLIENT_UNRESOLVED_DNS;
     for (cur = addr_list; cur != NULL; cur = cur->ai_next) {
-        client->socket = (int)socket(cur->ai_family, cur->ai_socktype, cur->ai_protocol);
+        client->socket = socket(cur->ai_family, cur->ai_socktype, cur->ai_protocol);
         if (client->socket < 0) {
             ret = HTTPCLIENT_ERROR_CONN;
             continue;
@@ -145,10 +155,10 @@ static int httpclient_conn(httpclient_t *client, char *host)
 
         // set receive timeout
         if (setsockopt(client->socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {
-            DBG("Setsockopt failed - cancel receive timeout.\n");
+            WARN("setsockopt failed, cancel receive timeout");
         }
 
-        ret = connect(client->socket, cur->ai_addr, (int)cur->ai_addrlen);
+        ret = connect(client->socket, cur->ai_addr, cur->ai_addrlen);
         if (ret == 0) {
             break;
         }
@@ -161,7 +171,9 @@ static int httpclient_conn(httpclient_t *client, char *host)
     return ret;
 }
 
-static int httpclient_parse_url(const char *url, char *scheme, size_t max_scheme_len, char *host, size_t maxhost_len, int *port, char *path, size_t max_path_len)
+static int httpclient_parse_url(const char *url, char *scheme, size_t max_scheme_len,
+                                char *host, size_t maxhost_len, int *port,
+                                char *path, size_t max_path_len)
 {
     char *scheme_ptr = (char *)url;
     char *host_ptr = (char *)strstr(url, "://");
@@ -171,10 +183,9 @@ static int httpclient_parse_url(const char *url, char *scheme, size_t max_scheme
     if (host_ptr == NULL) {
         host_ptr = (char *)url;
         memcpy(scheme, "http", 5);
-    }
-    else {
+    } else {
         if (max_scheme_len < host_ptr - scheme_ptr + 1) { /* including NULL-terminating char */
-            WARN("Scheme str is too long (%d < %d)", (int)max_scheme_len, (int)(host_ptr - scheme_ptr + 1));
+            WARN("scheme str is too long (%d < %d)", (int)max_scheme_len, (int)(host_ptr - scheme_ptr + 1));
             return HTTPCLIENT_ERROR_PARSE;
         }
         memcpy(scheme, scheme_ptr, host_ptr - scheme_ptr);
@@ -184,16 +195,15 @@ static int httpclient_parse_url(const char *url, char *scheme, size_t max_scheme
 
     char *port_ptr = strchr(host_ptr, ':');
     if (port_ptr != NULL) {
-        uint16_t tport;
+        unsigned short tport;
         host_len = port_ptr - host_ptr;
         port_ptr++;
         if (sscanf(port_ptr, "%hu", &tport) != 1) {
-            WARN("Could not find port");
+            WARN("can not find port");
             return HTTPCLIENT_ERROR_PARSE;
         }
         *port = (int)tport;
-    }
-    else {
+    } else {
         *port = 0;
     }
 
@@ -207,7 +217,7 @@ static int httpclient_parse_url(const char *url, char *scheme, size_t max_scheme
     }
 
     if (maxhost_len < host_len + 1) { /* including NULL-terminating char */
-        WARN("Host str is too small (%d >= %d)", (int)maxhost_len, (int)(host_len + 1));
+        WARN("host str is too long (%d < %d)", (int)maxhost_len, (int)(host_len + 1));
         return HTTPCLIENT_ERROR_PARSE;
     }
     memcpy(host, host_ptr, host_len);
@@ -222,13 +232,12 @@ static int httpclient_parse_url(const char *url, char *scheme, size_t max_scheme
     char *fragment_ptr = strchr(host_ptr, '#');
     if (fragment_ptr != NULL) {
         path_len = fragment_ptr - path_ptr;
-    }
-    else {
+    } else {
         path_len = strlen(path_ptr);
     }
 
     if (max_path_len < path_len + 1) { /* including NULL-terminating char */
-        WARN("Path str is too small (%d >= %d)", (int)max_path_len, (int)(path_len + 1));
+        WARN("path str is too long (%d < %d)", (int)max_path_len, (int)(path_len + 1));
         return HTTPCLIENT_ERROR_PARSE;
     }
     memcpy(path, path_ptr, path_len);
@@ -245,11 +254,9 @@ static int httpclient_tcp_send_all(int sock_fd, char *data, int length)
         if (ret > 0) {
             written_len += ret;
             continue;
-        }
-        else if (ret == 0) {
+        } else if (ret == 0) {
             return written_len;
-        }
-        else {
+        } else {
             return -1; /* Connnection error */
         }
     }
@@ -265,52 +272,42 @@ static int httpclient_ssl_nonblock_recv( void *ctx, unsigned char *buf, size_t l
     if ( fd < 0 ) {
         return ( MBEDTLS_ERR_NET_INVALID_CONTEXT );
     }
-
     ret = (int) recv( fd, buf, len, MSG_DONTWAIT );
-
     if ( ret < 0 ) {
         if ( errno == EPIPE || errno == ECONNRESET ) {
             return ( MBEDTLS_ERR_NET_CONN_RESET );
         }
-
         if ( errno == EINTR ) {
             return ( MBEDTLS_ERR_SSL_WANT_READ );
         }
-
         if (ret == -1 && errno == EWOULDBLOCK) {
             return ret;
         }
         return ( MBEDTLS_ERR_NET_RECV_FAILED );
     }
-
     return ( ret );
 }
 #endif
 
-static void httpclient_ssl_debug( void *ctx, int level, const char *file, int line, const char *str )
+static void httpclient_ssl_debug(void *ctx, int level, const char *file, int line, const char *str)
 {
-    //printf("%s\n", str);
     DBG("%s", str);
 }
 
 static int httpclient_ssl_send_all(mbedtls_ssl_context *ssl, const char *data, size_t length)
 {
     size_t written_len = 0;
-
     while (written_len < length) {
         int ret = mbedtls_ssl_write(ssl, (unsigned char *)(data + written_len), (length - written_len));
         if (ret > 0) {
             written_len += ret;
             continue;
-        }
-        else if (ret == 0) {
+        } else if (ret == 0) {
             return written_len;
-        }
-        else {
+        } else {
             return -1; /* Connnection error */
         }
     }
-
     return written_len;
 }
 
@@ -318,25 +315,22 @@ static int httpclient_ssl_conn(httpclient_t *client, char *host)
 {
     int authmode = MBEDTLS_SSL_VERIFY_NONE;
     const char *pers = "https";
-    int value, ret = 0;
+    int value, ret = -1;
     uint32_t flags;
     char port[10] = {0};
     httpclient_ssl_t *ssl;
 
     client->ssl = OS_MALLOC(sizeof(httpclient_ssl_t));
     if (!client->ssl) {
-        DBG("Memory malloc error.");
-        ret = -1;
-        goto exit;
+        ERR("ssl context malloc failed");
+        goto ssl_conn_exit;
     }
     ssl = (httpclient_ssl_t *)client->ssl;
 
     if (client->server_cert)
         authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
 
-    /*
-     * Initialize the RNG and the session data
-     */
+    /* Initialize the RNG and the session data */
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_debug_set_threshold(MBEDTLS_DEBUG_LEVEL);
 #endif
@@ -351,61 +345,49 @@ static int httpclient_ssl_conn(httpclient_t *client, char *host)
     if ((value = mbedtls_ctr_drbg_seed(&ssl->ctr_drbg,
                                mbedtls_entropy_func,
                                &ssl->entropy,
-                               (const unsigned char*)pers,
+                               (const unsigned char *)pers,
                                strlen(pers))) != 0) {
-        DBG("mbedtls_ctr_drbg_seed() failed, value:-0x%x.", -value);
-        ret = -1;
-        goto exit;
+        ERR("mbedtls_ctr_drbg_seed failed: %d", value);
+        goto ssl_conn_exit;
     }
 
-    /*
-    * Load the Client certificate
-    */
+    /* Load the Client certificate */
     if (client->client_cert && client->client_pk) {
-        ret = mbedtls_x509_crt_parse(&ssl->clicert, (const unsigned char *)client->client_cert, client->client_cert_len);
-        if (ret < 0) {
-            DBG("Loading cli_cert failed! mbedtls_x509_crt_parse returned -0x%x.", -ret);
-            goto exit;
+        value = mbedtls_x509_crt_parse(&ssl->clicert, (const unsigned char *)client->client_cert, client->client_cert_len);
+        if (value < 0) {
+            ERR("mbedtls_x509_crt_parse failed: %d", value);
+            goto ssl_conn_exit;
         }
 
-        ret = mbedtls_pk_parse_key(&ssl->pkey, (const unsigned char *)client->client_pk, client->client_pk_len, NULL, 0);
-        if (ret != 0) {
-            DBG("failed! mbedtls_pk_parse_key returned -0x%x.", -ret);
-            goto exit;
+        value = mbedtls_pk_parse_key(&ssl->pkey, (const unsigned char *)client->client_pk, client->client_pk_len, NULL, 0);
+        if (value != 0) {
+            ERR("mbedtls_pk_parse_key failed: %d", value);
+            goto ssl_conn_exit;
         }
     }
 
-    /*
-    * Load the trusted CA
-    */
-    /* cert_len passed in is gotten from sizeof not strlen */
+    /* Load the trusted CA, cert_len passed in is gotten from sizeof not strlen */
     if (client->server_cert && ((value = mbedtls_x509_crt_parse(&ssl->cacert,
                                         (const unsigned char *)client->server_cert,
                                         client->server_cert_len)) < 0)) {
-        DBG("mbedtls_x509_crt_parse() failed, value:-0x%x.", -value);
-        ret = -1;
-        goto exit;
+        ERR("mbedtls_x509_crt_parse failed: %d", value);
+        goto ssl_conn_exit;
     }
 
-    /*
-     * Start the connection
-     */
+    /* Start the connection */
     snprintf(port, sizeof(port), "%d", client->remote_port) ;
-    if ((ret = mbedtls_net_connect(&ssl->net_ctx, host, port, MBEDTLS_NET_PROTO_TCP)) != 0) {
-        DBG("failed! mbedtls_net_connect returned %d, port:%s.", ret, port);
-        goto exit;
+    if ((value = mbedtls_net_connect(&ssl->net_ctx, host, port, MBEDTLS_NET_PROTO_TCP)) != 0) {
+        ERR("mbedtls_net_connect failed: %d", value);
+        goto ssl_conn_exit;
     }
 
-    /*
-     * Setup stuff
-     */
+    /* Setup stuff */
     if ((value = mbedtls_ssl_config_defaults(&ssl->ssl_conf,
                                            MBEDTLS_SSL_IS_CLIENT,
                                            MBEDTLS_SSL_TRANSPORT_STREAM,
                                            MBEDTLS_SSL_PRESET_DEFAULT)) != 0) {
-        DBG("mbedtls_ssl_config_defaults() failed, value:-0x%x.", -value);
-        ret = -1;
-        goto exit;
+        ERR("mbedtls_ssl_config_defaults failed: %d", value);
+        goto ssl_conn_exit;
     }
 
     // TODO: add customerization encryption algorithm
@@ -416,64 +398,59 @@ static int httpclient_ssl_conn(httpclient_t *client, char *host)
     mbedtls_ssl_conf_authmode(&ssl->ssl_conf, authmode);
     mbedtls_ssl_conf_ca_chain(&ssl->ssl_conf, &ssl->cacert, NULL);
 
-    if (client->client_cert && (ret = mbedtls_ssl_conf_own_cert(&ssl->ssl_conf, &ssl->clicert, &ssl->pkey)) != 0) {
-        DBG(" failed! mbedtls_ssl_conf_own_cert returned %d.", ret );
-        goto exit;
+    if (client->client_cert &&
+        (value = mbedtls_ssl_conf_own_cert(&ssl->ssl_conf, &ssl->clicert, &ssl->pkey)) != 0) {
+        ERR("mbedtls_ssl_conf_own_cert failed: %d", value);
+        goto ssl_conn_exit;
     }
 
     mbedtls_ssl_conf_rng(&ssl->ssl_conf, mbedtls_ctr_drbg_random, &ssl->ctr_drbg);
     mbedtls_ssl_conf_dbg(&ssl->ssl_conf, httpclient_ssl_debug, NULL);
 
     if ((value = mbedtls_ssl_setup(&ssl->ssl_ctx, &ssl->ssl_conf)) != 0) {
-        DBG("mbedtls_ssl_setup() failed, value:-0x%x.", -value);
-        ret = -1;
-        goto exit;
+        ERR("mbedtls_ssl_setup failed: %d", value);
+        goto ssl_conn_exit;
     }
 
     mbedtls_ssl_set_bio(&ssl->ssl_ctx, &ssl->net_ctx, mbedtls_net_send, mbedtls_net_recv, NULL);
 
-    /*
-    * Handshake
-    */
-    while ((ret = mbedtls_ssl_handshake(&ssl->ssl_ctx)) != 0) {
-        if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
-            DBG("mbedtls_ssl_handshake() failed, ret:-0x%x.", -ret);
-            ret = -1;
-            goto exit;
+    /* Handshake */
+    while ((value = mbedtls_ssl_handshake(&ssl->ssl_ctx)) != 0) {
+        if (value != MBEDTLS_ERR_SSL_WANT_READ && value != MBEDTLS_ERR_SSL_WANT_WRITE) {
+            ERR("mbedtls_ssl_handshake failed: %d", value);
+            goto ssl_conn_exit;
         }
     }
 
-    /*
-     * Verify the server certificate
+    /* Verify the server certificate
+     *  In real life, we would have used MBEDTLS_SSL_VERIFY_REQUIRED so that the
+     *  handshake would not succeed if the peer's cert is bad.  Even if we used
+     *  MBEDTLS_SSL_VERIFY_OPTIONAL, we would bail out here if ret != 0
      */
-    /* In real life, we would have used MBEDTLS_SSL_VERIFY_REQUIRED so that the
-        * handshake would not succeed if the peer's cert is bad.  Even if we used
-        * MBEDTLS_SSL_VERIFY_OPTIONAL, we would bail out here if ret != 0 */
     if ((flags = mbedtls_ssl_get_verify_result(&ssl->ssl_ctx)) != 0) {
         char vrfy_buf[512];
-        DBG("svr_cert varification failed.");
+        ERR("mbedtls_ssl_get_verify_result failed");
         mbedtls_x509_crt_verify_info(vrfy_buf, sizeof(vrfy_buf), "  ! ", flags);
-        DBG("%s", vrfy_buf);
-    }
-    else {
-        DBG("svr_cert varification ok.");
+        ERR("mbedtls_x509_crt_verify_info: %s", vrfy_buf);
+        //goto ssl_conn_exit;
     }
 
-exit:
-    DBG("ret=%d.", ret);
+    ret = 0;
+
+ssl_conn_exit:
+    DBG("httpclient_ssl_conn: %s", ret == 0 ? "succeed" : "failed");
     return ret;
 }
 
-static int httpclient_ssl_close(httpclient_t *client)
+static void httpclient_ssl_close(httpclient_t *client)
 {
     httpclient_ssl_t *ssl = (httpclient_ssl_t *)client->ssl;
     client->client_cert = NULL;
     client->server_cert = NULL;
     client->client_pk = NULL;
 
-    if (!ssl)
-        return -1;
-
+    if (ssl == NULL)
+        return;
     mbedtls_ssl_close_notify(&ssl->ssl_ctx);
     mbedtls_net_free(&ssl->net_ctx);
     mbedtls_x509_crt_free(&ssl->cacert);
@@ -483,9 +460,7 @@ static int httpclient_ssl_close(httpclient_t *client)
     mbedtls_ssl_config_free(&ssl->ssl_conf);
     mbedtls_ctr_drbg_free(&ssl->ctr_drbg);
     mbedtls_entropy_free(&ssl->entropy);
-
     OS_FREE(ssl);
-    return 0;
 }
 #endif
 
@@ -502,8 +477,7 @@ static int httpclient_get_info(httpclient_t *client, char *send_buf, int *send_i
     do {
         if ((HTTPCLIENT_SEND_BUF_SIZE - idx) >= len) {
             cp_len = len;
-        }
-        else {
+        } else {
             cp_len = HTTPCLIENT_SEND_BUF_SIZE - idx;
         }
 
@@ -512,8 +486,8 @@ static int httpclient_get_info(httpclient_t *client, char *send_buf, int *send_i
         len -= cp_len;
 
         if (idx == HTTPCLIENT_SEND_BUF_SIZE) {
-            if (client->is_http == false) {
-                ERR("send buffer overflow");
+            if (client->is_https) {
+                ERR("send_buf overflow");
                 return HTTPCLIENT_ERROR;
             }
             ret = httpclient_tcp_send_all(client->socket, send_buf, HTTPCLIENT_SEND_BUF_SIZE) ;
@@ -534,12 +508,12 @@ static int httpclient_send_auth(httpclient_t *client, char *send_buf, int *send_
 
     httpclient_get_info(client, send_buf, send_idx, "Authorization: Basic ", 0);
     sprintf(base64buff, "%s:%s", client->auth_user, client->auth_password);
-    DBG("bAuth: %s", base64buff);
+    VERBOSE("base64buff: %s", base64buff);
     httpclient_base64enc(b_auth, base64buff);
     b_auth[strlen(b_auth) + 2] = '\0';
     b_auth[strlen(b_auth) + 1] = '\n';
     b_auth[strlen(b_auth)] = '\r';
-    DBG("b_auth: %s", b_auth);
+    VERBOSE("b_auth: %s", b_auth);
     httpclient_get_info(client, send_buf, send_idx, b_auth, 0);
     return HTTPCLIENT_OK;
 }
@@ -572,24 +546,23 @@ static int httpclient_send_header(httpclient_t *client, char *url, int method, h
         meth = "HEAD";
         break;
     default:
-        ERR("Invalid method:%d", method);
+        ERR("Invalid method: %d", method);
         return HTTPCLIENT_ERROR;
     }
 
     /* First we need to parse the url (http[s]://host[:port][/[path]]) */
     ret = httpclient_parse_url(url, scheme, sizeof(scheme), host, sizeof(host), &(port), path, sizeof(path));
     if (ret != HTTPCLIENT_OK) {
-        ERR("httpclient_parse_url returned %d", ret);
+        ERR("httpclient_parse_url failed: %d", ret);
         return ret;
     }
 
     /* Send request */
     memset(send_buf, 0, HTTPCLIENT_SEND_BUF_SIZE);
-
     snprintf(temp_buf, sizeof(temp_buf), "%s %s HTTP/1.1\r\nHost: %s\r\n", meth, path, host); /* Write request */
     ret = httpclient_get_info(client, send_buf, &len, temp_buf, strlen(temp_buf));
-    if (ret) {
-        ERR("Could not write request");
+    if (ret != HTTPCLIENT_OK) {
+        ERR("httpclient_get_info failed: %d", ret);
         return HTTPCLIENT_ERROR_CONN;
     }
 
@@ -615,33 +588,30 @@ static int httpclient_send_header(httpclient_t *client, char *url, int method, h
     /* Close headers */
     httpclient_get_info(client, send_buf, &len, "\r\n", 0);
 
-    DBG("Trying to write %d bytes http header: %s", len, send_buf);
+    DBG("sending header: \n%s", send_buf);
 
 #ifdef ENABLE_HTTPCLIENT_MBEDTLS
-    if (client->is_http == false) {
-        DBG("Enter PolarSSL_write");
+    if (client->is_https) {
         httpclient_ssl_t *ssl = (httpclient_ssl_t *)client->ssl;
         if (httpclient_ssl_send_all(&ssl->ssl_ctx, send_buf, len) != len) {
-            ERR("SSL_write failed");
+            ERR("httpclient_ssl_send_all failed");
             return HTTPCLIENT_ERROR;
         }
         return HTTPCLIENT_OK;
-    }
+    } else
 #endif
-
-    ret = httpclient_tcp_send_all(client->socket, send_buf, len);
-    if (ret > 0) {
-        DBG("Written %d bytes, socket = %d", ret, client->socket);
+    {
+        ret = httpclient_tcp_send_all(client->socket, send_buf, len);
+        if (ret > 0) {
+            VERBOSE("written %d bytes", ret);
+        } else if (ret == 0) {
+            WARN("connection was closed by server");
+            return HTTPCLIENT_CLOSED; /* Connection was closed by server */
+        } else {
+            ERR("connection error: %d", ret);
+            return HTTPCLIENT_ERROR_CONN;
+        }
     }
-    else if (ret == 0) {
-        WARN("ret == 0, Connection was closed by server");
-        return HTTPCLIENT_CLOSED; /* Connection was closed by server */
-    }
-    else {
-        ERR("Connection error (send returned %d)", ret);
-        return HTTPCLIENT_ERROR_CONN;
-    }
-
     return HTTPCLIENT_OK;
 }
 
@@ -650,13 +620,13 @@ static int httpclient_send_userdata(httpclient_t *client, httpclient_data_t *cli
     int ret = 0;
 
     if (client_data->post_buf && client_data->post_buf_len) {
-        DBG("client_data->post_buf:%s", client_data->post_buf);
+        VERBOSE("post_buf: %s", client_data->post_buf);
 #ifdef ENABLE_HTTPCLIENT_MBEDTLS
-        if (client->is_http == false) {
+        if (client->is_https) {
             httpclient_ssl_t *ssl = (httpclient_ssl_t *)client->ssl;
             ret = httpclient_ssl_send_all(&ssl->ssl_ctx, client_data->post_buf, client_data->post_buf_len);
             if (ret != client_data->post_buf_len) {
-                ERR("SSL_write failed");
+                ERR("httpclient_ssl_send_all failed");
                 return HTTPCLIENT_ERROR;
             }
         }
@@ -665,19 +635,16 @@ static int httpclient_send_userdata(httpclient_t *client, httpclient_data_t *cli
         {
             ret = httpclient_tcp_send_all(client->socket, client_data->post_buf, client_data->post_buf_len);
             if (ret > 0) {
-                DBG("Written %d bytes", ret);
-            }
-            else if (ret == 0) {
-                WARN("ret == 0,Connection was closed by server");
+                VERBOSE("written %d bytes", ret);
+            } else if (ret == 0) {
+                WARN("connection was closed by server");
                 return HTTPCLIENT_CLOSED; /* Connection was closed by server */
-            }
-            else {
-                ERR("Connection error (send returned %d)", ret);
+            } else {
+                ERR("connection error: %d", ret);
                 return HTTPCLIENT_ERROR_CONN;
             }
         }
     }
-
     return HTTPCLIENT_OK;
 }
 
@@ -688,45 +655,18 @@ static int httpclient_recv(httpclient_t *client, char *buf, int min_len, int max
 
     while (readLen < max_len && readLen < min_len) {
         buf[readLen] = '\0';
-        if (client->is_http) {
-        #if 0
-            if (readLen < min_len) {
-                ret = recv(client->socket, buf + readLen, min_len - readLen, 0);
-                DBG("recv [blocking] return:%d", ret);
-                if (ret == 0) {
-                    DBG("recv [blocking] return 0 may disconnected");
-                    ret = HTTPCLIENT_CLOSED;
-                }
-            }
-            else {
-                ret = recv(client->socket, buf + readLen, max_len - readLen, MSG_DONTWAIT);
-                DBG("recv [not blocking] return:%d", ret);
-                if (ret == -1 && errno == EWOULDBLOCK) {
-                    DBG("recv [not blocking] EWOULDBLOCK");
-                    break;
-                }
-            }
-        #else
-            ret = recv(client->socket, buf + readLen, max_len - readLen, 0);
-            if (ret == 0) {
-                DBG("recv [blocking] return 0 may disconnected");
-                ret = HTTPCLIENT_CLOSED;
-            }
-        #endif
-        }
 #ifdef ENABLE_HTTPCLIENT_MBEDTLS
-        else {
+        if (client->is_https) {
             httpclient_ssl_t *ssl = (httpclient_ssl_t *)client->ssl;
         #if 0
             if (readLen < min_len) {                
                 mbedtls_ssl_set_bio(&ssl->ssl_ctx, &ssl->net_ctx, mbedtls_net_send, mbedtls_net_recv, NULL);
                 ret = mbedtls_ssl_read(&ssl->ssl_ctx, (unsigned char *)buf + readLen, min_len - readLen);
-                DBG("mbedtls_ssl_read [blocking] return:%d", ret);
-            }
-            else {
+                VERBOSE("mbedtls_ssl_read [blocking] return: %d", ret);
+            } else {
                 mbedtls_ssl_set_bio(&ssl->ssl_ctx, &ssl->net_ctx, mbedtls_net_send, httpclient_ssl_nonblock_recv, NULL);
                 ret = mbedtls_ssl_read(&ssl->ssl_ctx, (unsigned char *)buf + readLen, max_len - readLen);
-                DBG("mbedtls_ssl_read [not blocking] return:%d", ret);
+                VERBOSE("mbedtls_ssl_read [not blocking] return: %d", ret);
                 if (ret == -1 && errno == EWOULDBLOCK) {
                     DBG("mbedtls_ssl_read [not blocking] EWOULDBLOCK");
                     break;
@@ -740,34 +680,55 @@ static int httpclient_recv(httpclient_t *client, char *buf, int min_len, int max
             if (ret == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) {
                 ret = HTTPCLIENT_CLOSED;
             }
-        }
+        } else
 #endif
+        {
+        #if 0
+            if (readLen < min_len) {
+                ret = recv(client->socket, buf + readLen, min_len - readLen, 0);
+                VERBOSE("recv [blocking] return: %d", ret);
+                if (ret == 0) {
+                    DBG("recv [blocking] return 0 may disconnected");
+                    ret = HTTPCLIENT_CLOSED;
+                }
+            } else {
+                ret = recv(client->socket, buf + readLen, max_len - readLen, MSG_DONTWAIT);
+                VERBOSE("recv [not blocking] return: %d", ret);
+                if (ret == -1 && errno == EWOULDBLOCK) {
+                    DBG("recv [not blocking] EWOULDBLOCK");
+                    break;
+                }
+            }
+        #else
+            ret = recv(client->socket, buf + readLen, max_len - readLen, 0);
+            if (ret == 0) {
+                DBG("recv [blocking] return 0 may disconnected");
+                ret = HTTPCLIENT_CLOSED;
+            }
+        #endif
+        }
 
         if (ret > 0) {
             readLen += ret;
-        }
-        else if (ret == 0) {
+        } else if (ret == 0) {
             ret = HTTPCLIENT_CLOSED;
             break;
-        }
-        else if (ret == HTTPCLIENT_CLOSED) {
+        } else if (ret == HTTPCLIENT_CLOSED) {
             break;
-        }
-        else {
-            ERR("Connection error (recv returned %d)", ret);
+        } else {
+            ERR("connection error (recv: %d)", ret);
             ret = HTTPCLIENT_ERROR_CONN;
             break;
         }
     }
 
-    DBG("Read %d bytes", readLen);
+    VERBOSE("read %d bytes", (int)readLen);
     *p_read_len = readLen;
     buf[readLen] = '\0';
 
     if (ret < 0) {
         return ret;
-    }
-    else {
+    } else {
         return HTTPCLIENT_OK;
     }
 }
@@ -779,7 +740,7 @@ static int httpclient_retrieve_content(httpclient_t *client, int len, httpclient
     int crlf_pos;
     char *data = client_data->response_buf;
     /* Receive data */
-    DBG("Receiving data:%s", data);
+    //VERBOSE("response_buf_len: %d", client_data->response_buf_len);
     client_data->is_more = true;
     client_data->content_block_len = 0;
 
@@ -790,25 +751,22 @@ static int httpclient_retrieve_content(httpclient_t *client, int len, httpclient
                 count += len;
                 client_data->response_buf[count] = '\0';
                 client_data->content_block_len += len;
-            }
-            else {
+            } else {
                 client_data->response_buf[client_data->response_buf_len - 1] = '\0';
                 client_data->content_block_len = client_data->response_buf_len - 1;
                 return HTTPCLIENT_RETRIEVE_MORE_DATA;
             }
 
             int ret = httpclient_recv(client, data, 1, client_data->response_buf_len - 1 - count, &len);
-
             /* Receive data */
-            DBG("data len: %d %d", len, count);
-
+            VERBOSE("httpclient_recv: ret=%d, len=%d, count=%d", ret, len, count);
             if (ret == HTTPCLIENT_ERROR_CONN) {
-                DBG("ret == HTTPCLIENT_ERROR_CONN");
+                ERR("httpclient_recv failed: %d", ret);
                 return ret;
             }
 
             if (len == 0) {/* read no more data */
-                DBG("no more len == 0");
+                DBG("no more data, recv 0 bytes");
                 client_data->is_more = false;
                 return HTTPCLIENT_OK;
             }
@@ -822,8 +780,8 @@ static int httpclient_retrieve_content(httpclient_t *client, int len, httpclient
             /* Read chunk header */
             bool foundCrlf;
             do {
-                DBG("len: %d, count = %d, block_len = %d, buf_len = %d", len, count,
-                    client_data->content_block_len, client_data->response_buf_len);
+                VERBOSE("len=%d, count=%d, content_block_len=%d, response_buf_len=%d",
+                    len, count, client_data->content_block_len, client_data->response_buf_len);
                 foundCrlf = false;
                 crlf_pos = 0;
                 data[len] = 0;
@@ -844,20 +802,19 @@ static int httpclient_retrieve_content(httpclient_t *client, int len, httpclient
                          * If only 2 bytes reserved in client_data->response_buf, when read 6 bytes for case xxxx\r\n, but
                          * current chunk size is x\r\n, the left 3 bytes must be stored in client_data->response_buf.
                          */
-                        if (client_data->response_buf_len - client_data->content_block_len - 1 + 3 < HTTPCLIENT_CHUNK_SIZE_STR_LEN) {
+                        if (client_data->response_buf_len-client_data->content_block_len-1+3 < HTTPCLIENT_CHUNK_SIZE_STR_LEN) {
                             if (len == 0) { // when client_data->response_buf is full
                                 return HTTPCLIENT_RETRIEVE_MORE_DATA;
-                            }
-                            else {
+                            } else {
                                 return HTTPCLIENT_ERROR;
                             }
                         }
-                        ret = httpclient_recv(client, data + len, 1,  client_data->response_buf_len - client_data->content_block_len - 1 + 3 - len, &new_trf_len);
+                        ret = httpclient_recv(client, data+len, 1,
+                            client_data->response_buf_len-client_data->content_block_len-1+3-len, &new_trf_len);
                         len += new_trf_len;
                         if (ret == HTTPCLIENT_ERROR_CONN || (ret == HTTPCLIENT_CLOSED && new_trf_len == 0)) {
                             return ret;
-                        }
-                        else {
+                        } else {
                             continue;
                         }
                 }
@@ -867,7 +824,7 @@ static int httpclient_retrieve_content(httpclient_t *client, int len, httpclient
             client_data->retrieve_len = readLen;
             client_data->response_content_len += client_data->retrieve_len;
             if (n != 1) {
-                ERR("Could not read chunk length");
+                ERR("can not read chunk length");
                 return HTTPCLIENT_ERROR_PRTCL;
             }
 
@@ -877,26 +834,24 @@ static int httpclient_retrieve_content(httpclient_t *client, int len, httpclient
             if (readLen == 0) {
                 /* Last chunk */
                 client_data->is_more = false;
-                DBG("no more (last chunk)");
+                DBG("no more data, last chunk");
                 break;
             }
-        }
-        else {
+        } else {
             readLen = client_data->retrieve_len;
         }
 
-        DBG("Retrieving %d bytes, len:%d", readLen, len);
+        VERBOSE("retrieving %d bytes", (int)readLen);
 
         do {
-            DBG("readLen %d, len:%d", readLen, len);
+            VERBOSE("readLen=%d, len=%d", (int)readLen, len);
             templen = MIN(len, readLen);
             if (count + templen < client_data->response_buf_len - 1) {
                 count += templen;
                 client_data->response_buf[count] = '\0';
                 client_data->retrieve_len -= templen;
                 client_data->content_block_len += templen;
-            }
-            else {
+            } else {
                 client_data->response_buf[client_data->response_buf_len - 1] = '\0';
                 client_data->retrieve_len -= (client_data->response_buf_len - 1 - count);
                 client_data->content_block_len = client_data->response_buf_len - 1;
@@ -904,13 +859,12 @@ static int httpclient_retrieve_content(httpclient_t *client, int len, httpclient
             }
 
             if (len >= readLen) {
-                DBG("memmove %d %d %d", readLen, len, client_data->retrieve_len);
+                VERBOSE("readLen=%d, len=%d, retrieve_len=%d", (int)readLen, len, client_data->retrieve_len);
                 data += readLen;
                 len -= readLen;
                 readLen = 0;
                 client_data->retrieve_len = 0;
-            }
-            else {
+            } else {
                 data += len;
                 readLen -= len;
             }
@@ -940,21 +894,18 @@ static int httpclient_retrieve_content(httpclient_t *client, int len, httpclient
                 len += new_trf_len;
             }
             if (data[0] != '\r' || data[1] != '\n') {
-                ERR("Format error, %s", data); /* after memmove, the beginning of next chunk */
+                ERR("format error"); /* after memmove, the beginning of next chunk */
                 return HTTPCLIENT_ERROR_PRTCL;
             }
             memmove(data, &data[2], len - 2); /* remove the \r\n */
             len -= 2;
-        }
-        else {
-            DBG("no more(content-length)");
+        } else {
+            DBG("no more data, reach content-length");
             client_data->is_more = false;
             break;
         }
-
     }
     client_data->content_block_len = count;
-
     return HTTPCLIENT_OK;
 }
 
@@ -965,12 +916,12 @@ static int httpclient_redirect(char *url, httpclient_t *client, httpclient_data_
         return HTTPCLIENT_ERROR;
     }
     if (client->redirect_times >= HTTPCLIENT_REDIRECT_MAX) {
-        ERR("redirect times > max allowed: %d > %d", client->redirect_times, HTTPCLIENT_REDIRECT_MAX);
+        ERR("redirect_times(%d) >= REDIRECT_MAX(%d), abort", client->redirect_times, HTTPCLIENT_REDIRECT_MAX);
         return HTTPCLIENT_ERROR;
     }
 
-    DBG("Redirecting...");
-    client->redirect_times ++;
+    DBG("redirecting...");
+    client->redirect_times++;
 
     httpclient_close(client);
     client_data->is_more = false;
@@ -997,10 +948,9 @@ static int httpclient_response_parse(httpclient_t *client, int len, httpclient_d
     char *data = client_data->header_buf;
 
     client_data->response_content_len = -1;
-
     char *crlf_ptr = strstr(data, "\r\n");
     if (crlf_ptr == NULL) {
-        ERR("\r\n not found");
+        ERR("crlf not found");
         return HTTPCLIENT_ERROR_PRTCL;
     }
 
@@ -1010,20 +960,19 @@ static int httpclient_response_parse(httpclient_t *client, int len, httpclient_d
     /* Parse HTTP response */
     if (sscanf(data, "HTTP/%*d.%*d %d %*[^\r\n]", &(client->response_code)) != 1) {
         /* Cannot match string, error */
-        ERR("Not a correct HTTP answer : %s", data);
+        ERR("not a correct HTTP answer : %s", data);
         return HTTPCLIENT_ERROR_PRTCL;
     }
 
     if (client->response_code < 200 || client->response_code >= 400) {
         /* Did not return a 2xx code; TODO fetch headers/(&data?) anyway and implement a mean of writing/reading headers */
-        WARN("Response code %d", client->response_code);
+        WARN("response code: %d", client->response_code);
     }
 
-    DBG("Reading headers%s", data);
+    VERBOSE("reading headers: %s", data);
 
     memmove(data, &data[crlf_pos + 2], len - (crlf_pos + 2) + 1); /* Be sure to move NULL-terminating char as well */
     len -= (crlf_pos + 2);
-
     client_data->is_chunked = false;
 
     /* Now get headers */
@@ -1034,23 +983,21 @@ static int httpclient_response_parse(httpclient_t *client, int len, httpclient_d
         crlf_ptr = strstr(data, "\r\n");
         if (crlf_ptr == NULL) {
             if (len < header_buf_len - 1) {
-                DBG("header_buff length < header length, remove part to recv more.");
+                VERBOSE("header_buff_len > header_len, remove part to recv more");
                 int new_trf_len = 0;
                 memmove(client_data->header_buf, data, len);
                 data = client_data->header_buf;
                 read_result = httpclient_recv(client, data + len, 1, header_buf_len - len - 1, &new_trf_len);
                 len += new_trf_len;
                 data[len] = '\0';
-                DBG("Read %d chars; In buf: [%s]", new_trf_len, data);
+                VERBOSE("read %d chars, data: [%s]", new_trf_len, data);
                 if (read_result == HTTPCLIENT_ERROR_CONN || (read_result == HTTPCLIENT_CLOSED && new_trf_len == 0)) {
                     return read_result;
-                }
-                else {
+                } else {
                     continue;
                 }
-            }
-            else {
-                DBG("header len > header_buf_len");
+            } else {
+                ERR("header is too long: %d >= %d", len, header_buf_len - 1);
                 return HTTPCLIENT_ERROR;
             }
         }
@@ -1061,9 +1008,8 @@ static int httpclient_response_parse(httpclient_t *client, int len, httpclient_d
                 memcpy(client_data->response_buf, &data[2], len - 2 + 1); /* Be sure to move NULL-terminating char as well */
                 memset(data, 0, len + 1);
                 len -= 2;
-            }
-            else {
-                DBG("response len > response_buf_len");
+            } else {
+                ERR("response data is too long: %d > %d", len-1, client_data->response_buf_len);
                 return HTTPCLIENT_ERROR;
             }
             break;
@@ -1076,36 +1022,28 @@ static int httpclient_response_parse(httpclient_t *client, int len, httpclient_d
             key_ptr = data;
             value_ptr = colon_ptr + strlen(": ");
 
-            DBG("Read header : %.*s: %.*s", key_len, key_ptr, value_len, value_ptr);
+            VERBOSE("reading headers: %.*s: %.*s", key_len, key_ptr, value_len, value_ptr);
             if (0 == strncasecmp(key_ptr, "Content-Length", key_len)) {
                 sscanf(value_ptr, "%d[^\r]", &(client_data->response_content_len));
                 client_data->retrieve_len = client_data->response_content_len;
-            }
-            else if (0 == strncasecmp(key_ptr, "Transfer-Encoding", key_len)) {
+            } else if (0 == strncasecmp(key_ptr, "Transfer-Encoding", key_len)) {
                 if (0 == strncasecmp(value_ptr, "Chunked", value_len)) {
                     client_data->is_chunked = true;
                     client_data->response_content_len = 0;
                     client_data->retrieve_len = 0;
                 }
-            }
-            else if (0 == strncasecmp(key_ptr, "Location", key_len)) {
-                char *location = (char *)OS_MALLOC(HTTPCLIENT_MAX_HOST_LEN + HTTPCLIENT_MAX_URL_LEN);
-                memset(location, 0, HTTPCLIENT_MAX_HOST_LEN + HTTPCLIENT_MAX_URL_LEN);
-                if (location == NULL) {
-                    ERR("location url mem malloc fail.");
-                    return HTTPCLIENT_ERROR;
-                }
+            } else if (0 == strncasecmp(key_ptr, "Location", key_len)) {
+                char location[HTTPCLIENT_MAX_HOST_LEN + HTTPCLIENT_MAX_URL_LEN];
+                memset(location, 0x0, sizeof(location));
                 sscanf(value_ptr, "%s[^\r]", location);
-                DBG("Redirect location : %s", location);
+                WARN("redirect url: %s", location);
                 int ret = httpclient_redirect(location, client, client_data);
-                OS_FREE(location);
                 return ret;
             }
             data += crlf_pos + 2;
             len -= (crlf_pos + 2);
-        }
-        else {
-            ERR("Could not parse header");
+        } else {
+            ERR("Can not parse header");
             return HTTPCLIENT_ERROR;
         }
     }
@@ -1124,67 +1062,62 @@ HTTPCLIENT_RESULT httpclient_connect(httpclient_t *client, char *url)
     /* First we need to parse the url (http[s]://host[:port][/[path]]) */
     ret = httpclient_parse_url(url, scheme, sizeof(scheme), host, sizeof(host), &(client->remote_port), path, sizeof(path));
     if (ret != HTTPCLIENT_OK) {
-        ERR("httpclient_parse_url returned %d", ret);
+        ERR("httpclient_parse_url failed: %d", ret);
         return (HTTPCLIENT_RESULT)ret;
     }
 
     // http or https
     if (strcmp(scheme, "https") == 0) {
-        client->is_http = false;
-    }
-    else if (strcmp(scheme, "http") == 0) {
-        client->is_http = true;
+        client->is_https = true;
+    } else if (strcmp(scheme, "http") == 0) {
+        client->is_https = false;
     }
 
     // default http 80 port, https 443 port
     if (client->remote_port == 0) {
-        if (client->is_http) {
-            client->remote_port = HTTP_PORT;
-        }
-        else {
+        if (client->is_https) {
             client->remote_port = HTTPS_PORT;
+        } else {
+            client->remote_port = HTTP_PORT;
         }
     }
 
-    DBG("http?:%d, port:%d, host:%s", client->is_http, client->remote_port, host);
+    VERBOSE("is_https?: %d, port: %d, host: %s", client->is_https, client->remote_port, host);
 
     ret = HTTPCLIENT_ERROR_CONN;
     client->socket = -1;
-    if (client->is_http) {
-        ret = httpclient_conn(client, host);
-    }
+    if (client->is_https) {
 #ifdef ENABLE_HTTPCLIENT_MBEDTLS
-    else {
         ret = httpclient_ssl_conn(client, host);
         if (ret == 0) {
             httpclient_ssl_t *ssl = (httpclient_ssl_t *)client->ssl;
             client->socket = ssl->net_ctx.fd;
         }
-    }
+#else
+        ERR("https not supported, please set C_FLAGS with ENABLE_HTTPCLIENT_MBEDTLS");
 #endif
+    } else {
+        ret = httpclient_conn(client, host);
+    }
 
-    DBG("httpclient_connect() result:%d, client:%p", ret, client);
+    DBG("httpclient_connect() result: %d, client: %p", ret, client);
     return (HTTPCLIENT_RESULT)ret;
 }
 
 HTTPCLIENT_RESULT httpclient_send_request(httpclient_t *client, char *url, int method, httpclient_data_t *client_data)
 {
     int ret = HTTPCLIENT_ERROR_CONN;
-
     if (client->socket < 0) {
         return (HTTPCLIENT_RESULT)ret;
     }
-
     ret = httpclient_send_header(client, url, method, client_data);
     if (ret != 0) {
         return (HTTPCLIENT_RESULT)ret;
     }
-
     if (method == HTTPCLIENT_POST || method == HTTPCLIENT_PUT) {
         ret = httpclient_send_userdata(client, client_data);
     }
-
-    DBG("httpclient_send_request() result:%d, client:%p", ret, client);
+    VERBOSE("httpclient_send_request() result: %d, client: %p", ret, client);
     return (HTTPCLIENT_RESULT)ret;
 }
 
@@ -1202,8 +1135,7 @@ HTTPCLIENT_RESULT httpclient_recv_response(httpclient_t *client, httpclient_data
     if (client_data->is_more) {
         client_data->response_buf[0] = '\0';
         ret = httpclient_retrieve_content(client, reclen, client_data);
-    }
-    else {
+    } else {
         if (client_data->header_buf == NULL) {
             client_data->header_buf = (char *)OS_MALLOC(HTTPCLIENT_HEADER_BUF_SIZE);
             client_data->header_buf_len = HTTPCLIENT_HEADER_BUF_SIZE;
@@ -1222,7 +1154,7 @@ HTTPCLIENT_RESULT httpclient_recv_response(httpclient_t *client, httpclient_data
         client_data->header_buf[reclen] = '\0';
 
         if (reclen) {
-            DBG("reclen:%d, header_buf:%s", reclen, client_data->header_buf);
+            DBG("response header: \n%s", client_data->header_buf);
             ret = httpclient_response_parse(client, reclen, client_data);
         }
     }
@@ -1233,25 +1165,23 @@ HTTPCLIENT_RESULT httpclient_recv_response(httpclient_t *client, httpclient_data
         client_data->header_buf_len = 0;
     }
 
-    DBG("httpclient_recv_response() result:%d, client:%p", ret, client);
+    VERBOSE("httpclient_recv_response() result: %d, client: %p", ret, client);
     return (HTTPCLIENT_RESULT)ret;
 }
 
 void httpclient_close(httpclient_t *client)
 {
-    if (client->is_http) {
+#ifdef ENABLE_HTTPCLIENT_MBEDTLS
+    if (client->is_https) {
+        httpclient_ssl_close(client);
+    } else
+#endif
+    {
         if (client->socket >= 0)
             close(client->socket);
     }
-#ifdef ENABLE_HTTPCLIENT_MBEDTLS
-    else {
-        httpclient_ssl_close(client);
-    }
-#endif
-
     client->socket = -1;
-
-    DBG("httpclient_close() client:%p", client);
+    DBG("httpclient_close() client: %p", client);
 }
 
 int httpclient_get_response_code(httpclient_t *client)
@@ -1261,20 +1191,14 @@ int httpclient_get_response_code(httpclient_t *client)
 
 static HTTPCLIENT_RESULT httpclient_common(httpclient_t *client, char *url, int method, httpclient_data_t *client_data)
 {
-    HTTPCLIENT_RESULT ret = HTTPCLIENT_ERROR_CONN;
-
-    ret = httpclient_connect(client, url);
-
+    HTTPCLIENT_RESULT ret = httpclient_connect(client, url);
     if (!ret) {
         ret = httpclient_send_request(client, url, method, client_data);
-
         if (!ret) {
             ret = httpclient_recv_response(client, client_data);
         }
     }
-
     httpclient_close(client);
-
     return ret;
 }
 
@@ -1316,18 +1240,16 @@ int httpclient_get_response_header_value(char *header_buf, char *name, int *val_
             key_ptr = data;
             value_ptr = colon_ptr + strlen(": ");
 
-            DBG("Response header: %.*s: %.*s", key_len, key_ptr, value_len, value_ptr);
+            VERBOSE("key:value: %.*s:%.*s", key_len, key_ptr, value_len, value_ptr);
             if (0 == strncasecmp(key_ptr, name, key_len)) {
                 *val_pos = value_ptr - header_buf;
                 *val_len = value_len;
                 return 0;
-            }
-            else {
+            } else {
                 data = crlf_ptr + 2;
                 continue;
             }
-        }
-        else {
+        } else {
             return -1;
         }
     }
