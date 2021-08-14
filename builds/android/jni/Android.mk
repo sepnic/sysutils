@@ -21,6 +21,8 @@ LOCAL_SRC_FILES := \
     ${TOP_DIR}/source/cipher/md5.c \
     ${TOP_DIR}/source/cipher/base64.c \
     ${TOP_DIR}/source/httpclient/httpclient.c \
+    ${TOP_DIR}/source/json/cJSON.c \
+    ${TOP_DIR}/source/json/cJSON_Utils.c \
 
 LOCAL_C_INCLUDES += ${TOP_DIR}/include
 

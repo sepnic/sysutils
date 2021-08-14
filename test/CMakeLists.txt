@@ -24,6 +24,8 @@ set (LIBS_SRC
     ${TOP_DIR}/source/cipher/md5.c
     ${TOP_DIR}/source/cipher/base64.c
     ${TOP_DIR}/source/httpclient/httpclient.c
+    ${TOP_DIR}/source/json/cJSON.c
+    ${TOP_DIR}/source/json/cJSON_Utils.c
 )
 
 # cflags: OS_LINUX, OS_ANDROID, OS_APPLE, OS_RTOS
