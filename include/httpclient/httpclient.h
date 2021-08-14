@@ -88,12 +88,12 @@ typedef struct {
     char *header;                   /**< Request custom header. */
     char *auth_user;                /**< Username for basic authentication. */
     char *auth_password;            /**< Password for basic authentication. */
-    bool is_http;                   /**< Http connection? if 1, http; if 0, https. */
+    bool is_https;                   /**< Http connection? if 1, https; if 0, http. */
     int redirect_times;
 //#ifdef ENABLE_HTTPCLIENT_MBEDTLS
-    const char *server_cert;        /**< Server certification. */
-    const char *client_cert;        /**< Client certification. */
-    const char *client_pk;          /**< Client private key. */
+    char *server_cert;              /**< Server certification. */
+    char *client_cert;              /**< Client certification. */
+    char *client_pk;                /**< Client private key. */
     int server_cert_len;            /**< Server certification lenght, server_cert buffer size. */
     int client_cert_len;            /**< Client certification lenght, client_cert buffer size. */
     int client_pk_len;              /**< Client private key lenght, client_pk buffer size. */
