@@ -95,7 +95,7 @@ CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
     return (const char*) (global_error.json + global_error.position);
 }
 
-CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item) 
+CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item) 
 {
     if (!cJSON_IsString(item)) 
     {
@@ -105,18 +105,18 @@ CJSON_PUBLIC(char *) cJSON_GetStringValue(cJSON *item)
     return item->valuestring;
 }
 
-CJSON_PUBLIC(double) cJSON_GetNumberValue(cJSON *item) 
+CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item) 
 {
     if (!cJSON_IsNumber(item)) 
     {
-        return NAN;
+        return (double) NAN;
     }
 
     return item->valuedouble;
 }
 
 /* This is a safeguard to prevent copy-pasters from using incompatible C and header files */
-#if (CJSON_VERSION_MAJOR != 1) || (CJSON_VERSION_MINOR != 7) || (CJSON_VERSION_PATCH != 13)
+#if (CJSON_VERSION_MAJOR != 1) || (CJSON_VERSION_MINOR != 7) || (CJSON_VERSION_PATCH != 14)
     #error cJSON.h and cJSON.c have different versions. Make sure that both have the same.
 #endif
 
@@ -1512,6 +1512,10 @@ static cJSON_bool parse_array(cJSON * const item, parse_buffer * const input_buf
 success:
     input_buffer->depth--;
 
+    if (head != NULL) {
+        head->prev = current_item;
+    }
+
     item->type = cJSON_Array;
     item->child = head;
 
@@ -1683,6 +1687,10 @@ static cJSON_bool parse_object(cJSON * const item, parse_buffer * const input_bu
 
 success:
     input_buffer->depth--;
+
+    if (head != NULL) {
+        head->prev = current_item;
+    }
 
     item->type = cJSON_Object;
     item->child = head;
@@ -1970,15 +1978,6 @@ static cJSON_bool add_item_to_array(cJSON *array, cJSON *item)
             suffix_object(child->prev, item);
             array->child->prev = item;
         }
-        else
-        {
-            while (child->next)
-            {
-                child = child->next;
-            }
-            suffix_object(child, item);
-            array->child->prev = item;
-        }
     }
 
     return true;
@@ -2205,6 +2204,12 @@ CJSON_PUBLIC(cJSON *) cJSON_DetachItemViaPointer(cJSON *parent, cJSON * const it
         /* first element */
         parent->child = item->next;
     }
+    else if (item->next == NULL)
+    {
+        /* last element */
+        parent->child->prev = item->prev;
+    }
+
     /* make sure the detached item doesn't point anywhere anymore */
     item->prev = NULL;
     item->next = NULL;
@@ -2302,6 +2307,10 @@ CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON
     }
     if (parent->child == item)
     {
+        if (parent->child->prev == parent->child)
+        {
+            replacement->prev = replacement;
+        }
         parent->child = replacement;
     }
     else
@@ -2312,6 +2321,10 @@ CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON
         if (replacement->prev != NULL)
         {
             replacement->prev->next = replacement;
+        }
+        if (replacement->next == NULL)
+        {
+            parent->child->prev = replacement;
         }
     }
 
@@ -2552,6 +2565,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const int *numbers, int count)
         }
         p = n;
     }
+    a->child->prev = n;
 
     return a;
 }
@@ -2588,6 +2602,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateFloatArray(const float *numbers, int count)
         }
         p = n;
     }
+    a->child->prev = n;
 
     return a;
 }
@@ -2624,6 +2639,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateDoubleArray(const double *numbers, int count)
         }
         p = n;
     }
+    a->child->prev = n;
 
     return a;
 }
@@ -2660,6 +2676,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateStringArray(const char *const *strings, int co
         }
         p = n;
     }
+    a->child->prev = n;
 
     return a;
 }
@@ -2731,6 +2748,10 @@ CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse)
             next = newchild;
         }
         child = child->next;
+    }
+    if (newitem && newitem->child)
+    {
+        newitem->child->prev = newchild;
     }
 
     return newitem;
