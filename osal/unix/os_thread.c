@@ -14,13 +14,47 @@
  * limitations under the License.
  */
 
+#include <string.h>
 #include <unistd.h>
 #include <time.h>
 #include <pthread.h>
 #include "osal/os_thread.h"
 
+#if defined(OS_LINUX) || defined(OS_ANDROID)
+#include <sys/prctl.h>
+#endif
+
 #define DEFAULT_THREAD_PRIORITY   (31)      // default priority for unix-like system
 #define DEFAULT_THREAD_STACKSIZE  (32*1024) // 32KB
+
+struct os_thread_priv {
+    void *(*cb)(void *arg);
+    void *arg;
+    const char *name;
+};
+
+static void *os_thread_common_entry(void *arg)
+{
+    struct os_thread_priv *priv = (struct os_thread_priv *)arg;
+
+    if (priv->name != NULL) {
+#if defined(OS_LINUX) || defined(OS_ANDROID)
+        prctl(PR_SET_NAME, priv->name);
+#elif defined(OS_APPLE)
+        // TODO: set thread name for macosx/ios
+#elif defined(OS_RTOS)
+        // TODO: set thread name for rtos
+#endif
+        free((void *)(priv->name));
+    }
+
+    void *ret = NULL;
+    if (priv->cb != NULL)
+        ret = priv->cb(priv->arg);
+
+    free(priv);
+    return ret;
+}
 
 int os_thread_sched_priority(enum os_thread_prio prio_type)
 {
@@ -45,6 +79,7 @@ os_thread os_thread_create(struct os_thread_attr *attr, void *(*cb)(void *arg), 
         detachstate = PTHREAD_CREATE_DETACHED;
     pthread_attr_init(&tattr);
     pthread_attr_setdetachstate(&tattr, detachstate);
+
 #if defined(OS_RTOS)
     if (attr != NULL) {
         struct sched_param tsched;
@@ -53,11 +88,28 @@ os_thread os_thread_create(struct os_thread_attr *attr, void *(*cb)(void *arg), 
         pthread_attr_setstacksize(&tattr, attr->stacksize);
     }
 #endif
+
+    int ret = -1;
+    struct os_thread_priv *priv = (struct os_thread_priv *)malloc(sizeof(struct os_thread_priv));
+    if (priv == NULL) {
+        goto create_out;
+    }
+    priv->cb = cb;
+    priv->arg = arg;
+    priv->name = (attr && attr->name) ? strdup(attr->name) : strdup("sysutils");
     pthread_t tid;
-    int ret = pthread_create(&tid, &tattr, cb, arg);
+    ret = pthread_create(&tid, &tattr, os_thread_common_entry, priv);
+
+create_out:
     pthread_attr_destroy(&tattr);
-    if (ret != 0)
+    if (ret != 0) {
+        if (priv != NULL) {
+            if (priv->name != NULL)
+                free((void *)(priv->name));
+            free((void *)priv);
+        }
         return NULL;
+    }
     return (os_thread)tid;
 }
 
