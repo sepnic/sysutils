@@ -42,16 +42,18 @@
 
 //#define ENABLE_HTTPCLIENT_MBEDTLS
 
-//#define ENABLE_HTTPCLIENT_DEBUG_VERBOSE
+//#define ENABLE_HTTPCLIENT_DEBUG
 
-#ifdef ENABLE_HTTPCLIENT_DEBUG_VERBOSE
+#ifdef ENABLE_HTTPCLIENT_DEBUG
 #define VERBOSE(fmt, arg...) OS_LOGV(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
 #define DBG(fmt, arg...)     OS_LOGD(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
+#define INFO(fmt, arg...)    OS_LOGI(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
 #define WARN(fmt, arg...)    OS_LOGW(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
 #define ERR(fmt, arg...)     OS_LOGE(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
 #else
-#define VERBOSE(fmt, arg...)
-#define DBG(fmt, arg...)     OS_LOGD(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
+#define VERBOSE(fmt, arg...) //OS_LOGV(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
+#define DBG(fmt, arg...)     //OS_LOGD(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
+#define INFO(fmt, arg...)    OS_LOGI(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
 #define WARN(fmt, arg...)    OS_LOGW(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
 #define ERR(fmt, arg...)     OS_LOGE(TAG, "%s:%d: " fmt, __func__, __LINE__, ##arg)
 #endif
@@ -185,7 +187,7 @@ static int httpclient_parse_url(const char *url, char *scheme, size_t max_scheme
         memcpy(scheme, "http", 5);
     } else {
         if (max_scheme_len < host_ptr - scheme_ptr + 1) { /* including NULL-terminating char */
-            WARN("scheme str is too long (%d < %d)", (int)max_scheme_len, (int)(host_ptr - scheme_ptr + 1));
+            ERR("scheme str is too long (%d < %d)", (int)max_scheme_len, (int)(host_ptr - scheme_ptr + 1));
             return HTTPCLIENT_ERROR_PARSE;
         }
         memcpy(scheme, scheme_ptr, host_ptr - scheme_ptr);
@@ -199,7 +201,7 @@ static int httpclient_parse_url(const char *url, char *scheme, size_t max_scheme
         host_len = port_ptr - host_ptr;
         port_ptr++;
         if (sscanf(port_ptr, "%hu", &tport) != 1) {
-            WARN("can not find port");
+            ERR("can not find port");
             return HTTPCLIENT_ERROR_PARSE;
         }
         *port = (int)tport;
@@ -217,7 +219,7 @@ static int httpclient_parse_url(const char *url, char *scheme, size_t max_scheme
     }
 
     if (maxhost_len < host_len + 1) { /* including NULL-terminating char */
-        WARN("host str is too long (%d < %d)", (int)maxhost_len, (int)(host_len + 1));
+        ERR("host str is too long (%d < %d)", (int)maxhost_len, (int)(host_len + 1));
         return HTTPCLIENT_ERROR_PARSE;
     }
     memcpy(host, host_ptr, host_len);
@@ -237,7 +239,7 @@ static int httpclient_parse_url(const char *url, char *scheme, size_t max_scheme
     }
 
     if (max_path_len < path_len + 1) { /* including NULL-terminating char */
-        WARN("path str is too long (%d < %d)", (int)max_path_len, (int)(path_len + 1));
+        ERR("path str is too long (%d < %d)", (int)max_path_len, (int)(path_len + 1));
         return HTTPCLIENT_ERROR_PARSE;
     }
     memcpy(path, path_ptr, path_len);
@@ -438,7 +440,7 @@ static int httpclient_ssl_conn(httpclient_t *client, char *host)
     ret = 0;
 
 ssl_conn_exit:
-    DBG("httpclient_ssl_conn: %s", ret == 0 ? "succeed" : "failed");
+    INFO("httpclient_ssl_conn: %s", ret == 0 ? "succeed" : "failed");
     return ret;
 }
 
@@ -920,7 +922,7 @@ static int httpclient_redirect(char *url, httpclient_t *client, httpclient_data_
         return HTTPCLIENT_ERROR;
     }
 
-    DBG("redirecting...");
+    INFO("redirecting...");
     client->redirect_times++;
 
     httpclient_close(client);
@@ -1036,7 +1038,7 @@ static int httpclient_response_parse(httpclient_t *client, int len, httpclient_d
                 char location[HTTPCLIENT_MAX_HOST_LEN + HTTPCLIENT_MAX_URL_LEN];
                 memset(location, 0x0, sizeof(location));
                 sscanf(value_ptr, "%s[^\r]", location);
-                WARN("redirect url: %s", location);
+                INFO("redirect url: %s", location);
                 int ret = httpclient_redirect(location, client, client_data);
                 return ret;
             }
@@ -1100,7 +1102,7 @@ HTTPCLIENT_RESULT httpclient_connect(httpclient_t *client, char *url)
         ret = httpclient_conn(client, host);
     }
 
-    DBG("httpclient_connect() result: %d, client: %p", ret, client);
+    INFO("httpclient_connect() result: %d, client: %p", ret, client);
     return (HTTPCLIENT_RESULT)ret;
 }
 
@@ -1117,7 +1119,7 @@ HTTPCLIENT_RESULT httpclient_send_request(httpclient_t *client, char *url, int m
     if (method == HTTPCLIENT_POST || method == HTTPCLIENT_PUT) {
         ret = httpclient_send_userdata(client, client_data);
     }
-    VERBOSE("httpclient_send_request() result: %d, client: %p", ret, client);
+    DBG("httpclient_send_request() result: %d, client: %p", ret, client);
     return (HTTPCLIENT_RESULT)ret;
 }
 
@@ -1181,7 +1183,7 @@ void httpclient_close(httpclient_t *client)
             close(client->socket);
     }
     client->socket = -1;
-    DBG("httpclient_close() client: %p", client);
+    INFO("httpclient_close() client: %p", client);
 }
 
 int httpclient_get_response_code(httpclient_t *client)
