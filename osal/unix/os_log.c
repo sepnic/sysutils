@@ -86,6 +86,23 @@ static const char *log_level_strings[] = {
     [LOG_VERBOSE] = "V",
 };
 
+#define OS_LOG_BLACK         "\033[0;30m"
+#define OS_LOG_RED           "\033[0;31m"
+#define OS_LOG_GREEN         "\033[0;32m"
+#define OS_LOG_BROWN         "\033[0;33m"
+#define OS_LOG_BLUE          "\033[0;34m"
+#define OS_LOG_PURPLE        "\033[0;35m"
+#define OS_LOG_CYAN          "\033[0;36m"
+#define OS_LOG_GRAY          "\033[1;30m"
+#define OS_LOG_COLOR_RESET   "\033[0m"
+
+#define OS_LOG_COLOR_F       OS_LOG_RED
+#define OS_LOG_COLOR_E       OS_LOG_RED
+#define OS_LOG_COLOR_W       OS_LOG_BROWN
+#define OS_LOG_COLOR_I       OS_LOG_GREEN
+#define OS_LOG_COLOR_D       OS_LOG_BLUE
+#define OS_LOG_COLOR_V       OS_LOG_GRAY
+
 // [date] [time] [prio] [tag]: [log]
 static void log_print(enum log_level prio, const char *tag, const char *format, va_list arg_ptr);
 
@@ -132,6 +149,26 @@ void os_verbose(const char *tag, const char *format, ...)
     va_end(arg_ptr);
 }
 
+static const char *os_log_color(enum log_level prio)
+{
+    switch (prio) {
+    case LOG_FATAL:
+        return OS_LOG_COLOR_F;
+    case LOG_ERROR:
+        return OS_LOG_COLOR_E;
+    case LOG_WARN:
+        return OS_LOG_COLOR_W;
+    case LOG_INFO:
+        return OS_LOG_COLOR_I;
+    case LOG_DEBUG:
+        return OS_LOG_COLOR_D;
+    case LOG_VERBOSE:
+        return OS_LOG_COLOR_V;
+    default:
+        return NULL;
+    }
+}
+
 static void log_print(enum log_level prio, const char *tag, const char *format, va_list arg_ptr)
 {
     size_t offset = 0;
@@ -172,6 +209,6 @@ static void log_print(enum log_level prio, const char *tag, const char *format, 
     }
 
     // print log to console
-    fprintf(stdout, "%s", log_entry);
+    fprintf(stdout, "%s" "%s" OS_LOG_COLOR_RESET, os_log_color(prio), log_entry);
 }
 #endif // !OS_ANDROID
