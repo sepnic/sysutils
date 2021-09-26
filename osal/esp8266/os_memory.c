@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2021 Qinglong<sysu.zqlong@gmail.com>
+ * Copyright (C) 2020-2021 Qinglong<sysu.zqlong@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,30 @@
  * limitations under the License.
  */
 
-#ifndef __SYSUTILS_OS_MISC_H__
-#define __SYSUTILS_OS_MISC_H__
+#include <string.h>
+#include "osal/os_memory.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "os_common.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-int os_misc_random(void *buffer, unsigned int size);
-
-#ifdef __cplusplus
+void *os_malloc(unsigned int size)
+{
+    return malloc(size);
 }
-#endif
 
-#endif /* __SYSUTILS_OS_MISC_H__ */
+void *os_calloc(unsigned int n, unsigned int size)
+{
+    return calloc(n, size);
+}
+
+void *os_realloc(void *ptr, unsigned int size)
+{
+    return realloc(ptr, size);
+}
+
+void os_free(void *ptr)
+{
+    free(ptr);
+}
+
+char *os_strdup(const char *str)
+{
+    return strdup(str);
+}
