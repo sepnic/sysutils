@@ -51,7 +51,9 @@
 
 /* check RTOS */
 #if !defined(OS_RTOS)
-// todo
+#if defined(OS_FREERTOS_ESP8266)
+#define OS_RTOS 1
+#endif
 #endif
 
 #endif // __SYSUTILS_OS_COMMON_H__

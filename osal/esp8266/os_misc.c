@@ -20,8 +20,16 @@
 #include <pthread.h>
 #include "osal/os_misc.h"
 
-#define OS_RANDOM_DEVICE "/dev/urandom"
+#if defined(OS_FREERTOS_ESP8266)
+#include "esp_system.h"
+int os_misc_random(void *buffer, unsigned int size)
+{
+    esp_fill_random(buffer, size);
+    return size;
+}
 
+#else
+#define OS_RANDOM_DEVICE "/dev/urandom"
 int os_misc_random(void *buffer, unsigned int size)
 {
     static pthread_mutex_t rand_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -39,3 +47,4 @@ int os_misc_random(void *buffer, unsigned int size)
     else
         return -1;
 }
+#endif
