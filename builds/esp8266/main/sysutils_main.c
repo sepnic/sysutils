@@ -54,7 +54,7 @@ int mlooper_test()
 
     attr.name = "msglooper_test";
     attr.priority = OS_THREAD_PRIO_NORMAL;
-    attr.stacksize = 2048;
+    attr.stacksize = 4096;
     looper = mlooper_create(&attr, msg_handle, msg_free);
 
     mlooper_dump(looper);
