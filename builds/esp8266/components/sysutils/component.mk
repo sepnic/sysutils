@@ -8,9 +8,14 @@
 #
 
 TOPDIR := ../../../..
-COMPONENT_ADD_INCLUDEDIRS := ${TOPDIR}/include
-COMPONENT_SRCDIRS := ${TOPDIR}/osal/esp8266 \
-                    ${TOPDIR}/source/cutils \
-                    ${TOPDIR}/source/cipher \
-                    ${TOPDIR}/source/httpclient
+
+COMPONENT_ADD_INCLUDEDIRS := \
+    ${TOPDIR}/include
+
+COMPONENT_SRCDIRS := \
+    ${TOPDIR}/osal/esp8266 \
+    ${TOPDIR}/source/cutils \
+    ${TOPDIR}/source/cipher \
+    ${TOPDIR}/source/httpclient
+
 CFLAGS += -DOS_RTOS -DOS_FREERTOS_ESP8266 -DENABLE_HTTPCLIENT_MBEDTLS
