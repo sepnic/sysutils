@@ -17,6 +17,8 @@
 #ifndef __SYSUTILS_LIST_H__
 #define __SYSUTILS_LIST_H__
 
+#include "cutil_namespace.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

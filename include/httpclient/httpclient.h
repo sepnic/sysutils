@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "httpclient_namespace.h"
 
 // IMPORTANT NOTE: Set C_FLAGS with -DENABLE_HTTPCLIENT_MBEDTLS to enable https!!!
 

@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "osal_namespace.h"
 #include "os_common.h"
 
 #ifdef __cplusplus

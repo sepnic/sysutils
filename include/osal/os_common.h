@@ -18,6 +18,7 @@
 #define __SYSUTILS_OS_COMMON_H__
 
 #include <stdio.h>
+#include "osal_namespace.h"
 
 /* check os */
 

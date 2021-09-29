@@ -18,6 +18,7 @@
 #define __SYSUTILS_MEMORY_HELPER_H__
 
 #include "osal/os_memory.h"
+#include "cutil_namespace.h"
 
 //#define ENABLE_MEMORY_LEAK_DETECT
 //#define ENABLE_MEMORY_OVERFLOW_DETECT

@@ -101,8 +101,8 @@ int random_test()
 {
     unsigned long buffer[4];
     for (int i = 0; i < 3; i++) {
-        os_misc_random(buffer, sizeof(buffer));
-        OS_LOGI(LOG_TAG, "os_misc_random[%d]: %08x %08x %08x %08x", i, buffer[0], buffer[1], buffer[2], buffer[3]);
+        os_random(buffer, sizeof(buffer));
+        OS_LOGI(LOG_TAG, "os_random[%d]: %08x %08x %08x %08x", i, buffer[0], buffer[1], buffer[2], buffer[3]);
     }
     return 0;
 }

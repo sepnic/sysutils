@@ -20,15 +20,18 @@
   THE SOFTWARE.
 */
 
+/* Copyright (c) 2019-2021 Qinglong<sysu.zqlong@gmail.com> */
+
 #ifndef __SYSUTILS_CJSON_UTILS_H__
 #define __SYSUTILS_CJSON_UTILS_H__
+
+#include "cJSON.h"
+#include "json_namespace.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-#include "cJSON.h"
 
 /* Implement RFC6901 (https://tools.ietf.org/html/rfc6901) JSON Pointer spec. */
 CJSON_PUBLIC(cJSON *) cJSONUtils_GetPointer(cJSON * const object, const char *pointer);

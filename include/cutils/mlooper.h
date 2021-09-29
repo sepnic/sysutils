@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "osal/os_thread.h"
+#include "cutil_namespace.h"
 
 #ifdef __cplusplus
 extern "C" {

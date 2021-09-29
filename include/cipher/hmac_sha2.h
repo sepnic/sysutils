@@ -35,6 +35,7 @@
 #define __SYSUTILS_HMAC_SHA2_H
 
 #include "sha2.h"
+#include "cipher_namespace.h"
 
 #ifdef __cplusplus
 extern "C" {
