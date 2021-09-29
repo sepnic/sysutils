@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "cipher_namespace.h"
 
 #ifdef __cplusplus
 extern "C" {

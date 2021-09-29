@@ -19,13 +19,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "osal_namespace.h"
 #include "os_common.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int os_misc_random(void *buffer, unsigned int size);
+int os_random(void *buffer, unsigned int size);
 
 #ifdef __cplusplus
 }

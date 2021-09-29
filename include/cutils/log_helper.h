@@ -18,6 +18,7 @@
 #define __SYSUTILS_LOG_HELPER_H__
 
 #include "osal/os_log.h"
+#include "cutil_namespace.h"
 
 #ifdef __cplusplus
 extern "C" {

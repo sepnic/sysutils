@@ -17,6 +17,7 @@
 #define __SYSUTILS_MD5_H__
 
 #include <stdint.h>
+#include "cipher_namespace.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -20,8 +20,12 @@
   THE SOFTWARE.
 */
 
+/* Copyright (c) 2019-2021 Qinglong<sysu.zqlong@gmail.com> */
+
 #ifndef __SYSUTILS_CJSON_H__
 #define __SYSUTILS_CJSON_H__
+
+#include "json_namespace.h"
 
 #ifdef __cplusplus
 extern "C"

@@ -35,6 +35,7 @@
 #define __SYSUTILS_SHA2_H
 
 #include <stdint.h>
+#include "cipher_namespace.h"
 
 #define SHA224_DIGEST_SIZE ( 224 / 8)
 #define SHA256_DIGEST_SIZE ( 256 / 8)

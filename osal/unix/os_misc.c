@@ -22,7 +22,7 @@
 
 #define OS_RANDOM_DEVICE "/dev/urandom"
 
-int os_misc_random(void *buffer, unsigned int size)
+int os_random(void *buffer, unsigned int size)
 {
     static pthread_mutex_t rand_mutex = PTHREAD_MUTEX_INITIALIZER;
     static int rand_fd = -1;

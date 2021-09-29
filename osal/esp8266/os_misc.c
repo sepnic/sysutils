@@ -22,7 +22,7 @@
 
 #if defined(OS_FREERTOS_ESP8266)
 #include "esp_system.h"
-int os_misc_random(void *buffer, unsigned int size)
+int os_random(void *buffer, unsigned int size)
 {
     esp_fill_random(buffer, size);
     return size;
@@ -30,7 +30,7 @@ int os_misc_random(void *buffer, unsigned int size)
 
 #else
 #define OS_RANDOM_DEVICE "/dev/urandom"
-int os_misc_random(void *buffer, unsigned int size)
+int os_random(void *buffer, unsigned int size)
 {
     static pthread_mutex_t rand_mutex = PTHREAD_MUTEX_INITIALIZER;
     static int rand_fd = -1;
