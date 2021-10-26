@@ -156,19 +156,19 @@ typedef struct internal_hooks
     void *(CJSON_CDECL *reallocate)(void *pointer, size_t size);
 } internal_hooks;
 
-#if defined(_MSC_VER)
-/* work around MSVC error C2322: '...' address of dllimport '...' is not static */
+#if defined(ENABLE_MEMORY_LEAK_DETECT) || defined(ENABLE_MEMORY_OVERFLOW_DETECT)
+#include "cutils/memory_helper.h"
 static void * CJSON_CDECL internal_malloc(size_t size)
 {
-    return malloc(size);
+    return OS_MALLOC(size);
 }
 static void CJSON_CDECL internal_free(void *pointer)
 {
-    free(pointer);
+    OS_FREE(pointer);
 }
 static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)
 {
-    return realloc(pointer, size);
+    return OS_REALLOC(pointer, size);
 }
 #else
 #define internal_malloc malloc
