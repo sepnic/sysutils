@@ -59,8 +59,8 @@ static void mlooper_free_msgnode(mlooper_handle looper, struct message_node *nod
 {
     struct message *msg = &node->msg;
     if (msg->state != MESSAGE_STATE_HANDLED) {
-        OS_LOGW(LOG_TAG, "[%s]: Discarded message: what=[%d], state=[%d]",
-                looper->thread_name, msg->what, msg->state);
+        //OS_LOGW(LOG_TAG, "[%s]: Discarded message: what=[%d], state=[%d]",
+        //        looper->thread_name, msg->what, msg->state);
         if (msg->on_discard != NULL)
             msg->on_discard(msg);
     }
