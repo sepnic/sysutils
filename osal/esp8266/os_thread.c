@@ -20,6 +20,10 @@
 #include <pthread.h>
 #include "osal/os_thread.h"
 
+#if defined(OS_FREERTOS_ESP8266)
+#include "esp_pthread.h"
+#endif
+
 #if defined(OS_LINUX) || defined(OS_ANDROID)
 #include <sys/prctl.h>
 #endif
@@ -66,7 +70,7 @@ int os_thread_sched_priority(enum os_thread_prio prio_type)
 #if defined(OS_FREERTOS_ESP8266)
     switch (prio_type) {
     case OS_THREAD_PRIO_REALTIME:
-        return 11;
+        return 23;
     case OS_THREAD_PRIO_HIGH:
         return 8;
     case OS_THREAD_PRIO_NORMAL:
@@ -104,7 +108,12 @@ os_thread os_thread_create(struct os_thread_attr *attr, void *(*cb)(void *arg), 
 
 #if defined(OS_RTOS)
     if (attr != NULL) {
-#if !defined(OS_FREERTOS_ESP8266) // todo: pthread_attr_setschedparam NOT supported yet
+#if defined(OS_FREERTOS_ESP8266)
+        esp_pthread_cfg_t cfg = esp_pthread_get_default_config();
+        cfg.prio = os_thread_sched_priority(attr->priority);
+        cfg.thread_name = attr->name;
+        esp_pthread_set_cfg(&cfg);
+#else
         struct sched_param tsched;
         tsched.sched_priority = os_thread_sched_priority(attr->priority);
         pthread_attr_setschedparam(&tattr, &tsched);

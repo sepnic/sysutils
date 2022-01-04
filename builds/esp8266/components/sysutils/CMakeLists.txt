@@ -1,7 +1,7 @@
 set(TOPDIR ../../../..)
 
 set(COMPONENT_REQUIRES)
-set(COMPONENT_PRIV_REQUIRES mbedtls)
+set(COMPONENT_PRIV_REQUIRES pthread mbedtls)
 
 set(COMPONENT_ADD_INCLUDEDIRS ${TOPDIR}/include)
 
