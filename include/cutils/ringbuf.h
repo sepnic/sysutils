@@ -193,6 +193,10 @@ int rb_get_threshold(ringbuf_handle rb);
  */
 bool rb_reach_threshold(ringbuf_handle rb);
 
+bool rb_is_full(ringbuf_handle rb);
+
+bool rb_is_done_write(ringbuf_handle rb);
+
 #ifdef __cplusplus
 }
 #endif

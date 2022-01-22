@@ -20,7 +20,7 @@
 #include <pthread.h>
 #include "osal/os_misc.h"
 
-#if defined(OS_FREERTOS_ESP8266)
+#if defined(OS_FREERTOS_ESP8266) || defined(OS_FREERTOS_ESP32)
 #include "esp_system.h"
 int os_random(void *buffer, unsigned int size)
 {

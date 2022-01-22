@@ -52,7 +52,7 @@
 
 /* check RTOS */
 #if !defined(OS_RTOS)
-#if defined(OS_FREERTOS_ESP8266)
+#if defined(OS_FREERTOS_ESP8266) || defined(OS_FREERTOS_ESP32)
 #define OS_RTOS 1
 #endif
 #endif

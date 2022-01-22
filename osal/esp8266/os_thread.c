@@ -20,7 +20,7 @@
 #include <pthread.h>
 #include "osal/os_thread.h"
 
-#if defined(OS_FREERTOS_ESP8266)
+#if defined(OS_FREERTOS_ESP8266) || defined(OS_FREERTOS_ESP32)
 #include "esp_pthread.h"
 #endif
 
@@ -67,7 +67,7 @@ static void *os_thread_common_entry(void *arg)
 
 int os_thread_sched_priority(enum os_thread_prio prio_type)
 {
-#if defined(OS_FREERTOS_ESP8266)
+#if defined(OS_FREERTOS_ESP8266) || defined(OS_FREERTOS_ESP32)
     switch (prio_type) {
     case OS_THREAD_PRIO_REALTIME:
         return 23;
@@ -108,7 +108,7 @@ os_thread os_thread_create(struct os_thread_attr *attr, void *(*cb)(void *arg), 
 
 #if defined(OS_RTOS)
     if (attr != NULL) {
-#if defined(OS_FREERTOS_ESP8266)
+#if defined(OS_FREERTOS_ESP8266) || defined(OS_FREERTOS_ESP32)
         esp_pthread_cfg_t cfg = esp_pthread_get_default_config();
         cfg.prio = os_thread_sched_priority(attr->priority);
         cfg.thread_name = attr->name;
@@ -148,7 +148,7 @@ create_out:
 
 os_thread os_thread_self()
 {
-#if defined(OS_FREERTOS_ESP8266)
+#if defined(OS_FREERTOS_ESP8266) || defined(OS_FREERTOS_ESP32)
     // todo: pthread_self NOT supported yet
     return NULL;
 #else
@@ -215,7 +215,7 @@ os_cond os_cond_create()
     pthread_cond_t *cond = calloc(1, sizeof(pthread_cond_t));
     if (cond == NULL)
         return NULL;
-#if defined(OS_FREERTOS_ESP8266)
+#if defined(OS_FREERTOS_ESP8266) || defined(OS_FREERTOS_ESP32)
     // todo: pthread_condattr_setclock NOT supported yet
     int ret = pthread_cond_init(cond, NULL);
 #else

@@ -82,6 +82,8 @@
 #define rb_set_threshold               SYSUTILS_CUTILS_NAMESPACE(rb_set_threshold)
 #define rb_get_threshold               SYSUTILS_CUTILS_NAMESPACE(rb_get_threshold)
 #define rb_reach_threshold             SYSUTILS_CUTILS_NAMESPACE(rb_reach_threshold)
+#define rb_is_full                     SYSUTILS_CUTILS_NAMESPACE(rb_is_full)
+#define rb_is_done_write               SYSUTILS_CUTILS_NAMESPACE(rb_is_done_write)
 
 // swtimer.h
 #define swtimer_create                 SYSUTILS_CUTILS_NAMESPACE(swtimer_create)
