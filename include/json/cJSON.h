@@ -20,7 +20,7 @@
   THE SOFTWARE.
 */
 
-/* Copyright (c) 2019-2021 Qinglong<sysu.zqlong@gmail.com> */
+/* Copyright (c) 2019-2022 Qinglong<sysu.zqlong@gmail.com> */
 
 #ifndef __SYSUTILS_CJSON_H__
 #define __SYSUTILS_CJSON_H__

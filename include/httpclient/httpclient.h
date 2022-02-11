@@ -16,7 +16,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/** Copyright (C) 2018-2021 Qinglong <sysu.zqlong@gmail.com> */
+/** Copyright (C) 2018-2022 Qinglong <sysu.zqlong@gmail.com> */
 
 #ifndef __SYSUTILS_HTTPCLIENT_H__
 #define __SYSUTILS_HTTPCLIENT_H__
