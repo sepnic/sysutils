@@ -66,7 +66,11 @@ void os_verbose(const char *tag, const char *format, ...)
 #include <stdarg.h>
 #include "osal/os_time.h"
 
-#define LOG_BUFFER_SIZE  1024
+#if defined(OS_RTOS)
+#define LOG_BUFFER_SIZE  512
+#else
+#define LOG_BUFFER_SIZE  2048
+#endif
 
 enum log_level {
     LOG_FATAL = 0,

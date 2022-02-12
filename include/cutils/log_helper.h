@@ -31,7 +31,11 @@ extern "C" {
     #define OS_LOGW(tag, format, ...) __android_log_print(ANDROID_LOG_WARN, tag, format, ##__VA_ARGS__)
     #define OS_LOGI(tag, format, ...) __android_log_print(ANDROID_LOG_INFO, tag, format, ##__VA_ARGS__)
     #define OS_LOGD(tag, format, ...) __android_log_print(ANDROID_LOG_DEBUG, tag, format, ##__VA_ARGS__)
+    #if defined(ENABLE_SYSUTILS_VERBOSE_LOG)
     #define OS_LOGV(tag, format, ...) __android_log_print(ANDROID_LOG_VERBOSE, tag, format, ##__VA_ARGS__)
+    #else
+    #define OS_LOGV(tag, format, ...)
+    #endif
 
 #else
     #define OS_LOGF(tag, format, ...) os_fatal(tag, format, ##__VA_ARGS__)
@@ -39,7 +43,11 @@ extern "C" {
     #define OS_LOGW(tag, format, ...) os_warning(tag, format, ##__VA_ARGS__)
     #define OS_LOGI(tag, format, ...) os_info(tag, format, ##__VA_ARGS__)
     #define OS_LOGD(tag, format, ...) os_debug(tag, format, ##__VA_ARGS__)
+    #if defined(ENABLE_SYSUTILS_VERBOSE_LOG)
     #define OS_LOGV(tag, format, ...) os_verbose(tag, format, ##__VA_ARGS__)
+    #else
+    #define OS_LOGV(tag, format, ...)
+    #endif
 #endif
 
 #ifdef __cplusplus
