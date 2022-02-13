@@ -26,7 +26,7 @@
 #include <stdbool.h>
 #include "httpclient_namespace.h"
 
-// IMPORTANT NOTE: Set C_FLAGS with -DENABLE_HTTPCLIENT_MBEDTLS to enable https!!!
+// IMPORTANT NOTE: Set C_FLAGS with -DSYSUTILS_HAVE_MBEDTLS_ENABLED to enable https!!!
 
 #ifdef __cplusplus
 extern "C" {
@@ -91,7 +91,7 @@ typedef struct {
     char *auth_password;            /**< Password for basic authentication. */
     bool is_https;                   /**< Http connection? if 1, https; if 0, http. */
     int redirect_times;
-//#ifdef ENABLE_HTTPCLIENT_MBEDTLS
+//#ifdef SYSUTILS_HAVE_MBEDTLS_ENABLED
     char *server_cert;              /**< Server certification. */
     char *client_cert;              /**< Client certification. */
     char *client_pk;                /**< Client private key. */

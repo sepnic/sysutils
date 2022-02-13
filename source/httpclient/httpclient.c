@@ -40,7 +40,7 @@
 
 #define TAG "httpclient"
 
-//#define ENABLE_HTTPCLIENT_MBEDTLS
+//#define SYSUTILS_HAVE_MBEDTLS_ENABLED
 
 //#define ENABLE_HTTPCLIENT_DEBUG
 
@@ -72,7 +72,7 @@
 #define HTTPCLIENT_REDIRECT_MAX    5
 #define HTTPCLIENT_TIMEOUT_SEC     3
 
-#ifdef ENABLE_HTTPCLIENT_MBEDTLS
+#ifdef SYSUTILS_HAVE_MBEDTLS_ENABLED
 #include "mbedtls/debug.h"
 #include "mbedtls/net.h"
 #include "mbedtls/ssl.h"
@@ -265,7 +265,7 @@ static int httpclient_tcp_send_all(int sock_fd, char *data, int length)
     return written_len;
 }
 
-#ifdef ENABLE_HTTPCLIENT_MBEDTLS
+#ifdef SYSUTILS_HAVE_MBEDTLS_ENABLED
 #if 0
 static int httpclient_ssl_nonblock_recv( void *ctx, unsigned char *buf, size_t len )
 {
@@ -592,7 +592,7 @@ static int httpclient_send_header(httpclient_t *client, char *url, int method, h
 
     DBG("sending header: \n%s", send_buf);
 
-#ifdef ENABLE_HTTPCLIENT_MBEDTLS
+#ifdef SYSUTILS_HAVE_MBEDTLS_ENABLED
     if (client->is_https) {
         httpclient_ssl_t *ssl = (httpclient_ssl_t *)client->ssl;
         if (httpclient_ssl_send_all(&ssl->ssl_ctx, send_buf, len) != len) {
@@ -623,7 +623,7 @@ static int httpclient_send_userdata(httpclient_t *client, httpclient_data_t *cli
 
     if (client_data->post_buf && client_data->post_buf_len) {
         VERBOSE("post_buf: %s", client_data->post_buf);
-#ifdef ENABLE_HTTPCLIENT_MBEDTLS
+#ifdef SYSUTILS_HAVE_MBEDTLS_ENABLED
         if (client->is_https) {
             httpclient_ssl_t *ssl = (httpclient_ssl_t *)client->ssl;
             ret = httpclient_ssl_send_all(&ssl->ssl_ctx, client_data->post_buf, client_data->post_buf_len);
@@ -657,7 +657,7 @@ static int httpclient_recv(httpclient_t *client, char *buf, int min_len, int max
 
     while (readLen < max_len && readLen < min_len) {
         buf[readLen] = '\0';
-#ifdef ENABLE_HTTPCLIENT_MBEDTLS
+#ifdef SYSUTILS_HAVE_MBEDTLS_ENABLED
         if (client->is_https) {
             httpclient_ssl_t *ssl = (httpclient_ssl_t *)client->ssl;
         #if 0
@@ -1089,14 +1089,14 @@ HTTPCLIENT_RESULT httpclient_connect(httpclient_t *client, char *url)
     ret = HTTPCLIENT_ERROR_CONN;
     client->socket = -1;
     if (client->is_https) {
-#ifdef ENABLE_HTTPCLIENT_MBEDTLS
+#ifdef SYSUTILS_HAVE_MBEDTLS_ENABLED
         ret = httpclient_ssl_conn(client, host);
         if (ret == 0) {
             httpclient_ssl_t *ssl = (httpclient_ssl_t *)client->ssl;
             client->socket = ssl->net_ctx.fd;
         }
 #else
-        ERR("https not supported, please set C_FLAGS with ENABLE_HTTPCLIENT_MBEDTLS");
+        ERR("https not supported, please set C_FLAGS with SYSUTILS_HAVE_MBEDTLS_ENABLED");
 #endif
     } else {
         ret = httpclient_conn(client, host);
@@ -1173,7 +1173,7 @@ HTTPCLIENT_RESULT httpclient_recv_response(httpclient_t *client, httpclient_data
 
 void httpclient_close(httpclient_t *client)
 {
-#ifdef ENABLE_HTTPCLIENT_MBEDTLS
+#ifdef SYSUTILS_HAVE_MBEDTLS_ENABLED
     if (client->is_https) {
         httpclient_ssl_close(client);
     } else

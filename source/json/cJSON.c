@@ -156,7 +156,7 @@ typedef struct internal_hooks
     void *(CJSON_CDECL *reallocate)(void *pointer, size_t size);
 } internal_hooks;
 
-#if defined(ENABLE_MEMORY_LEAK_DETECT) || defined(ENABLE_MEMORY_OVERFLOW_DETECT)
+#if defined(SYSUTILS_HAVE_MEMORY_LEAK_DETECT_ENABLED) || defined(SYSUTILS_HAVE_MEMORY_OVERFLOW_DETECT_ENABLED)
 #include "cutils/memory_helper.h"
 static void * CJSON_CDECL internal_malloc(size_t size)
 {

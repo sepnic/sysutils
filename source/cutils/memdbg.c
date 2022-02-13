@@ -87,7 +87,7 @@ static void memnode_print(struct memnode *node, const char *info)
            node->when.hour, node->when.min, node->when.sec, node->when.msec);
 }
 
-#if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
+#if defined(SYSUTILS_HAVE_MEMORY_OVERFLOW_DETECT_ENABLED)
 static void *memory_boundary_malloc(unsigned int size)
 {
     unsigned int real_size = size + 2*MEMORY_BOUNDARY_SIZE;
@@ -163,7 +163,7 @@ static struct memlist *memlist_init()
 void *memdbg_malloc(unsigned int size, const char *file, const char *func, int line)
 {
     void *ptr;
-#if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
+#if defined(SYSUTILS_HAVE_MEMORY_OVERFLOW_DETECT_ENABLED)
         ptr = memory_boundary_malloc(size);
 #else
         ptr = os_malloc(size);
@@ -250,7 +250,7 @@ void *memdbg_realloc(void *ptr, unsigned int size, const char *file, const char 
             return prev_ptr;
         }
     } else {
-#if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
+#if defined(SYSUTILS_HAVE_MEMORY_OVERFLOW_DETECT_ENABLED)
         OS_LOGF(LOG_TAG, "%s:%s:%d: failed to create memlist instance, abort realloc",
                 file_name(file), func, line);
         return NULL;
@@ -280,7 +280,7 @@ void memdbg_free(void *ptr, const char *file, const char *func, int line)
             }
         }
         if (found) {
-#if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
+#if defined(SYSUTILS_HAVE_MEMORY_OVERFLOW_DETECT_ENABLED)
                 memory_boundary_verify(node);
 #endif
             list->free_count++;
@@ -294,7 +294,7 @@ void memdbg_free(void *ptr, const char *file, const char *func, int line)
         os_mutex_unlock(list->mutex);
     }
 
-#if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
+#if defined(SYSUTILS_HAVE_MEMORY_OVERFLOW_DETECT_ENABLED)
     memory_boundary_free(ptr);
 #else
     os_free(ptr);
@@ -328,7 +328,7 @@ void memdbg_dump_info()
         list_for_each(item, &list->list) {
             node = listnode_to_item(item, struct memnode, listnode);
             memnode_print(node, "Dump");
-#if defined(ENABLE_MEMORY_OVERFLOW_DETECT)
+#if defined(SYSUTILS_HAVE_MEMORY_OVERFLOW_DETECT_ENABLED)
             memory_boundary_verify(node);
 #endif
         }

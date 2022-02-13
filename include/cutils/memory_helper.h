@@ -20,14 +20,14 @@
 #include "osal/os_memory.h"
 #include "cutil_namespace.h"
 
-//#define ENABLE_MEMORY_LEAK_DETECT
-//#define ENABLE_MEMORY_OVERFLOW_DETECT
+//#define SYSUTILS_HAVE_MEMORY_LEAK_DETECT_ENABLED
+//#define SYSUTILS_HAVE_MEMORY_OVERFLOW_DETECT_ENABLED
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if !defined(ENABLE_MEMORY_LEAK_DETECT) && !defined(ENABLE_MEMORY_OVERFLOW_DETECT)
+#if !defined(SYSUTILS_HAVE_MEMORY_LEAK_DETECT_ENABLED) && !defined(SYSUTILS_HAVE_MEMORY_OVERFLOW_DETECT_ENABLED)
     #define OS_MALLOC(size) os_malloc((unsigned int)(size))
     #define OS_CALLOC(n, size) os_calloc((unsigned int)(n), (unsigned int)(size))
     #define OS_REALLOC(ptr, size) os_realloc((void *)(ptr), (unsigned int)(size))
